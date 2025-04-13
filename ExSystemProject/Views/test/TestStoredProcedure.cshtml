@@ -1,0 +1,65 @@
+﻿@{
+    ViewData["Title"] = "Stored Procedure Test";
+    Layout = "~/Views/Shared/MyLayout.cshtml";
+}
+
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h2>Stored Procedure Test - sp_GetAllBranches</h2>
+        </div>
+        <div class="card-body">
+            @if (ViewBag.Status == "Success")
+            {
+                <div class="alert alert-success">
+                    <i class="bi bi-check-circle-fill me-2"></i> @ViewBag.Message
+                </div>
+
+                @if (ViewBag.Count > 0)
+                {
+                    <h4>Branch List:</h4>
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Branch Name</th>
+                                <th>Location</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var branch in ViewBag.Data)
+                            {
+                                <tr>
+                                    <td>@branch.BranchId</td>
+                                    <td>@branch.BranchName</td>
+                                    <td>@branch.Location</td>
+                                    <td>@(branch.Isactive == true ? "Active" : "Inactive")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <div class="alert alert-warning">
+                        No branches found in the database.
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="alert alert-danger">
+                    <h4 class="alert-heading">Error!</h4>
+                    <p>@ViewBag.Message</p>
+                    <hr>
+                    <pre class="mb-0">@ViewBag.StackTrace</pre>
+                </div>
+            }
+        </div>
+        <div class="card-footer">
+            <a href="@Url.Action("Index", "test")" class="btn btn-primary">Back to Test Index</a>
+            <a href="@Url.Action("Index", "Home")" class="btn btn-secondary">Home</a>
+        </div>
+    </div>
+</div>
