@@ -1,3 +1,4 @@
+using ExSystemProject.MappinConfig;
 using ExSystemProject.Models;
 using ExSystemProject.UnitOfWorks;
 using Microsoft.EntityFrameworkCore;
@@ -13,6 +14,11 @@ namespace ExSystemProject
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
+
+            builder.Services.AddAutoMapper(cfg => {
+                cfg.AddProfile<MappingProfile>();
+            });
+
 
             builder.Services.AddDbContext<ExSystemTestContext>(option => option.UseSqlServer(builder.Configuration.GetConnectionString("sc")).UseLazyLoadingProxies());
             builder.Services.AddScoped<UnitOfWork>();
