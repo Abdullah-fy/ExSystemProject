@@ -1,0 +1,88 @@
+﻿@model ExSystemProject.DTOS.ExamDTO
+@{
+    ViewData["Title"] = "Create Exam";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">Create New Exam</h5>
+    </div>
+    <div class="card-body">
+        <form asp-action="Create" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="mb-3">
+                <label asp-for="ExamName" class="form-label">Exam Name</label>
+                <input asp-for="ExamName" class="form-control" required />
+                <span asp-validation-for="ExamName" class="text-danger"></span>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="CrsId" class="form-label">Course</label>
+                    <select asp-for="CrsId" class="form-select" asp-items="ViewBag.Courses" required>
+                        <option value="">-- Select Course --</option>
+                    </select>
+                    <span asp-validation-for="CrsId" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="InsId" class="form-label">Instructor</label>
+                    <select asp-for="InsId" class="form-select" asp-items="ViewBag.Instructors">
+                        <option value="">-- Select Instructor --</option>
+                    </select>
+                    <span asp-validation-for="InsId" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="StartTime" class="form-label">Start Time</label>
+                    <input asp-for="StartTime" class="form-control" type="datetime-local" />
+                    <span asp-validation-for="StartTime" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="EndTime" class="form-label">End Time</label>
+                    <input asp-for="EndTime" class="form-control" type="datetime-local" />
+                    <span asp-validation-for="EndTime" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="TotalMarks" class="form-label">Total Marks</label>
+                    <input asp-for="TotalMarks" class="form-control" type="number" min="1" value="100" />
+                    <span asp-validation-for="TotalMarks" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="PassedGrade" class="form-label">Passing Grade</label>
+                    <input asp-for="PassedGrade" class="form-control" type="number" min="1" max="100" value="60" />
+                    <span asp-validation-for="PassedGrade" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="mb-3 form-check">
+                <input asp-for="Isactive" class="form-check-input" checked />
+                <label asp-for="Isactive" class="form-check-label">Active</label>
+            </div>
+
+            <div class="d-flex justify-content-between">
+                <a asp-action="Index" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to List
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save"></i> Create
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

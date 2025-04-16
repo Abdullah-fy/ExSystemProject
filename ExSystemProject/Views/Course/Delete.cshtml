@@ -1,0 +1,53 @@
+﻿@model ExSystemProject.DTOS.CourseDTO
+@{
+    ViewData["Title"] = "Delete Course";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="card">
+    <div class="card-header bg-danger text-white">
+        <h5 class="mb-0">Delete Course</h5>
+    </div>
+    <div class="card-body">
+        <div class="alert alert-warning">
+            <h5 class="alert-heading">Warning!</h5>
+            <p>Are you sure you want to delete this course? This action cannot be undone and may affect related data.</p>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-body">
+                <h6>Course Details</h6>
+                <table class="table table-borderless">
+                    <tr>
+                        <th style="width: 30%">Course ID:</th>
+                        <td>@Model.CrsId</td>
+                    </tr>
+                    <tr>
+                        <th>Course Name:</th>
+                        <td>@Model.CrsName</td>
+                    </tr>
+                    <tr>
+                        <th>Duration (Hours):</th>
+                        <td>@(Model.CrsPeriod != null ? Model.CrsPeriod : "Not specified")</td>
+                    </tr>
+                    <tr>
+                        <th>Instructor:</th>
+                        <td>@(string.IsNullOrEmpty(Model.InstructorName) ? "Not Assigned" : Model.InstructorName)</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <form asp-action="Delete" method="post">
+            <input type="hidden" asp-for="CrsId" />
+            <div class="d-flex justify-content-between">
+                <a asp-action="Index" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to List
+                </a>
+                <button type="submit" class="btn btn-danger">
+                    <i class="bi bi-trash"></i> Delete Permanently
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

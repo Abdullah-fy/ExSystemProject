@@ -1,0 +1,289 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Admin Dashboard</title>
+    <link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="~/css/site.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+    <style>
+        :root {
+            --iti-red: #a41e22;
+            --iti-blue: #1e3a47;
+            --iti-light-gray: #f5f5f5;
+        }
+
+        /* Admin specific styles */
+        .admin-sidebar {
+            background-color: var(--iti-blue);
+            color: #fff;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 250px;
+            padding-top: 20px;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            transition: all 0.3s;
+            overflow-y: auto;
+        }
+
+        .admin-sidebar-header {
+            padding: 0 15px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .admin-logo {
+            height: 50px;
+            margin-right: 10px;
+        }
+
+        .admin-sidebar .admin-brand {
+            color: white;
+            font-size: 1.3rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+        }
+
+        .admin-sidebar .nav-item {
+            margin-bottom: 5px;
+        }
+
+        .admin-sidebar .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 10px 15px;
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+
+            .admin-sidebar .nav-link:hover {
+                color: white;
+                background: rgba(255, 255, 255, 0.1);
+            }
+
+            .admin-sidebar .nav-link.active {
+                color: white;
+                background-color: var(--iti-red);
+            }
+
+            .admin-sidebar .nav-link i {
+                margin-right: 10px;
+                width: 20px;
+                text-align: center;
+            }
+
+        .admin-sidebar .nav-heading {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            padding: 10px 15px;
+            margin-top: 15px;
+        }
+
+        .admin-content {
+            margin-left: 250px;
+            padding: 20px;
+            min-height: 100vh;
+            background-color: var(--iti-light-gray);
+            transition: all 0.3s;
+        }
+
+        .admin-topbar {
+            background-color: white;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            padding: 10px 20px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .admin-content .card {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: none;
+            margin-bottom: 20px;
+        }
+
+        .admin-content .card-header {
+            background-color: white;
+            border-bottom: 2px solid var(--iti-red);
+            font-weight: 600;
+        }
+
+        .admin-content .btn-primary {
+            background-color: var(--iti-red);
+            border-color: var(--iti-red);
+        }
+
+            .admin-content .btn-primary:hover {
+                background-color: #901a1e;
+                border-color: #901a1e;
+            }
+
+        .admin-content .btn-outline-primary {
+            color: var(--iti-red);
+            border-color: var(--iti-red);
+        }
+
+            .admin-content .btn-outline-primary:hover {
+                background-color: var(--iti-red);
+                color: white;
+            }
+
+        /* Responsive adjustments */
+        @@media (max-width: 992px) {
+            .admin-sidebar
+
+        {
+            width: 70px;
+        }
+
+        .admin-sidebar .admin-brand span,
+        .admin-sidebar .nav-link span,
+        .admin-sidebar .nav-heading {
+            display: none;
+        }
+
+        .admin-sidebar .nav-link i {
+            margin-right: 0;
+        }
+
+        .admin-content {
+            margin-left: 70px;
+        }
+
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-sidebar">
+        <div class="admin-sidebar-header">
+            <a class="admin-brand" href="/Admin">
+                <img src="~/images/iti-logo.png" alt="ITI Logo" class="admin-logo" onerror="this.src='https://placehold.co/100x50?text=ITI+Logo&bg=1e3a47&fc=ffffff'">
+                <span>Admin Panel</span>
+            </a>
+        </div>
+
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link @(ViewContext.RouteData.Values["controller"].ToString() == "Admin" && ViewContext.RouteData.Values["action"].ToString() == "Index" ? "active" : "")" href="/Admin">
+                    <i class="bi bi-speedometer2"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+
+            <div class="nav-heading">Course Management</div>
+            <li class="nav-item">
+                <a class="nav-link @(ViewContext.RouteData.Values["controller"].ToString() == "Course" ? "active" : "")" href="/Course">
+                    <i class="bi bi-book"></i>
+                    <span>Courses</span>
+                </a>
+            </li>
+
+            <div class="nav-heading">Exam Management</div>
+            <li class="nav-item">
+                <a class="nav-link @(ViewContext.RouteData.Values["controller"].ToString() == "Exam" ? "active" : "")" href="/Exam">
+                    <i class="bi bi-file-earmark-text"></i>
+                    <span>Exams</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @(ViewContext.RouteData.Values["controller"].ToString() == "QuestionBank" ? "active" : "")" href="/QuestionBank">
+                    <i class="bi bi-question-circle"></i>
+                    <span>Question Bank</span>
+                </a>
+            </li>
+
+            <div class="nav-heading">User Management</div>
+            <li class="nav-item">
+                <a class="nav-link" href="#">
+                    <i class="bi bi-people"></i>
+                    <span>Students</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">
+                    <i class="bi bi-person-badge"></i>
+                    <span>Instructors</span>
+                </a>
+            </li>
+
+            <div class="nav-heading">System Setup</div>
+            <li class="nav-item">
+                <a class="nav-link" href="#">
+                    <i class="bi bi-building"></i>
+                    <span>Branches</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">
+                    <i class="bi bi-diagram-3"></i>
+                    <span>Tracks</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">
+                    <i class="bi bi-file-earmark-bar-graph"></i>
+                    <span>Reports</span>
+                </a>
+            </li>
+        </ul>
+
+        <ul class="nav flex-column" style="position: absolute; bottom: 20px; width: 100%;">
+            <li class="nav-item">
+                <a class="nav-link" href="/">
+                    <i class="bi bi-box-arrow-left"></i>
+                    <span>Back to Site</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <form method="post" action="/Account/Logout">
+                    <button type="submit" class="nav-link border-0 bg-transparent">
+                        <i class="bi bi-door-open"></i>
+                        <span>Logout</span>
+                    </button>
+                </form>
+            </li>
+        </ul>
+    </div>
+
+    <div class="admin-content">
+        <div class="admin-topbar">
+            <div>
+                <h4 class="mb-0">@ViewData["Title"]</h4>
+            </div>
+            <div class="d-flex align-items-center">
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-person-circle me-1"></i> Admin
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                        <li><a class="dropdown-item" href="#">Profile</a></li>
+                        <li><a class="dropdown-item" href="#">Settings</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form method="post" action="/Account/Logout">
+                                <button type="submit" class="dropdown-item">Logout</button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <main role="main">
+            @RenderBody()
+        </main>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

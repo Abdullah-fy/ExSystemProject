@@ -1,0 +1,170 @@
+﻿@model ExSystemProject.DTOS.QuestionBankDTO
+@{
+    ViewData["Title"] = "Create Question";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">Create New Question</h5>
+    </div>
+    <div class="card-body">
+        <form asp-action="Create" method="post" id="questionForm">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" name="Isactive" value="true" />
+
+            @if (ViewBag.ExamId != null)
+            {
+                <input type="hidden" asp-for="ExamId" value="@ViewBag.ExamId" />
+            }
+            else
+            {
+                <div class="mb-3">
+                    <label asp-for="ExamId" class="form-label">Exam</label>
+                    <select asp-for="ExamId" class="form-select" asp-items="ViewBag.Exams">
+                        <option value="">-- Select Exam (Optional) --</option>
+                    </select>
+                    <span asp-validation-for="ExamId" class="text-danger"></span>
+                </div>
+            }
+
+            <div class="mb-3">
+                <label asp-for="QuesText" class="form-label">Question Text</label>
+                <textarea asp-for="QuesText" class="form-control" rows="3" required></textarea>
+                <span asp-validation-for="QuesText" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="QuesType" class="form-label">Question Type</label>
+                <select asp-for="QuesType" class="form-select" id="questionType">
+                    <option value="MCQ">Multiple Choice</option>
+                    <option value="TF">True/False</option>
+                </select>
+                <span asp-validation-for="QuesType" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="QuesScore" class="form-label">Score</label>
+                <input asp-for="QuesScore" class="form-control" type="number" min="1" required />
+                <span asp-validation-for="QuesScore" class="text-danger"></span>
+            </div>
+
+            <div id="mcqChoices">
+                <h6>Choices</h6>
+                <p class="text-muted">Add choices for the question (for MCQ, at least 2 choices required; for True/False questions, this will be automated)</p>
+
+                <div id="choicesContainer">
+                    @for (int i = 0; i < 4; i++)
+                    {
+                        <div class="card mb-2 choice-item">
+                            <div class="card-body">
+                                <div class="row align-items-center">
+                                    <div class="col">
+                                        <div class="mb-2">
+                                            <label class="form-label">Choice Text</label>
+                                            <input type="text" name="Choices[@i].ChoiceText" class="form-control choice-text" required />
+                                        </div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <div class="form-check">
+                                            <input type="radio" name="correctChoice" value="@i" class="form-check-input correct-choice" @(i == 0 ? "checked" : "") />
+                                            <input type="hidden" name="Choices[@i].IsCorrect" class="is-correct-input" value="@(i == 0 ? "true" : "false")" />
+                                            <label class="form-check-label">Correct Answer</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div id="tfChoices" style="display: none;">
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="tfValue" id="tfTrue" value="true" checked>
+                            <label class="form-check-label" for="tfTrue">True</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="tfValue" id="tfFalse" value="false">
+                            <label class="form-check-label" for="tfFalse">False</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between mt-4">
+                <a asp-action="Index" asp-route-examId="@ViewBag.ExamId" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to List
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save"></i> Create
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        $(document).ready(function() {
+            // Handle question type change
+            $('#questionType').change(function() {
+                if ($(this).val() === 'TF') {
+                    $('#mcqChoices').hide();
+                    $('#tfChoices').show();
+                } else {
+                    $('#mcqChoices').show();
+                    $('#tfChoices').hide();
+                }
+            });
+
+            // Handle correct choice selection for MCQ
+            $('.correct-choice').change(function() {
+                $('.is-correct-input').val('false');
+                $(this).closest('.choice-item').find('.is-correct-input').val('true');
+            });
+
+            // Form submission handler
+            $('#questionForm').submit(function(e) {
+                if ($('#questionType').val() === 'TF') {
+                    // Handle TF questions - create two choices (True and False)
+                    $('#choicesContainer').empty();
+
+                    // Add True choice
+                    let isTrue = $('#tfTrue').is(':checked');
+                    $('#choicesContainer').append(`
+                        <input type="hidden" name="Choices[0].ChoiceText" value="True" />
+                        <input type="hidden" name="Choices[0].IsCorrect" value="${isTrue}" />
+                    `);
+
+                    // Add False choice
+                    $('#choicesContainer').append(`
+                        <input type="hidden" name="Choices[1].ChoiceText" value="False" />
+                        <input type="hidden" name="Choices[1].IsCorrect" value="${!isTrue}" />
+                    `);
+                }
+
+                // Validate MCQ has at least 2 choices with text
+                if ($('#questionType').val() === 'MCQ') {
+                    let validChoices = 0;
+                    $('.choice-text').each(function() {
+                        if ($(this).val().trim() !== '') {
+                            validChoices++;
+                        }
+                    });
+
+                    if (validChoices < 2) {
+                        alert('MCQ questions must have at least 2 valid choices.');
+                        e.preventDefault();
+                        return false;
+                    }
+                }
+            });
+        });
+    </script>
+}
