@@ -23,6 +23,8 @@
             top: 0;
             left: 0;
             width: 250px;
+            display: flex;
+            flex-direction: column;
             padding-top: 20px;
             box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
             z-index: 1000;
@@ -169,7 +171,7 @@
             </a>
         </div>
 
-        <ul class="nav flex-column">
+        <ul class="nav flex-column flex-grow-1">
             <li class="nav-item">
                 <a class="nav-link @(ViewContext.RouteData.Values["controller"].ToString() == "Admin" && ViewContext.RouteData.Values["action"].ToString() == "Index" ? "active" : "")" href="/Admin">
                     <i class="bi bi-speedometer2"></i>
@@ -234,7 +236,7 @@
             </li>
         </ul>
 
-        <ul class="nav flex-column" style="position: absolute; bottom: 20px; width: 100%;">
+        <ul class="nav flex-column mt-auto">
             <li class="nav-item">
                 <a class="nav-link" href="/">
                     <i class="bi bi-box-arrow-left"></i>
