@@ -1,0 +1,158 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+
+*@
+@{
+    ViewBag.BranchId = Model.BranchId;
+}
+<div class="container mt-4">
+    <!-- Branch Details Title with Underline -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex align-items-center pb-2 border-bottom border-3 border-primary">
+                <h2 class="mb-0">Branch Details</h2>
+            </div>
+        </div>
+    </div>
+
+    <!-- Branch Info Card with Shadow -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3 mb-md-0">
+                                <h5 class="text-muted">Branch Id</h5>
+                                <h4>@Model.BranchId</h4>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3 mb-md-0">
+                                <h5 class="text-muted">Branch Name</h5>
+                                <h4>@Model.BranchName</h4>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3 mb-md-0">
+                                <h5 class="text-muted">Location</h5>
+                                <h4>@Model.Location</h4>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3 mb-md-0">
+                                <h5 class="text-muted">Track Count</h5>
+                                <h4 class="d-flex align-items-center">
+                                    <span class="badge bg-primary rounded-pill me-2">@ViewBag.tracks.Count</span>
+                                    Tracks
+                                </h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tracks Title with Action Button -->
+    <div class="row mb-3">
+        <div class="col-6">
+            <h3>Tracks</h3>
+        </div>
+        <div class="col-6 text-end">
+            <a asp-action="Create" asp-controller="Track" asp-route-branchId="@Model.BranchId" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Add New Track
+            </a>
+              <a asp-action="CreateTrack" asp-route-branchId="@Model.BranchId" class="btn btn-outline-success">
+                <i class="bi bi-plus-circle"></i> Assign Manager
+            </a>
+        </div>
+    </div>
+
+    <!-- Tracks List -->
+    <div class="row">
+        <div class="col-12">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Name</th>
+                            <th scope="col">Duration</th>
+                            <th scope="col">Intake</th>
+                            <th scope="col">Is Active</th>
+                            <th scope="col">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (ViewBag.tracks != null)
+                        {
+                            @foreach (var track in Model.Tracks)
+                            {
+                                <tr>
+                                    <td>@track.TrackId</td>
+                                    <td>@track.TrackName</td>
+                                    <td>@track.TrackDuration M</td>
+                                    <td>@track.TrackIntake</td>
+                                    <td>
+                                        @if (track.IsActive == true)
+                                        {
+                                            <span class="badge bg-success">Active</span>
+                                        }
+                                        else if (track.IsActive == false)
+                                        {
+                                            <span class="badge bg-danger text-white">Inactive</span>
+                                        }
+                                    </td>
+                                    
+                                    <td>
+                                        @* <a class="btn btn-secondary" asp-action="details" asp-route-id=@track.TrackId>Details</a> *@
+                                        <a class="btn btn-info m-1" asp-action="edit" asp-controller="Track" asp-route-id=@track.TrackId>Edit</a>
+                                        <a class="btn btn-danger m-1" asp-action="delete" asp-controller="Track" asp-route-id=@track.TrackId>Delete</a>
+                                    </td>
+
+                                        <!-- Delete Confirmation Modal -->
+                                    @*     <div class="modal fade" id="deleteModal@(track.TrackId)" tabindex="-1" aria-labelledby="deleteModalLabel@(track.TrackId)" aria-hidden="true"> *@
+                                    @*         <div class="modal-dialog"> *@
+                                    @*             <div class="modal-content"> *@
+                                    @*                 <div class="modal-header"> *@
+                                    @*                     <h5 class="modal-title" id="deleteModalLabel@(track.TrackId)">Confirm Delete</h5> *@
+                                    @*                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button> *@
+                                    @*                 </div> *@
+                                    @*                 <div class="modal-body"> *@
+                                    @*                     Are you sure you want to delete track "@track.TrackName"? *@
+                                    @*                 </div> *@
+                                    @*                 <div class="modal-footer"> *@
+                                    @*                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button> *@
+                                    @*                     <a href="@Url.Action("DeleteTrack", new { id = track.TrackId })" class="btn btn-danger">Delete</a> *@
+                                    @*                 </div> *@
+                                    @*             </div> *@
+                                    @*         </div> *@
+                                    @*     </div> *@
+                                    @* </td> *@
+
+
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="6" class="text-center py-3">No tracks found for this branch.</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Back Button -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Branches
+            </a>
+        </div>
+    </div>
+</div>

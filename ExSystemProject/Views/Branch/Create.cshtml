@@ -1,0 +1,65 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    // var insList = new SelectList(ViewBag.instructors, "InsId", "User.username");
+}
+
+@model Branch
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <!-- Title with Underline -->
+            <div class="d-flex align-items-center pb-2 mb-4 border-bottom border-3 border-primary">
+                <h2 class="mb-0">Create New Branch</h2>
+            </div>
+
+            <!-- Form in a Card with Shadow -->
+            <div class="card shadow">
+                <div class="card-body p-4">
+                    <form asp-action="Create">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="BranchName" class="form-label">Branch Name</label>
+                            <input asp-for="BranchName" class="form-control" />
+                            <span asp-validation-for="BranchName" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Location" class="form-label">Location</label>
+                            <input asp-for="Location" class="form-control" />
+                            <span asp-validation-for="Location" class="text-danger"></span>
+                        </div>
+
+                        @* <div class="mb-3"> *@
+                        @*     <label class="form-label">Branch Manager</label> <br /> *@
+                        @*     <select class="form-select" aria-label="Default select example" name="managerId"> *@
+                        @*         <option selected value="0">Select Manager</option> *@
+                        @*         @foreach (var item in ViewBag.instructors) *@
+                        @*         { *@
+                        @*             <option value="item.UserId">@item.Username</option> *@
+                        @*         } *@
+                        @*     </select> *@
+                        @* </div> *@
+                      
+                        <div class="d-flex justify-content-between mt-4">
+                            <a asp-action="Index" class="btn btn-outline-secondary">Back to Branches</a>
+                            <button type="submit" class="btn btn-primary">Create</button>
+                        </div>
+                    </form>
+
+                    @if (ViewBag.SuccessMessage != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            @ViewBag.SuccessMessage
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
