@@ -1,64 +1,124 @@
-﻿@model Track
+﻿@model ExSystemProject.Models.Track
+@{
+    ViewData["Title"] = "Edit Track";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
 
 <div class="container mt-4">
     <div class="row justify-content-center">
         <div class="col-md-8">
             <!-- Title with Underline -->
             <div class="d-flex align-items-center pb-2 mb-4 border-bottom border-3 border-primary">
-                <h3 class="mb-0">Update Track <span class="h2 lead">@Model.TrackName</span> </h3>
+                <h3 class="mb-0">
+                    <i class="bi bi-pencil-square me-2 text-primary"></i>
+                    Update Track <span class="text-primary fw-bold">@Model.TrackName</span>
+                </h3>
             </div>
 
             <!-- Form in a Card with Shadow -->
             <div class="card shadow">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 text-primary">Track Information</h5>
+                </div>
                 <div class="card-body p-4">
                     <form asp-action="Edit">
                         <input type="hidden" asp-for="TrackId" />
                         <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
-                        <div class="mb-3">
-                            <label asp-for="TrackName" class="form-label">Track Name</label>
-                            <input asp-for="TrackName" class="form-control" />
+                        <div class="mb-4">
+                            <label asp-for="TrackName" class="form-label">Track Name <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-tag"></i></span>
+                                <input asp-for="TrackName" class="form-control" placeholder="Enter track name" required />
+                            </div>
                             <span asp-validation-for="TrackName" class="text-danger"></span>
                         </div>
 
-                        <div class="mb-3">
-                            <label asp-for="TrackDuration" class="form-label">Duration: 9M or 4M</label>
-                            <input asp-for="TrackDuration" class="form-control" />
+                        <div class="mb-4">
+                            <label asp-for="TrackDuration" class="form-label">Duration <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-calendar3"></i></span>
+                                <input asp-for="TrackDuration" class="form-control" placeholder="Enter duration (e.g., 9)" required />
+                                <span class="input-group-text">Months</span>
+                            </div>
+                            <small class="form-text text-muted">Common values are 4 or 9 months</small>
                             <span asp-validation-for="TrackDuration" class="text-danger"></span>
                         </div>
-                        <div class="mb-3">
-                            <label asp-for="TrackIntake" class="form-label">Intake</label>
-                            <input asp-for="TrackIntake" class="form-control" />
+
+                        <div class="mb-4">
+                            <label asp-for="TrackIntake" class="form-label">Intake <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-people"></i></span>
+                                <input asp-for="TrackIntake" class="form-control" placeholder="Enter intake number (e.g., 43)" required />
+                            </div>
                             <span asp-validation-for="TrackIntake" class="text-danger"></span>
                         </div>
 
-                        <div class="mb-3">
-                            <label class="form-label">Branch</label> <br />
-                            <select class="form-select" aria-label="Default select example" asp-for="BranchId">
-                                <option selected value="0">Select Branch</option>
-                                @foreach (var item in ViewBag.Branches)
-                                {
-                                    <option value="@item.BranchId">@item.BranchName</option>
-                                }
-                            </select>
+                        <div class="mb-4">
+                            <label class="form-label">Branch <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-building"></i></span>
+                                <select class="form-select" asp-for="BranchId" required>
+                                    <option value="0">-- Select Branch --</option>
+                                    @foreach (var item in ViewBag.Branches)
+                                    {
+                                        if (item.BranchId == Model.BranchId)
+                                        {
+                                            <option value="@item.BranchId" selected>@item.BranchName</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@item.BranchId">@item.BranchName</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                            <small class="form-text text-muted">Select the branch this track belongs to</small>
                         </div>
 
-                        <div class="d-flex justify-content-between mt-4">
-                            <a asp-action="Index" asp-controller="Branch" class="btn btn-outline-secondary">Back to Branch</a>
-                            <button type="submit" class="btn btn-primary">Update</button>
+                        <div class="mb-4">
+                            <label asp-for="IsActive" class="form-label">Status</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-toggle-on"></i></span>
+                                <select class="form-select" asp-for="IsActive">
+                                    <option value="true">Active</option>
+                                    <option value="false">Inactive</option>
+                                </select>
+                            </div>
+                            <small class="form-text text-muted">
+                                <i class="bi bi-info-circle"></i> Setting a track to inactive will affect student assignments.
+                            </small>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-between mt-4">
+                            <a asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-lg"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save"></i> Update Track
+                            </button>
                         </div>
                     </form>
-
-                    @if (ViewBag.SuccessMessage != null)
-                    {
-                        <div class="alert alert-success alert-dismissible fade show" role="alert">
-                            @ViewBag.SuccessMessage
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                    }
-
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        $(document).ready(function () {
+            // Validate branch selection on form submit
+            $("form").submit(function (e) {
+                if ($("#BranchId").val() == "0") {
+                    e.preventDefault();
+                    alert("Please select a branch for this track.");
+                    $("#BranchId").focus();
+                }
+            });
+        });
+    </script>
+}
