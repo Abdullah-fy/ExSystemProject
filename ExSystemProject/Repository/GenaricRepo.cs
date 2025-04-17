@@ -26,7 +26,18 @@ namespace ExSystemProject.Repository
         public void delete(int id)
         {
             var x = getById(id);
-            _context.Set<TEntity>().Remove(x);
+            //_context.Set<TEntity>().Remove(x);
+
+            if (x != null)
+            {
+                //x.Isactive = 0;
+                var prop = typeof(TEntity).GetProperty("Isactive");
+                if (prop != null)
+                {
+                    prop.SetValue(x, 0);
+                    _context.Set<TEntity>().Update(x);
+                }
+            }
         }
 
         public List<TEntity> getAll()

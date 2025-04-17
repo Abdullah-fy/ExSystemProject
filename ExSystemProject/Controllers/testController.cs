@@ -1,8 +1,10 @@
 ﻿using ExSystemProject.UnitOfWorks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ExSystemProject.Controllers
 {
+    [Authorize(Roles = "instructor")]
     public class testController : Controller
     {
         public UnitOfWork unit { get; }

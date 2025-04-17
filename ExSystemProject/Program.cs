@@ -1,8 +1,10 @@
 using ExSystemProject.MappinConfig;
 using ExSystemProject.Models;
 using ExSystemProject.UnitOfWorks;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace ExSystemProject
 {
@@ -19,9 +21,16 @@ namespace ExSystemProject
                 cfg.AddProfile<MappingProfile>();
             });
 
+            builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(s =>
+            {
+                s.LoginPath = "/Account/Login";
+                s.LogoutPath = "/Account/Login";
+                //s.AccessDeniedPath = "/Account/AccessDenied";
+                s.ExpireTimeSpan = TimeSpan.FromDays(7);
 
+            });
             builder.Services.AddDbContext<ExSystemTestContext>(option => option.UseSqlServer(builder.Configuration.GetConnectionString("sc")).UseLazyLoadingProxies());
-            builder.Services.AddScoped<UnitOfWork>();
+            builder.Services.AddScoped<UnitOfWork>(); // i could apply here the Dependancy Inversion instead of injection
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -36,7 +45,7 @@ namespace ExSystemProject
             app.UseStaticFiles();
 
             app.UseRouting();
-
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.MapControllerRoute(

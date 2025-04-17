@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Microsoft.VisualBasic;
 
 namespace ExSystemProject.Models;
 
@@ -9,7 +10,7 @@ public partial class Student
 
     public int? TrackId { get; set; }
 
-    public DateOnly? EnrollmentDate { get; set; }
+    public DateTime? EnrollmentDate { get; set; }
 
     public int? UserId { get; set; }
 
