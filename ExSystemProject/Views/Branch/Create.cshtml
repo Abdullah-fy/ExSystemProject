@@ -1,65 +1,69 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model ExSystemProject.Models.Branch
 @{
-    // var insList = new SelectList(ViewBag.instructors, "InsId", "User.username");
+    ViewData["Title"] = "Create Branch";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
-
-@model Branch
 
 <div class="container mt-4">
     <div class="row justify-content-center">
         <div class="col-md-8">
             <!-- Title with Underline -->
             <div class="d-flex align-items-center pb-2 mb-4 border-bottom border-3 border-primary">
-                <h2 class="mb-0">Create New Branch</h2>
+                <h2 class="mb-0"><i class="bi bi-building-add me-2"></i> Create New Branch</h2>
             </div>
 
             <!-- Form in a Card with Shadow -->
             <div class="card shadow">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 text-primary">Branch Information</h5>
+                </div>
                 <div class="card-body p-4">
                     <form asp-action="Create">
                         <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
-                        <div class="mb-3">
-                            <label asp-for="BranchName" class="form-label">Branch Name</label>
-                            <input asp-for="BranchName" class="form-control" />
+                        <div class="mb-4">
+                            <label asp-for="BranchName" class="form-label">Branch Name <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-building"></i></span>
+                                <input asp-for="BranchName" class="form-control" placeholder="Enter branch name" required />
+                            </div>
                             <span asp-validation-for="BranchName" class="text-danger"></span>
                         </div>
 
-                        <div class="mb-3">
-                            <label asp-for="Location" class="form-label">Location</label>
-                            <input asp-for="Location" class="form-control" />
+                        <div class="mb-4">
+                            <label asp-for="Location" class="form-label">Location <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
+                                <input asp-for="Location" class="form-control" placeholder="Enter branch location" required />
+                            </div>
                             <span asp-validation-for="Location" class="text-danger"></span>
                         </div>
 
-                        @* <div class="mb-3"> *@
-                        @*     <label class="form-label">Branch Manager</label> <br /> *@
-                        @*     <select class="form-select" aria-label="Default select example" name="managerId"> *@
-                        @*         <option selected value="0">Select Manager</option> *@
-                        @*         @foreach (var item in ViewBag.instructors) *@
-                        @*         { *@
-                        @*             <option value="item.UserId">@item.Username</option> *@
-                        @*         } *@
-                        @*     </select> *@
-                        @* </div> *@
-                      
-                        <div class="d-flex justify-content-between mt-4">
-                            <a asp-action="Index" class="btn btn-outline-secondary">Back to Branches</a>
-                            <button type="submit" class="btn btn-primary">Create</button>
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-between mt-4">
+                            <a asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i> Back to Branches
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save"></i> Create Branch
+                            </button>
                         </div>
                     </form>
 
                     @if (ViewBag.SuccessMessage != null)
                     {
-                        <div class="alert alert-success alert-dismissible fade show" role="alert">
-                            @ViewBag.SuccessMessage
+                        <div class="alert alert-success alert-dismissible fade show mt-4" role="alert">
+                            <i class="bi bi-check-circle-fill me-2"></i> @ViewBag.SuccessMessage
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     }
-
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

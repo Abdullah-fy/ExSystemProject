@@ -137,6 +137,50 @@
                 color: white;
             }
 
+        /* Custom theme colors for Bootstrap components */
+        .pagination .page-item.active .page-link {
+            background-color: var(--iti-red);
+            border-color: var(--iti-red);
+            color: white;
+        }
+
+        .pagination .page-item .page-link {
+            color: var(--iti-red);
+        }
+
+            .pagination .page-item .page-link:hover {
+                color: #901a1e;
+                background-color: #f8f9fa;
+            }
+
+        .pagination .page-item.disabled .page-link {
+            color: #6c757d;
+        }
+
+        .border-primary {
+            border-color: var(--iti-red) !important;
+        }
+
+        .text-primary {
+            color: var(--iti-red) !important;
+        }
+
+        .btn-info {
+            background-color: #2a7d8c;
+            border-color: #2a7d8c;
+            color: white;
+        }
+
+            .btn-info:hover {
+                background-color: #246878;
+                border-color: #246878;
+                color: white;
+            }
+
+        .badge.bg-primary {
+            background-color: var(--iti-red) !important;
+        }
+
         /* Responsive adjustments */
         @@media (max-width: 992px) {
             .admin-sidebar {
@@ -214,13 +258,13 @@
 
             <div class="nav-heading">System Setup</div>
             <li class="nav-item">
-                <a class="nav-link" href="#">
+                <a class="nav-link @(ViewContext.RouteData.Values["controller"].ToString() == "Branch" ? "active" : "")" href="/Branch">
                     <i class="bi bi-building"></i>
                     <span>Branches</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#">
+                <a class="nav-link @(ViewContext.RouteData.Values["controller"].ToString() == "Track" ? "active" : "")" href="/Track">
                     <i class="bi bi-diagram-3"></i>
                     <span>Tracks</span>
                 </a>
