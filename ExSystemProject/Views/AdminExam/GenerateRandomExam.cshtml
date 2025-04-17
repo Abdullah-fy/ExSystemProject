@@ -1,0 +1,203 @@
+﻿@model ExSystemProject.DTOS.ExamDTO
+@{
+    ViewData["Title"] = "Generate Random Exam";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">Generate Random Exam</h5>
+    </div>
+    <div class="card-body">
+        <div class="alert alert-info mb-4">
+            <i class="bi bi-info-circle me-2"></i>
+            This feature will automatically generate an exam with random questions from the selected course.
+        </div>
+
+        <form asp-action="GenerateRandomExam" method="post" id="generateExamForm">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="mb-3">
+                <label asp-for="ExamName" class="form-label">Exam Name</label>
+                <input asp-for="ExamName" class="form-control" placeholder="e.g., Final Exam for ASP.NET Course" required />
+                <span asp-validation-for="ExamName" class="text-danger"></span>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="CrsId" class="form-label">Course</label>
+                    <select asp-for="CrsId" class="form-select" asp-items="ViewBag.Courses" required>
+                        <option value="">-- Select Course --</option>
+                    </select>
+                    <span asp-validation-for="CrsId" class="text-danger"></span>
+                    <div class="form-text">The system will use questions from this course.</div>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="InsId" class="form-label">Instructor</label>
+                    <select asp-for="InsId" class="form-select" asp-items="ViewBag.Instructors" required>
+                        <option value="">-- Select Instructor --</option>
+                    </select>
+                    <span asp-validation-for="InsId" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="StartTime" class="form-label">Start Time</label>
+                    <div class="input-group">
+                        <input id="startDateInput" type="date" class="form-control" />
+                        <input id="startTimeInput" type="time" class="form-control" />
+                    </div>
+                    <input asp-for="StartTime" type="hidden" id="startTimeHidden" />
+                    <span asp-validation-for="StartTime" class="text-danger"></span>
+                    <div id="startTimeError" class="text-danger"></div>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="EndTime" class="form-label">End Time</label>
+                    <div class="input-group">
+                        <input id="endDateInput" type="date" class="form-control" />
+                        <input id="endTimeInput" type="time" class="form-control" />
+                    </div>
+                    <input asp-for="EndTime" type="hidden" id="endTimeHidden" />
+                    <span asp-validation-for="EndTime" class="text-danger"></span>
+                    <div id="endTimeError" class="text-danger"></div>
+                </div>
+            </div>
+
+            <!-- MCQ and T/F question count fields -->
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="mcqCount" class="form-label">Multiple Choice Questions</label>
+                    <input id="mcqCount" name="mcqCount" type="number" class="form-control" min="0" value="5" required />
+                    <div class="form-text">Number of MCQ questions to include</div>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label for="tfCount" class="form-label">True/False Questions</label>
+                    <input id="tfCount" name="tfCount" type="number" class="form-control" min="0" value="5" required />
+                    <div class="form-text">Number of True/False questions to include</div>
+                </div>
+            </div>
+
+            <!-- Hidden input for isactive - always true -->
+            <input type="hidden" asp-for="Isactive" value="true" />
+
+            <div class="d-flex justify-content-between mt-4">
+                <a asp-action="Index" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to List
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-magic"></i> Generate Exam
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        $(document).ready(function () {
+            // Set default values for date/time inputs
+            const now = new Date();
+
+            // Default start time: 7 days from now at 10:00 AM
+            const startDate = new Date(now);
+            startDate.setDate(startDate.getDate() + 7);
+            startDate.setHours(10, 0, 0, 0);
+
+            // Default end time: 2 hours after start
+            const endDate = new Date(startDate);
+            endDate.setHours(endDate.getHours() + 2);
+
+            // Format date for input
+            function formatDateForInput(date) {
+                return date.toISOString().split('T')[0];
+            }
+
+            // Format time for input
+            function formatTimeForInput(date) {
+                return date.getHours().toString().padStart(2, '0') + ':' +
+                       date.getMinutes().toString().padStart(2, '0');
+            }
+
+            // Set initial values
+            $('#startDateInput').val(formatDateForInput(startDate));
+            $('#startTimeInput').val(formatTimeForInput(startDate));
+            $('#endDateInput').val(formatDateForInput(endDate));
+            $('#endTimeInput').val(formatTimeForInput(endDate));
+
+            // Update hidden fields with ISO datetime
+            function updateHiddenFields() {
+                const startDate = $('#startDateInput').val();
+                const startTime = $('#startTimeInput').val();
+                if (startDate && startTime) {
+                    $('#startTimeHidden').val(startDate + 'T' + startTime);
+                }
+
+                const endDate = $('#endDateInput').val();
+                const endTime = $('#endTimeInput').val();
+                if (endDate && endTime) {
+                    $('#endTimeHidden').val(endDate + 'T' + endTime);
+                }
+            }
+
+            // Call once to set initial values
+            updateHiddenFields();
+
+            // Update when inputs change
+            $('#startDateInput, #startTimeInput, #endDateInput, #endTimeInput').change(function() {
+                updateHiddenFields();
+
+                // When start time changes, update end time to be 2 hours later
+                if ($(this).attr('id') === 'startDateInput' || $(this).attr('id') === 'startTimeInput') {
+                    const startDate = $('#startDateInput').val();
+                    const startTime = $('#startTimeInput').val();
+
+                    if (startDate && startTime) {
+                        const newStartDate = new Date(startDate + 'T' + startTime);
+                        const newEndDate = new Date(newStartDate);
+                        newEndDate.setHours(newEndDate.getHours() + 2);
+
+                        $('#endDateInput').val(formatDateForInput(newEndDate));
+                        $('#endTimeInput').val(formatTimeForInput(newEndDate));
+                        updateHiddenFields();
+                    }
+                }
+            });
+
+            // Form validation
+            $('#generateExamForm').submit(function(e) {
+                let isValid = true;
+                $('#startTimeError, #endTimeError').text('');
+
+                const startDate = new Date($('#startTimeHidden').val());
+                const endDate = new Date($('#endTimeHidden').val());
+
+                if (isNaN(startDate.getTime())) {
+                    $('#startTimeError').text('Please enter a valid start date and time');
+                    isValid = false;
+                }
+
+                if (isNaN(endDate.getTime())) {
+                    $('#endTimeError').text('Please enter a valid end date and time');
+                    isValid = false;
+                }
+
+                if (isValid && endDate <= startDate) {
+                    $('#endTimeError').text('End time must be after start time');
+                    isValid = false;
+                }
+
+                if (!isValid) {
+                    e.preventDefault();
+                }
+            });
+        });
+    </script>
+}

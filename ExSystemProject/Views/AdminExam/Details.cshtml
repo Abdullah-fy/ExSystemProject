@@ -1,0 +1,172 @@
+﻿@model ExSystemProject.DTOS.ExamDTO
+@{
+    ViewData["Title"] = "Exam Details";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Exam Details</h5>
+        <div>
+            <a asp-action="Edit" asp-route-id="@Model.ExamId" class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-pencil"></i> Edit
+            </a>
+            <a asp-action="Index" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back to List
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <h6 class="border-bottom pb-2 mb-3">Basic Information</h6>
+                <table class="table table-borderless">
+                    <tr>
+                        <th style="width: 30%">Exam ID:</th>
+                        <td>@Model.ExamId</td>
+                    </tr>
+                    <tr>
+                        <th>Exam Name:</th>
+                        <td>@Model.ExamName</td>
+                    </tr>
+                    <tr>
+                        <th>Course:</th>
+                        <td>
+                            @if (!string.IsNullOrEmpty(Model.CourseName))
+                            {
+                                <a asp-controller="AdminCourse" asp-action="Details" asp-route-id="@Model.CrsId">
+                                    @Model.CourseName
+                                </a>
+                            }
+                            else
+                            {
+                                <span>Not Assigned</span>
+                            }
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Instructor:</th>
+                        <td>@(string.IsNullOrEmpty(Model.InstructorName) ? "Not Assigned" : Model.InstructorName)</td>
+                    </tr>
+                    <tr>
+                        <th>Status:</th>
+                        <td>
+                            @if (Model.Isactive == true)
+                            {
+                                <span class="badge bg-success">Active</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">Inactive</span>
+                            }
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="col-md-6">
+                <h6 class="border-bottom pb-2 mb-3">Exam Schedule & Grading</h6>
+                <table class="table table-borderless">
+                    <tr>
+                        <th style="width: 30%">Start Time:</th>
+                        <td>@(Model.StartTime?.ToString("g") ?? "Not set")</td>
+                    </tr>
+                    <tr>
+                        <th>End Time:</th>
+                        <td>@(Model.EndTime?.ToString("g") ?? "Not set")</td>
+                    </tr>
+                    <tr>
+                        <th>Duration:</th>
+                        <td>
+                            @if (Model.StartTime.HasValue && Model.EndTime.HasValue)
+                            {
+                                var duration = Model.EndTime.Value - Model.StartTime.Value;
+                                @duration.TotalHours.ToString("0.#") <span>hours</span>
+                            }
+                            else
+                            {
+                                <span>Not set</span>
+                            }
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Total Marks:</th>
+                        <td>@(Model.TotalMarks ?? 0)</td>
+                    </tr>
+                    <tr>
+                        <th>Passing Grade:</th>
+                        <td>@(Model.PassedGrade ?? 0)</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <h6 class="border-bottom pb-2 mt-4 mb-3">
+            Questions
+            <a asp-controller="AdminQuestionBank" asp-action="Create" asp-route-examId="@Model.ExamId" class="btn btn-sm btn-outline-primary float-end">
+                <i class="bi bi-plus"></i> Add New Question
+            </a>
+        </h6>
+
+        @if (Model.Questions != null && Model.Questions.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-sm table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Question Text</th>
+                            <th>Type</th>
+                            <th>Score</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var question in Model.Questions)
+                        {
+                            <tr>
+                                <td>@question.QuesId</td>
+                                <td>@(question.QuesText.Length > 50 ? question.QuesText.Substring(0, 50) + "..." : question.QuesText)</td>
+                                <td>
+                                    <span class="badge @(question.QuesType == "MCQ" ? "bg-primary" : "bg-info")">
+                                        @question.QuesType
+                                    </span>
+                                </td>
+                                <td>@question.QuesScore</td>
+                                <td>
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a asp-controller="AdminQuestionBank" asp-action="Details" asp-route-id="@question.QuesId" class="btn btn-outline-info">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a asp-controller="AdminQuestionBank" asp-action="Edit" asp-route-id="@question.QuesId" class="btn btn-outline-primary">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <form asp-controller="AdminQuestionBank" asp-action="RemoveFromExam" method="post" class="d-inline">
+                                            <input type="hidden" name="id" value="@question.QuesId" />
+                                            <input type="hidden" name="examId" value="@Model.ExamId" />
+                                            <button type="submit" class="btn btn-outline-danger">
+                                                <i class="bi bi-x"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle me-2"></i>
+                No questions have been added to this exam yet.
+            </div>
+        }
+    </div>
+    <div class="card-footer text-end">
+        <a asp-controller="AdminQuestionBank" asp-action="Index" asp-route-examId="@Model.ExamId" class="btn btn-outline-primary">
+            <i class="bi bi-question-circle"></i> Manage Exam Questions
+        </a>
+    </div>
+</div>

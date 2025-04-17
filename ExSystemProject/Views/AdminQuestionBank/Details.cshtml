@@ -1,0 +1,76 @@
+﻿@model ExSystemProject.DTOS.QuestionBankDTO
+@{
+    ViewData["Title"] = "Question Details";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Question Details</h5>
+        <div>
+            <a asp-action="Edit" asp-route-id="@Model.QuesId" class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-pencil"></i> Edit
+            </a>
+            <a asp-action="Index" asp-route-examId="@Model.ExamId" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back to List
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <span class="badge @(Model.QuesType == "MCQ" ? "bg-primary" : "bg-info")">@Model.QuesType</span>
+                    </div>
+                    <div>
+                        <strong>Score: @Model.QuesScore</strong>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <h5>Question</h5>
+                <p class="card-text">@Model.QuesText</p>
+
+                @if (Model.Choices != null && Model.Choices.Any())
+                {
+                    <h6 class="mt-4">Answer Choices</h6>
+                    <ul class="list-group">
+                        @foreach (var choice in Model.Choices)
+                        {
+                            <li class="list-group-item @(choice.IsCorrect ? "list-group-item-success" : "")">
+                                @choice.ChoiceText
+                                @if (choice.IsCorrect)
+                                {
+                                    <span class="badge bg-success float-end">Correct Answer</span>
+                                }
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+            <div class="card-footer">
+                <div class="row">
+                    <div class="col-md-6">
+                        <small class="text-muted">Question ID: @Model.QuesId</small>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        @if (string.IsNullOrEmpty(Model.ExamName))
+                        {
+                            <small class="text-muted">Not associated with any exam</small>
+                        }
+                        else
+                        {
+                            <small class="text-muted">
+                                Associated with exam:
+                                <a asp-controller="AdminExam" asp-action="Details" asp-route-id="@Model.ExamId">
+                                    @Model.ExamName
+                                </a>
+                            </small>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

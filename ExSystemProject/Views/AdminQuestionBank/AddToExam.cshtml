@@ -1,0 +1,65 @@
+﻿@model ExSystemProject.DTOS.QuestionBankDTO
+@{
+    ViewData["Title"] = "Add Question to Exam";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">Add Question to Exam</h5>
+    </div>
+    <div class="card-body">
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <span class="badge @(Model.QuesType == "MCQ" ? "bg-primary" : "bg-info")">@Model.QuesType</span>
+                    </div>
+                    <div>
+                        <strong>Score: @Model.QuesScore</strong>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <p class="card-text">@Model.QuesText</p>
+
+                @if (Model.Choices != null && Model.Choices.Any())
+                {
+                    <h6 class="mt-3">Choices:</h6>
+                    <ul class="list-group">
+                        @foreach (var choice in Model.Choices)
+                        {
+                            <li class="list-group-item @(choice.IsCorrect ? "list-group-item-success" : "")">
+                                @choice.ChoiceText
+                                @if (choice.IsCorrect)
+                                {
+                                    <span class="badge bg-success float-end">Correct Answer</span>
+                                }
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+        </div>
+
+        <form asp-action="AddToExam" method="post">
+            <input type="hidden" name="id" value="@Model.QuesId" />
+
+            <div class="mb-3">
+                <label for="examId" class="form-label">Select Exam</label>
+                <select name="examId" id="examId" class="form-select" asp-items="ViewBag.Exams" required>
+                    <option value="">-- Select an Exam --</option>
+                </select>
+            </div>
+
+            <div class="d-flex justify-content-between">
+                <a asp-action="Index" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to List
+                </a>
+                <button type="submit" class="btn btn-success">
+                    <i class="bi bi-plus-circle"></i> Add to Exam
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
