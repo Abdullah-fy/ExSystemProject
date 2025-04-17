@@ -1,0 +1,11 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+
+<h2 class="alert alert-danger">Are u sure you want to Delete this Branch?</h2>
+<p class="lead">The Branch will be deleted with it's tracks</p>
+
+<a asp-action="ConfirmDelete" asp-route-id="@ViewBag.id"  class="btn btn-danger">Confirm</a>
+<a asp-action="Index" class="btn  btn-secondary">Cancel</a>
