@@ -1,0 +1,44 @@
+﻿@model ShowStudentDTO
+
+@{
+    ViewData["Title"] = "Student Details";
+}
+
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h3 class="mb-0">Student Details</h3>
+        </div>
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-3">Username</dt>
+                <dd class="col-sm-9">@Model.Username</dd>
+
+                <dt class="col-sm-3">Email</dt>
+                <dd class="col-sm-9">@Model.Email</dd>
+
+                <dt class="col-sm-3">Gender</dt>
+                <dd class="col-sm-9">@(Model.Gender == "M" ? "Male" : "Female")</dd>
+
+                <dt class="col-sm-3">Track</dt>
+                <dd class="col-sm-9">@Model.TrackName</dd>
+
+                <dt class="col-sm-3">Status</dt>
+                <dd class="col-sm-9">
+                    <span class="badge @((bool)Model.IsActive ? "bg-success" : "bg-secondary")">
+                        @((bool)Model.IsActive ? "Active" : "Inactive")
+                    </span>
+                </dd>
+            </dl>
+
+            <div class="mt-4">
+                <a asp-action="Edit" asp-route-id="@Model.StudentId" class="btn btn-primary me-2">
+                    <i class="fas fa-edit"></i> Edit
+                </a>
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to List
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

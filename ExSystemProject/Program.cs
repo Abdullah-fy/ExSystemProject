@@ -1,4 +1,6 @@
+using ExSystemProject.Mapping.NewFolder.InstructorProfile;
 using ExSystemProject.Models;
+using ExSystemProject.Profiles;
 using ExSystemProject.UnitOfWorks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,6 +18,8 @@ namespace ExSystemProject
 
             builder.Services.AddDbContext<ExSystemTestContext>(option => option.UseSqlServer(builder.Configuration.GetConnectionString("sc")).UseLazyLoadingProxies());
             builder.Services.AddScoped<UnitOfWork>();
+            // Add AutoMapper
+            builder.Services.AddAutoMapper(typeof(StudentProfile),typeof(InstructorProfile));
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -34,6 +38,7 @@ namespace ExSystemProject
             app.UseAuthorization();
 
             app.MapControllerRoute(
+
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}");
 

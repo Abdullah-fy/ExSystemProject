@@ -1,0 +1,56 @@
+﻿
+
+@model InstructorDTO
+@{
+    ViewData["Title"] = Model.IsActive ? "Deactivate Instructor" : "Activate Instructor";
+}
+
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header @(Model.IsActive ? "bg-warning" : "bg-success") text-white">
+            <h3>@ViewData["Title"]</h3>
+        </div>
+        <div class="card-body">
+            <h4>Are you sure you want to @(Model.IsActive ? "deactivate" : "activate") this instructor?</h4>
+
+            <div class="alert @(Model.IsActive ? "alert-warning" : "alert-success") mt-3">
+                @if (Model.IsActive)
+                {
+                    <strong>Note:</strong> @("Deactivating blocks access but keeps the data..")
+                }
+                else
+                {
+                    <strong>Note:</strong> @("Activating gives the instructor access again..")
+                }
+            </div>
+
+            <dl class="row mt-4">
+                <dt class="col-sm-3">Username</dt>
+                <dd class="col-sm-9">@Model.Username</dd>
+
+                <dt class="col-sm-3">Email</dt>
+                <dd class="col-sm-9">@Model.Email</dd>
+
+                <dt class="col-sm-3">Current Status</dt>
+                <dd class="col-sm-9">
+                    <span class="badge @(Model.IsActive ? "bg-success" : "bg-secondary")">
+                        @(Model.IsActive ? "Active" : "Inactive")
+                    </span>
+                </dd>
+            </dl>
+
+            <form asp-action="Delete">
+                <input type="hidden" asp-for="InsId" />
+                <div class="mt-4">
+                    <button type="submit" class="btn @(Model.IsActive ? "btn-warning" : "btn-success") me-2">
+                        <i class="fas @(Model.IsActive ? "fa-user-slash" : "fa-user-check")"></i>
+                        @(Model.IsActive ? "Confirm Deactivate" : "Confirm Activate")
+                    </button>
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
