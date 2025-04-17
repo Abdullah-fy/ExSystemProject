@@ -25,7 +25,7 @@
             </a>
             @if (ViewBag.CourseId != null)
             {
-                <a asp-controller="Course" asp-action="Details" asp-route-id="@ViewBag.CourseId" class="btn btn-outline-secondary ms-2">
+                <a asp-controller="AdminCourse" asp-action="Details" asp-route-id="@ViewBag.CourseId" class="btn btn-outline-secondary ms-2">
                     <i class="bi bi-arrow-left"></i> Back to Course
                 </a>
             }
@@ -79,7 +79,7 @@
                                         <a asp-action="Delete" asp-route-id="@exam.ExamId" class="btn btn-sm btn-outline-danger">
                                             <i class="bi bi-trash"></i> Delete
                                         </a>
-                                        <a asp-controller="QuestionBank" asp-action="Index" asp-route-examId="@exam.ExamId" class="btn btn-sm btn-outline-secondary">
+                                        <a asp-controller="AdminQuestionBank" asp-action="Index" asp-route-examId="@exam.ExamId" class="btn btn-sm btn-outline-secondary">
                                             <i class="bi bi-question-circle"></i> Questions
                                         </a>
                                     </div>

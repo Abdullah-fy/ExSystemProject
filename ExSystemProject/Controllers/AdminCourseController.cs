@@ -8,18 +8,18 @@ using System.Collections.Generic;
 
 namespace ExSystemProject.Controllers
 {
-    public class CourseController : Controller
+    public class AdminCourseController : Controller
     {
         private readonly UnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public CourseController(UnitOfWork unitOfWork, IMapper mapper)
+        public AdminCourseController(UnitOfWork unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
 
-        // GET: Course
+        // GET: AdminCourse
         public IActionResult Index()
         {
             // Pass null to get both active and inactive courses
@@ -28,7 +28,7 @@ namespace ExSystemProject.Controllers
             return View(courseDTOs);
         }
 
-        // GET: Course/Details/5
+        // GET: AdminCourse/Details/5
         public IActionResult Details(int id)
         {
             // Using the enhanced repository method to get course by id
@@ -48,7 +48,7 @@ namespace ExSystemProject.Controllers
             return View(courseDTO);
         }
 
-        // GET: Course/Create
+        // GET: AdminCourse/Create
         public IActionResult Create()
         {
             // Get instructors for dropdown
@@ -57,7 +57,7 @@ namespace ExSystemProject.Controllers
             return View();
         }
 
-        // POST: Course/Create
+        // POST: AdminCourse/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Create(CourseDTO courseDTO)
@@ -81,7 +81,7 @@ namespace ExSystemProject.Controllers
         }
 
 
-        // GET: Course/Edit/5
+        // GET: AdminCourse/Edit/5
         public IActionResult Edit(int id)
         {
             // Using the enhanced repository method to get course by id
@@ -157,7 +157,7 @@ namespace ExSystemProject.Controllers
 
 
 
-        // GET: Course/Delete/5
+        // GET: AdminCourse/Delete/5
         public IActionResult Delete(int id)
         {
             // Using the enhanced repository method to get course by id
@@ -169,7 +169,7 @@ namespace ExSystemProject.Controllers
             return View(courseDTO);
         }
 
-        // POST: Course/Delete/5
+        // POST: AdminCourse/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(int id)
@@ -178,8 +178,5 @@ namespace ExSystemProject.Controllers
             _unitOfWork.courseRepo.DeleteCourse(id);
             return RedirectToAction(nameof(Index));
         }
-       
-      
-
     }
 }

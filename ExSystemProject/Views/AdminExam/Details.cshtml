@@ -34,7 +34,7 @@
                         <td>
                             @if (!string.IsNullOrEmpty(Model.CourseName))
                             {
-                                <a asp-controller="Course" asp-action="Details" asp-route-id="@Model.CrsId">
+                                <a asp-controller="AdminCourse" asp-action="Details" asp-route-id="@Model.CrsId">
                                     @Model.CourseName
                                 </a>
                             }
@@ -103,7 +103,7 @@
 
         <h6 class="border-bottom pb-2 mt-4 mb-3">
             Questions
-            <a asp-controller="QuestionBank" asp-action="Create" asp-route-examId="@Model.ExamId" class="btn btn-sm btn-outline-primary float-end">
+            <a asp-controller="AdminQuestionBank" asp-action="Create" asp-route-examId="@Model.ExamId" class="btn btn-sm btn-outline-primary float-end">
                 <i class="bi bi-plus"></i> Add New Question
             </a>
         </h6>
@@ -135,13 +135,13 @@
                                 <td>@question.QuesScore</td>
                                 <td>
                                     <div class="btn-group btn-group-sm" role="group">
-                                        <a asp-controller="QuestionBank" asp-action="Details" asp-route-id="@question.QuesId" class="btn btn-outline-info">
+                                        <a asp-controller="AdminQuestionBank" asp-action="Details" asp-route-id="@question.QuesId" class="btn btn-outline-info">
                                             <i class="bi bi-eye"></i>
                                         </a>
-                                        <a asp-controller="QuestionBank" asp-action="Edit" asp-route-id="@question.QuesId" class="btn btn-outline-primary">
+                                        <a asp-controller="AdminQuestionBank" asp-action="Edit" asp-route-id="@question.QuesId" class="btn btn-outline-primary">
                                             <i class="bi bi-pencil"></i>
                                         </a>
-                                        <form asp-controller="QuestionBank" asp-action="RemoveFromExam" method="post" class="d-inline">
+                                        <form asp-controller="AdminQuestionBank" asp-action="RemoveFromExam" method="post" class="d-inline">
                                             <input type="hidden" name="id" value="@question.QuesId" />
                                             <input type="hidden" name="examId" value="@Model.ExamId" />
                                             <button type="submit" class="btn btn-outline-danger">
@@ -165,9 +165,8 @@
         }
     </div>
     <div class="card-footer text-end">
-        <a asp-controller="QuestionBank" asp-action="Index" asp-route-examId="@Model.ExamId" class="btn btn-outline-primary">
+        <a asp-controller="AdminQuestionBank" asp-action="Index" asp-route-examId="@Model.ExamId" class="btn btn-outline-primary">
             <i class="bi bi-question-circle"></i> Manage Exam Questions
         </a>
     </div>
 </div>
-

@@ -139,26 +139,23 @@
 
         /* Responsive adjustments */
         @@media (max-width: 992px) {
-            .admin-sidebar
+            .admin-sidebar {
+                width: 70px;
+            }
 
-        {
-            width: 70px;
-        }
+                .admin-sidebar .admin-brand span,
+                .admin-sidebar .nav-link span,
+                .admin-sidebar .nav-heading {
+                    display: none;
+                }
 
-        .admin-sidebar .admin-brand span,
-        .admin-sidebar .nav-link span,
-        .admin-sidebar .nav-heading {
-            display: none;
-        }
+                .admin-sidebar .nav-link i {
+                    margin-right: 0;
+                }
 
-        .admin-sidebar .nav-link i {
-            margin-right: 0;
-        }
-
-        .admin-content {
-            margin-left: 70px;
-        }
-
+            .admin-content {
+                margin-left: 70px;
+            }
         }
     </style>
 </head>
@@ -181,7 +178,7 @@
 
             <div class="nav-heading">Course Management</div>
             <li class="nav-item">
-                <a class="nav-link @(ViewContext.RouteData.Values["controller"].ToString() == "Course" ? "active" : "")" href="/Course">
+                <a class="nav-link @(ViewContext.RouteData.Values["controller"].ToString() == "AdminCourse" ? "active" : "")" href="/AdminCourse">
                     <i class="bi bi-book"></i>
                     <span>Courses</span>
                 </a>
@@ -189,13 +186,13 @@
 
             <div class="nav-heading">Exam Management</div>
             <li class="nav-item">
-                <a class="nav-link @(ViewContext.RouteData.Values["controller"].ToString() == "Exam" ? "active" : "")" href="/Exam">
+                <a class="nav-link @(ViewContext.RouteData.Values["controller"].ToString() == "AdminExam" ? "active" : "")" href="/AdminExam">
                     <i class="bi bi-file-earmark-text"></i>
                     <span>Exams</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link @(ViewContext.RouteData.Values["controller"].ToString() == "QuestionBank" ? "active" : "")" href="/QuestionBank">
+                <a class="nav-link @(ViewContext.RouteData.Values["controller"].ToString() == "AdminQuestionBank" ? "active" : "")" href="/AdminQuestionBank">
                     <i class="bi bi-question-circle"></i>
                     <span>Question Bank</span>
                 </a>

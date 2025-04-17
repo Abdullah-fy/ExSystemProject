@@ -9,18 +9,18 @@ using System.Collections.Generic;
 
 namespace ExSystemProject.Controllers
 {
-    public class ExamController : Controller
+    public class AdminExamController : Controller
     {
         private readonly UnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public ExamController(UnitOfWork unitOfWork, IMapper mapper)
+        public AdminExamController(UnitOfWork unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
 
-        // GET: Exam
+        // GET: AdminExam
         public IActionResult Index(int? courseId = null)
         {
             List<Exam> exams;
@@ -42,7 +42,7 @@ namespace ExSystemProject.Controllers
             return View(examDTOs);
         }
 
-        // GET: Exam/Details/5
+        // GET: AdminExam/Details/5
         public IActionResult Details(int id)
         {
             var exam = _unitOfWork.examRepo.GetExamById(id);
@@ -58,7 +58,7 @@ namespace ExSystemProject.Controllers
             return View(examDTO);
         }
 
-        // GET: Exam/Create
+        // GET: AdminExam/Create
         public IActionResult Create()
         {
             var courses = _unitOfWork.courseRepo.getAll();
@@ -70,7 +70,7 @@ namespace ExSystemProject.Controllers
             return View();
         }
 
-        // POST: Exam/Create
+        // POST: AdminExam/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Create(ExamDTO examDTO)
@@ -94,7 +94,7 @@ namespace ExSystemProject.Controllers
             return View(examDTO);
         }
 
-        // GET: Exam/Edit/5
+        // GET: AdminExam/Edit/5
         public IActionResult Edit(int id)
         {
             var exam = _unitOfWork.examRepo.GetExamById(id);
@@ -112,7 +112,7 @@ namespace ExSystemProject.Controllers
             return View(examDTO);
         }
 
-        // POST: Exam/Edit/5
+        // POST: AdminExam/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Edit(int id, ExamDTO examDTO)
@@ -127,8 +127,6 @@ namespace ExSystemProject.Controllers
                 // Use the new stored procedure for updating
                 _unitOfWork.examRepo.UpdateExam(exam);
 
-                
-
                 return RedirectToAction(nameof(Details), new { id = id });
             }
 
@@ -141,7 +139,7 @@ namespace ExSystemProject.Controllers
             return View(examDTO);
         }
 
-        // GET: Exam/Delete/5
+        // GET: AdminExam/Delete/5
         public IActionResult Delete(int id)
         {
             var exam = _unitOfWork.examRepo.GetExamById(id);
@@ -152,7 +150,7 @@ namespace ExSystemProject.Controllers
             return View(examDTO);
         }
 
-        // POST: Exam/Delete/5
+        // POST: AdminExam/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(int id)
@@ -169,7 +167,7 @@ namespace ExSystemProject.Controllers
                 return RedirectToAction(nameof(Index));
         }
 
-        // GET: Exam/GenerateRandomExam
+        // GET: AdminExam/GenerateRandomExam
         public IActionResult GenerateRandomExam()
         {
             var courses = _unitOfWork.courseRepo.getAll();
@@ -224,7 +222,5 @@ namespace ExSystemProject.Controllers
 
             return View(examDTO);
         }
-
-
     }
 }

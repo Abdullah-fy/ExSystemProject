@@ -55,7 +55,7 @@
                                         <a asp-action="Delete" asp-route-id="@course.CrsId" class="btn btn-sm btn-outline-danger">
                                             <i class="bi bi-trash"></i> Delete
                                         </a>
-                                        <a asp-controller="Exam" asp-action="Index" asp-route-courseId="@course.CrsId" class="btn btn-sm btn-outline-secondary">
+                                        <a asp-controller="AdminExam" asp-action="Index" asp-route-courseId="@course.CrsId" class="btn btn-sm btn-outline-secondary">
                                             <i class="bi bi-file-earmark-text"></i> Exams
                                         </a>
                                     </div>
@@ -82,20 +82,19 @@
         @if (TempData["Success"] != null && ((bool)TempData["Success"]))
         {
             <text>
-                        // Create a temporary div to decode HTML entities
-                        var tempDiv = document.createElement('div');
-                        tempDiv.innerHTML = "@TempData["Message"]";
-                        var decodedMessage = tempDiv.textContent;
+                            // Create a temporary div to decode HTML entities
+                            var tempDiv = document.createElement('div');
+                            tempDiv.innerHTML = "@TempData["Message"]";
+                            var decodedMessage = tempDiv.textContent;
 
-                        Swal.fire({
-                            title: "Success!",
-                            text: decodedMessage,
-                            icon: "success",
-                            confirmButtonColor: "#a41e22"
-                        });
+                            Swal.fire({
+                                title: "Success!",
+                                text: decodedMessage,
+                                icon: "success",
+                                confirmButtonColor: "#a41e22"
+                            });
             </text>
         }
         });
     </script>
 }
-
