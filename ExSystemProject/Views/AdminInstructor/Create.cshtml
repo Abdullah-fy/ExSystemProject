@@ -12,14 +12,7 @@
         </a>
     </div>
     <div class="card-body p-4">
-        @if (!ViewData.ModelState.IsValid)
-        {
-            <div class="alert alert-danger">
-                <h6 class="alert-heading">Please fix the following errors:</h6>
-                <div asp-validation-summary="All" class="text-danger"></div>
-            </div>
-        }
-
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
         <form asp-action="Create" method="post">
             <div class="row mb-3">
                 <div class="col-md-6">
@@ -29,7 +22,7 @@
                         <label asp-for="Username" class="form-label">Username <span class="text-danger">*</span></label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="bi bi-person"></i></span>
-                            <input asp-for="Username" class="form-control" placeholder="Enter username" required />
+                            <input asp-for="Username" class="form-control" required />
                         </div>
                         <span asp-validation-for="Username" class="text-danger"></span>
                     </div>
@@ -38,7 +31,7 @@
                         <label asp-for="Email" class="form-label">Email <span class="text-danger">*</span></label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-                            <input asp-for="Email" class="form-control" type="email" placeholder="Enter email" required />
+                            <input asp-for="Email" class="form-control" type="email" required />
                         </div>
                         <span asp-validation-for="Email" class="text-danger"></span>
                     </div>
@@ -72,6 +65,16 @@
                     </div>
 
                     <div class="mb-3">
+                        <label asp-for="BranchId" class="form-label">Branch <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-building"></i></span>
+                            <select id="BranchId" name="BranchId" class="form-select" asp-items="ViewBag.Branches" required>
+                                <option value="">-- Select Branch --</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
                         <label asp-for="TrackId" class="form-label">Track <span class="text-danger">*</span></label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="bi bi-signpost"></i></span>
@@ -81,10 +84,6 @@
                         </div>
                         <span asp-validation-for="TrackId" class="text-danger"></span>
                     </div>
-
-                    <div class="form-text mb-3">
-                        <i class="bi bi-info-circle me-1"></i> A default password will be set for the instructor.
-                    </div>
                 </div>
             </div>
 
@@ -93,7 +92,7 @@
                     <i class="bi bi-x-lg"></i> Cancel
                 </a>
                 <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-person-plus"></i> Create Instructor
+                    <i class="bi bi-save"></i> Create Instructor
                 </button>
             </div>
         </form>
@@ -104,4 +103,27 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+    <script>
+        $(document).ready(function() {
+            // Handle branch selection change
+            $('#BranchId').change(function() {
+                var branchId = $(this).val();
+                if (branchId) {
+                    // Load tracks for the selected branch via AJAX
+                    $.getJSON(`/AdminInstructor/GetTracksByBranch/${branchId}`, function(tracks) {
+                        var trackSelect = $('#TrackId');
+                        trackSelect.empty();
+                        trackSelect.append('<option value="">-- Select Track --</option>');
+                        $.each(tracks, function(i, track) {
+                            trackSelect.append($('<option></option>').val(track.trackId).text(track.trackName));
+                        });
+                    });
+                } else {
+                    // Clear track dropdown if no branch selected
+                    $('#TrackId').empty();
+                    $('#TrackId').append('<option value="">-- Select Track --</option>');
+                }
+            });
+        });
+    </script>
 }

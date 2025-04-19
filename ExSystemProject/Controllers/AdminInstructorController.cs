@@ -21,14 +21,18 @@ namespace ExSystemProject.Controllers
             _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
-
         // GET: AdminInstructor
-        public IActionResult Index(int? branchId = null, int? trackId = null, bool? activeOnly = null)
+        public IActionResult Index(int? branchId = null, int? trackId = null, bool? activeOnly = true)
         {
             List<Instructor> instructors;
+            var branches = _unitOfWork.branchRepo.GetAllActive();
+            var tracks = new List<Track>();
 
             if (branchId.HasValue)
             {
+                // Get tracks for selected branch
+                tracks = _unitOfWork.branchRepo.GetTracksByBranchId(branchId.Value);
+
                 // Get instructors for a specific branch
                 instructors = _unitOfWork.instructorRepo.GetInstructorsByBranchId(branchId.Value, activeOnly);
                 ViewBag.BranchId = branchId;
@@ -36,20 +40,35 @@ namespace ExSystemProject.Controllers
             }
             else if (trackId.HasValue)
             {
+                // Get the track to determine its branch
+                var track = _unitOfWork.trackRepo.getById(trackId.Value);
+                if (track?.BranchId != null)
+                {
+                    // Load tracks for this branch
+                    tracks = _unitOfWork.branchRepo.GetTracksByBranchId(track.BranchId.Value);
+                    ViewBag.BranchId = track.BranchId;
+                }
+                else
+                {
+                    // Fallback to all tracks
+                    tracks = _unitOfWork.trackRepo.getAll();
+                }
+
                 // Get instructors for a specific track
                 instructors = _unitOfWork.instructorRepo.GetInstructorsByTrackId(trackId.Value, activeOnly);
                 ViewBag.TrackId = trackId;
-                ViewBag.TrackName = _unitOfWork.trackRepo.getById(trackId.Value)?.TrackName;
+                ViewBag.TrackName = track?.TrackName;
             }
             else
             {
+                // No filters applied, load all tracks
+                tracks = _unitOfWork.trackRepo.getAll();
+
                 // Get all instructors
                 instructors = _unitOfWork.instructorRepo.GetAllInstructors(activeOnly);
             }
 
-            var branches = _unitOfWork.branchRepo.getAll();
-            var tracks = _unitOfWork.trackRepo.getAll();
-
+            // Create Select lists for dropdowns
             ViewBag.Branches = new SelectList(branches, "BranchId", "BranchName", branchId);
             ViewBag.Tracks = new SelectList(tracks, "TrackId", "TrackName", trackId);
             ViewBag.ActiveOnly = activeOnly;
@@ -57,6 +76,7 @@ namespace ExSystemProject.Controllers
             var instructorDTOs = _mapper.Map<List<InstructorDTO>>(instructors);
             return View(instructorDTOs);
         }
+
 
         // GET: AdminInstructor/Details/5
         public IActionResult Details(int id)
@@ -68,8 +88,9 @@ namespace ExSystemProject.Controllers
             var instructorDTO = _mapper.Map<InstructorDTO>(instructor);
 
             // Get instructor courses with student count
-            var coursesWithStudentCount = _unitOfWork.instructorRepo.GetInstructorCoursesWithStudentCount(id);
-            ViewBag.CoursesReport = coursesWithStudentCount;
+            var coursesData = _unitOfWork.instructorRepo.GetInstructorCoursesWithStudentCount(id);
+            ViewBag.CoursesReport = coursesData["Courses"];
+            ViewBag.CoursesSummary = coursesData["Summary"];
 
             return View(instructorDTO);
         }
@@ -77,8 +98,12 @@ namespace ExSystemProject.Controllers
         // GET: AdminInstructor/Create
         public IActionResult Create()
         {
-            var tracks = _unitOfWork.trackRepo.getAll();
-            ViewBag.Tracks = new SelectList(tracks, "TrackId", "TrackName");
+            // Get branches for dropdown
+            var branches = _unitOfWork.branchRepo.getAll();
+            ViewBag.Branches = new SelectList(branches, "BranchId", "BranchName");
+
+            // Get tracks for dropdown - initially empty, will be populated via JS when branch is selected
+            ViewBag.Tracks = new SelectList(new List<Track>(), "TrackId", "TrackName");
 
             return View();
         }
@@ -88,6 +113,11 @@ namespace ExSystemProject.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Create(InstructorDTO instructorDTO)
         {
+            // Remove validation for fields that don't need to be required
+            if (ModelState.ContainsKey("TrackName")) ModelState.Remove("TrackName");
+            if (ModelState.ContainsKey("BranchName")) ModelState.Remove("BranchName");
+            if (ModelState.ContainsKey("ImageUrl")) ModelState.Remove("ImageUrl");
+
             if (ModelState.IsValid)
             {
                 try
@@ -112,8 +142,18 @@ namespace ExSystemProject.Controllers
             }
 
             // If we got this far, something failed, redisplay form
-            var tracks = _unitOfWork.trackRepo.getAll();
-            ViewBag.Tracks = new SelectList(tracks, "TrackId", "TrackName", instructorDTO.TrackId);
+            var branches = _unitOfWork.branchRepo.getAll();
+            ViewBag.Branches = new SelectList(branches, "BranchId", "BranchName", instructorDTO.BranchId);
+
+            if (instructorDTO.BranchId.HasValue)
+            {
+                var tracks = _unitOfWork.trackRepo.getAll().Where(t => t.BranchId == instructorDTO.BranchId.Value);
+                ViewBag.Tracks = new SelectList(tracks, "TrackId", "TrackName", instructorDTO.TrackId);
+            }
+            else
+            {
+                ViewBag.Tracks = new SelectList(new List<Track>(), "TrackId", "TrackName");
+            }
 
             return View(instructorDTO);
         }
@@ -127,7 +167,21 @@ namespace ExSystemProject.Controllers
 
             var instructorDTO = _mapper.Map<InstructorDTO>(instructor);
 
-            var tracks = _unitOfWork.trackRepo.getAll();
+            // Load branch information
+            int? branchId = null;
+            if (instructor.Track != null && instructor.Track.BranchId.HasValue)
+            {
+                branchId = instructor.Track.BranchId.Value;
+            }
+
+            var branches = _unitOfWork.branchRepo.getAll();
+            ViewBag.Branches = new SelectList(branches, "BranchId", "BranchName", branchId);
+
+            // Get tracks for selected branch
+            var tracks = branchId.HasValue
+                ? _unitOfWork.trackRepo.getAll().Where(t => t.BranchId == branchId)
+                : _unitOfWork.trackRepo.getAll();
+
             ViewBag.Tracks = new SelectList(tracks, "TrackId", "TrackName", instructor.TrackId);
 
             return View(instructorDTO);
@@ -140,6 +194,11 @@ namespace ExSystemProject.Controllers
         {
             if (id != instructorDTO.InsId)
                 return NotFound();
+
+            // Remove validation for fields that don't need to be required
+            if (ModelState.ContainsKey("TrackName")) ModelState.Remove("TrackName");
+            if (ModelState.ContainsKey("BranchName")) ModelState.Remove("BranchName");
+            if (ModelState.ContainsKey("ImageUrl")) ModelState.Remove("ImageUrl");
 
             if (ModelState.IsValid)
             {
@@ -169,7 +228,13 @@ namespace ExSystemProject.Controllers
             }
 
             // If we got this far, something failed, redisplay form
-            var tracks = _unitOfWork.trackRepo.getAll();
+            var branches = _unitOfWork.branchRepo.getAll();
+            ViewBag.Branches = new SelectList(branches, "BranchId", "BranchName", instructorDTO.BranchId);
+
+            var tracks = instructorDTO.BranchId.HasValue
+                ? _unitOfWork.trackRepo.getAll().Where(t => t.BranchId == instructorDTO.BranchId)
+                : _unitOfWork.trackRepo.getAll();
+
             ViewBag.Tracks = new SelectList(tracks, "TrackId", "TrackName", instructorDTO.TrackId);
 
             return View(instructorDTO);
@@ -219,6 +284,19 @@ namespace ExSystemProject.Controllers
             ViewBag.InstructorName = instructor.User?.Username;
 
             return View(courses);
+        }
+
+        // GET: AdminInstructor/GetTracksByBranch/5
+        [HttpGet]
+        public JsonResult GetTracksByBranch(int branchId)
+        {
+            // Get tracks for the specified branch
+            var tracks = _unitOfWork.trackRepo.getAll()
+                .Where(t => t.BranchId == branchId)
+                .Select(t => new { t.TrackId, t.TrackName })
+                .ToList();
+
+            return Json(tracks);
         }
     }
 }

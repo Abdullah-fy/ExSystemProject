@@ -72,6 +72,16 @@
                     </div>
 
                     <div class="mb-3">
+                        <label for="BranchId" class="form-label">Branch <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-building"></i></span>
+                            <select id="BranchId" name="BranchId" class="form-select" asp-items="ViewBag.Branches" required>
+                                <option value="">-- Select Branch --</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
                         <label asp-for="TrackId" class="form-label">Track <span class="text-danger">*</span></label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="bi bi-signpost"></i></span>
@@ -88,7 +98,6 @@
                             @{
                                 var isActive = Model.Isactive ?? true;
                             }
-                            <!-- Using standard checkbox without hidden field to avoid conflicts -->
                             <input type="checkbox" class="form-check-input" id="IsactiveCheckbox"
                                    name="IsactiveCheckbox" @(isActive ? "checked" : "") />
                             <label class="form-check-label" for="IsactiveCheckbox">
@@ -96,7 +105,6 @@
                                     @(isActive ? "Active" : "Inactive")
                                 </span>
                             </label>
-                            <!-- Use hidden field with unique name -->
                             <input type="hidden" name="IsactiveHidden" id="IsactiveHidden" value="@(isActive ? "True" : "False")" />
                         </div>
                         <small class="form-text text-muted">Deactivating an instructor will affect related courses.</small>
@@ -122,6 +130,9 @@
     }
     <script>
         $(document).ready(function() {
+            // Set the initial branch value
+            $('#BranchId').val('@Model.BranchId');
+
             // Handle account status toggling
             $('#IsactiveCheckbox').on('change', function() {
                 var isChecked = $(this).is(':checked');
@@ -132,9 +143,37 @@
 
                 // Update hidden field value
                 $('#IsactiveHidden').val(isChecked ? 'True' : 'False');
-
-                console.log("IsActive changed to:", isChecked);
             });
+
+            // Handle branch selection change
+            $('#BranchId').change(function() {
+                var branchId = $(this).val();
+                if (branchId) {
+                    // Load tracks for the selected branch via AJAX
+                    $.getJSON(`/AdminInstructor/GetTracksByBranch/${branchId}`, function(tracks) {
+                        var trackSelect = $('#TrackId');
+                        trackSelect.empty();
+                        trackSelect.append('<option value="">-- Select Track --</option>');
+                        $.each(tracks, function(i, track) {
+                            trackSelect.append($('<option></option>').val(track.trackId).text(track.trackName));
+                        });
+
+                        // Restore track selection if applicable
+                        if ('@Model.TrackId' != '') {
+                            trackSelect.val('@Model.TrackId');
+                        }
+                    });
+                } else {
+                    // Clear track dropdown if no branch selected
+                    $('#TrackId').empty();
+                    $('#TrackId').append('<option value="">-- Select Track --</option>');
+                }
+            });
+
+            // Trigger branch change to load tracks on page load
+            if ($('#BranchId').val()) {
+                $('#BranchId').trigger('change');
+            }
         });
     </script>
 }

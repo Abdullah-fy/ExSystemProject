@@ -64,21 +64,18 @@ namespace ExSystemProject.MappinConfig
 
             // Instructor mappings
             CreateMap<Instructor, InstructorDTO>()
-                .ForMember(dest => dest.Username,
-                    opt => opt.MapFrom(src => src.User != null ? src.User.Username : null))
-                .ForMember(dest => dest.Email,
-                    opt => opt.MapFrom(src => src.User != null ? src.User.Email : null))
-                .ForMember(dest => dest.Gender,
-                    opt => opt.MapFrom(src => src.User != null ? src.User.Gender : null))
-                .ForMember(dest => dest.TrackName,
-                    opt => opt.MapFrom(src => src.Track != null ? src.Track.TrackName : null))
-                .ForMember(dest => dest.BranchId,
-                    opt => opt.MapFrom(src => src.Track != null ? src.Track.BranchId : null))
-                .ForMember(dest => dest.BranchName,
-                    opt => opt.MapFrom(src => src.Track != null && src.Track.Branch != null ?
-                        src.Track.Branch.BranchName : null))
-                .ForMember(dest => dest.AssignedCourses,
-                    opt => opt.MapFrom(src => src.Courses));
+                 .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.User != null ? src.User.Username : null))
+                 .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.User != null ? src.User.Email : null))
+                 .ForMember(dest => dest.Gender, opt => opt.MapFrom(src => src.User != null ? src.User.Gender : null))
+                 .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom(src => src.User != null ? src.User.Img : null))
+                 .ForMember(dest => dest.TrackName, opt => opt.MapFrom(src => src.Track != null ? src.Track.TrackName : null))
+                 .ForMember(dest => dest.BranchId, opt => opt.MapFrom(src => src.Track != null && src.Track.Branch != null ? src.Track.Branch.BranchId : (int?)null))
+                 .ForMember(dest => dest.BranchName, opt => opt.MapFrom(src => src.Track != null && src.Track.Branch != null ? src.Track.Branch.BranchName : null));
+
+            CreateMap<InstructorDTO, Instructor>()
+                .ForPath(dest => dest.User.Username, opt => opt.MapFrom(src => src.Username))
+                .ForPath(dest => dest.User.Email, opt => opt.MapFrom(src => src.Email))
+                .ForPath(dest => dest.User.Gender, opt => opt.MapFrom(src => src.Gender));
 
             // Exam mappings - preserving existing mapping
             CreateMap<Exam, ExamDTO>()

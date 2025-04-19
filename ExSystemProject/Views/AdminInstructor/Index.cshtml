@@ -24,14 +24,14 @@
                     <div class="col-md-4">
                         <label for="branchId" class="form-label">Filter by Branch</label>
                         <select id="branchId" name="branchId" class="form-select form-select-sm"
-                                asp-items="ViewBag.Branches" onchange="document.getElementById('trackId').value=''; this.form.submit();">
+                                asp-items="ViewBag.Branches" onchange="onBranchChange()">
                             <option value="">All Branches</option>
                         </select>
                     </div>
                     <div class="col-md-4">
                         <label for="trackId" class="form-label">Filter by Track</label>
                         <select id="trackId" name="trackId" class="form-select form-select-sm"
-                                asp-items="ViewBag.Tracks" onchange="document.getElementById('branchId').value=''; this.form.submit();">
+                                asp-items="ViewBag.Tracks">
                             <option value="">All Tracks</option>
                         </select>
                     </div>
@@ -80,6 +80,7 @@
             </div>
         }
 
+        <!-- Alerts -->
         @if (TempData["SuccessMessage"] != null)
         {
             <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -180,6 +181,46 @@
             setTimeout(function() {
                 $('.alert-dismissible').alert('close');
             }, 5000);
+
+            // Add event listeners
+            $('#branchId').on('change', onBranchChange);
+            $('#trackId').on('change', function() {
+                $('#filterForm').submit();
+            });
         });
+
+        function onBranchChange() {
+            var branchId = $('#branchId').val();
+
+            // Reset track dropdown if "All Branches" is selected
+            if (!branchId) {
+                $('#trackId').val('');
+                $('#filterForm').submit();
+                return;
+            }
+
+            // Get tracks for selected branch
+            $.ajax({
+                url: '/AdminInstructor/GetTracksByBranch',
+                type: 'GET',
+                data: { branchId: branchId },
+                success: function(data) {
+                    var trackDropdown = $('#trackId');
+                    trackDropdown.empty();
+                    trackDropdown.append('<option value="">All Tracks</option>');
+
+                    $.each(data, function(i, track) {
+                        trackDropdown.append($('<option></option>').val(track.trackId).text(track.trackName));
+                    });
+
+                    // Submit form to reload the page with the branch filter
+                    $('#filterForm').submit();
+                },
+                error: function() {
+                    console.error('Failed to load tracks for branch');
+                    $('#filterForm').submit();
+                }
+            });
+        }
     </script>
 }
