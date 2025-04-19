@@ -1,0 +1,185 @@
+﻿@model IEnumerable<ExSystemProject.DTOS.InstructorDTO>
+@{
+    ViewData["Title"] = "Instructors";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+
+    var activeOnly = ViewBag.ActiveOnly ?? true;
+    var branchId = ViewBag.BranchId as int?;
+    var trackId = ViewBag.TrackId as int?;
+}
+
+<div class="card shadow">
+    <div class="card-header d-flex justify-content-between align-items-center bg-white py-3">
+        <h5 class="mb-0 text-primary">Instructors</h5>
+        <a asp-action="Create" class="btn btn-sm btn-primary">
+            <i class="bi bi-person-plus"></i> New Instructor
+        </a>
+    </div>
+
+    <div class="card-body">
+        <!-- Filters -->
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <form id="filterForm" method="get" class="row g-3">
+                    <div class="col-md-4">
+                        <label for="branchId" class="form-label">Filter by Branch</label>
+                        <select id="branchId" name="branchId" class="form-select form-select-sm"
+                                asp-items="ViewBag.Branches" onchange="document.getElementById('trackId').value=''; this.form.submit();">
+                            <option value="">All Branches</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="trackId" class="form-label">Filter by Track</label>
+                        <select id="trackId" name="trackId" class="form-select form-select-sm"
+                                asp-items="ViewBag.Tracks" onchange="document.getElementById('branchId').value=''; this.form.submit();">
+                            <option value="">All Tracks</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="activeOnly" class="form-label">Status</label>
+                        <select id="activeOnly" name="activeOnly" class="form-select form-select-sm" onchange="this.form.submit();">
+                            <option value="true" selected="@(activeOnly == true)">Active Only</option>
+                            <option value="false" selected="@(activeOnly == false)">Inactive Only</option>
+                            <option value="" selected="@(activeOnly == null)">All</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="col-md-4">
+                <div class="d-flex justify-content-end align-items-end h-100">
+                    @if (branchId.HasValue || trackId.HasValue || activeOnly != true)
+                    {
+                        <a asp-action="Index" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-x-circle"></i> Clear Filters
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Filters Display -->
+        @{
+            var hasFilters = branchId.HasValue || trackId.HasValue || activeOnly != true;
+        }
+        @if (hasFilters)
+        {
+            <div class="mb-3 d-flex align-items-center">
+                <span class="me-2">Active Filters:</span>
+                @if (branchId.HasValue)
+                {
+                    <span class="badge bg-info me-2">Branch: @ViewBag.BranchName</span>
+                }
+                @if (trackId.HasValue)
+                {
+                    <span class="badge bg-info me-2">Track: @ViewBag.TrackName</span>
+                }
+                @if (activeOnly != null)
+                {
+                    <span class="badge bg-info me-2">Status: @(activeOnly == true ? "Active" : "Inactive")</span>
+                }
+            </div>
+        }
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle me-2"></i> @TempData["SuccessMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle me-2"></i> @TempData["ErrorMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <!-- Instructors Table -->
+        @if (Model != null && Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Track</th>
+                            <th>Branch</th>
+                            <th>Salary</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var instructor in Model)
+                        {
+                            <tr>
+                                <td>@instructor.Username</td>
+                                <td>@instructor.Email</td>
+                                <td>@instructor.TrackName</td>
+                                <td>@instructor.BranchName</td>
+                                <td>$@instructor.Salary</td>
+                                <td>
+                                    <span class="badge @(instructor.Isactive == true ? "bg-success" : "bg-danger")">
+                                        @(instructor.Isactive == true ? "Active" : "Inactive")
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a asp-action="Details" asp-route-id="@instructor.InsId" class="btn btn-outline-info" title="Details">
+                                            <i class="bi bi-info-circle"></i>
+                                        </a>
+                                        <a asp-action="Edit" asp-route-id="@instructor.InsId" class="btn btn-outline-primary" title="Edit">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <a asp-action="Courses" asp-route-id="@instructor.InsId" class="btn btn-outline-secondary" title="Courses">
+                                            <i class="bi bi-book"></i>
+                                        </a>
+                                        <a asp-action="Delete" asp-route-id="@instructor.InsId" class="btn btn-outline-danger" title="Deactivate">
+                                            <i class="bi bi-person-x"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-info text-center py-5">
+                <i class="bi bi-search fs-1 d-block mb-3"></i>
+                <h5>No instructors found</h5>
+                <p class="mb-0">No instructors match the current filters or no instructors have been added yet.</p>
+                <div class="mt-3">
+                    <a asp-action="Create" class="btn btn-primary">
+                        <i class="bi bi-person-plus"></i> Add New Instructor
+                    </a>
+                    @if (hasFilters)
+                    {
+                        <a asp-action="Index" class="btn btn-outline-secondary ms-2">
+                            <i class="bi bi-x-circle"></i> Clear Filters
+                        </a>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Initialize tooltips
+            $('[data-bs-toggle="tooltip"]').tooltip();
+
+            // Auto-hide alerts after 5 seconds
+            setTimeout(function() {
+                $('.alert-dismissible').alert('close');
+            }, 5000);
+        });
+    </script>
+}

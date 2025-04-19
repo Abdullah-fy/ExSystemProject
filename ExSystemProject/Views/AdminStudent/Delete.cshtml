@@ -1,0 +1,87 @@
+﻿@model ExSystemProject.DTOS.StudentDTO
+@{
+    ViewData["Title"] = "Delete Student";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Delete Student</h5>
+        <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left"></i> Back to List
+        </a>
+    </div>
+    <div class="card-body">
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle me-2"></i> @TempData["ErrorMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <div class="alert alert-danger mb-4">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <strong>Warning:</strong> Are you sure you want to deactivate this student? This will make the student unable to login and access any courses.
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <h6 class="border-bottom pb-2 mb-3">Basic Information</h6>
+                <table class="table table-borderless">
+                    <tr>
+                        <th style="width: 30%">Student ID:</th>
+                        <td>@Model.StudentId</td>
+                    </tr>
+                    <tr>
+                        <th>Name:</th>
+                        <td>@Model.Username</td>
+                    </tr>
+                    <tr>
+                        <th>Email:</th>
+                        <td>@Model.Email</td>
+                    </tr>
+                    <tr>
+                        <th>Gender:</th>
+                        <td>@(Model.Gender == "M" ? "Male" : "Female")</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="col-md-6">
+                <h6 class="border-bottom pb-2 mb-3">Academic Information</h6>
+                <table class="table table-borderless">
+                    <tr>
+                        <th style="width: 30%">Track:</th>
+                        <td>@(Model.TrackName ?? "Not Assigned")</td>
+                    </tr>
+                    <tr>
+                        <th>Enrollment Date:</th>
+                        <td>@Model.EnrollmentDate?.ToString("d")</td>
+                    </tr>
+                    <tr>
+                        <th>Status:</th>
+                        <td>
+                            @if (Model.Isactive == true)
+                            {
+                                <span class="badge bg-success">Active</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">Inactive</span>
+                            }
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="card-footer text-end">
+        <form asp-action="Delete" asp-route-id="@Model.StudentId" method="post">
+            <input type="hidden" name="id" value="@Model.StudentId" />
+            <button type="submit" class="btn btn-danger">Deactivate Student</button>
+            <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+        </form>
+
+    </div>
+</div>
