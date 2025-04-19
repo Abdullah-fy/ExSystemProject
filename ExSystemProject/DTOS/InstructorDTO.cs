@@ -12,4 +12,8 @@ public class InstructorDTO
     public string? Gender { get; set; }
     public string? TrackName { get; set; }
     public List<CourseDTO>? AssignedCourses { get; set; }
+    
+    public int? BranchId { get; set; }
+    public string BranchName { get; set; }
+
 }

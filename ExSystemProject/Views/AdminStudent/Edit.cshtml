@@ -1,0 +1,257 @@
+﻿@model ExSystemProject.DTOS.StudentDTO
+@{
+    ViewData["Title"] = "Edit Student";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="card shadow">
+    <div class="card-header d-flex justify-content-between align-items-center bg-white py-3">
+        <h5 class="mb-0 text-primary">Edit Student</h5>
+        <a asp-action="Index" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to List
+        </a>
+    </div>
+    <div class="card-body p-4">
+        <form asp-action="Edit" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+            <input type="hidden" asp-for="StudentId" />
+            <input type="hidden" asp-for="UserId" />
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <h6 class="border-bottom pb-2 mb-3">User Information</h6>
+
+                    <div class="mb-3">
+                        <label asp-for="Username" class="form-label">Username <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-person"></i></span>
+                            <input asp-for="Username" class="form-control" required />
+                        </div>
+                        <span asp-validation-for="Username" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label">Email <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                            <input asp-for="Email" class="form-control" type="email" required />
+                        </div>
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Gender <span class="text-danger">*</span></label>
+                        <div>
+                            @{
+                                bool isMale = Model.Gender == "M";
+                                bool isFemale = Model.Gender == "F";
+                            }
+                            <div class="form-check form-check-inline">
+                                <input asp-for="Gender" class="form-check-input" type="radio" value="M" id="genderMale" checked="@isMale" />
+                                <label class="form-check-label" for="genderMale">Male</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input asp-for="Gender" class="form-check-input" type="radio" value="F" id="genderFemale" checked="@isFemale" />
+                                <label class="form-check-label" for="genderFemale">Female</label>
+                            </div>
+                        </div>
+                        <span asp-validation-for="Gender" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <h6 class="border-bottom pb-2 mb-3">Academic Information</h6>
+
+                    <div class="mb-3">
+                        <label for="BranchId" class="form-label">Branch</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-building"></i></span>
+                            <select id="BranchId" name="BranchId" class="form-select">
+                                <option value="">-- Select Branch --</option>
+                                @foreach (var branch in ViewBag.Branches)
+                                {
+                                    if (branch.BranchId == Model.BranchId)
+                                    {
+                                        <option value="@branch.BranchId" selected>@branch.BranchName</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@branch.BranchId">@branch.BranchName</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="TrackId" class="form-label">Track <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-signpost"></i></span>
+                            <select asp-for="TrackId" id="TrackId" class="form-select" required>
+                                <option value="">-- Select Track --</option>
+                                @if (ViewBag.Tracks != null)
+                                {
+                                    @foreach (var track in ViewBag.Tracks)
+                                    {
+                                        if (track.Value == Model.TrackId.ToString())
+                                        {
+                                            <option value="@track.Value" selected>@track.Text</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@track.Value">@track.Text</option>
+                                        }
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <span asp-validation-for="TrackId" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="EnrollmentDate" class="form-label">Enrollment Date</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-calendar"></i></span>
+                            <input asp-for="EnrollmentDate" class="form-control" type="text" readonly />
+                        </div>
+                        <small class="form-text text-muted">Enrollment date cannot be changed.</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Account Status</label>
+                        <div class="form-check form-switch">
+                            @{
+                                // Ensure we have a non-nullable boolean value
+                                bool isActiveValue = Model.Isactive.HasValue && Model.Isactive.Value;
+                            }
+                            <!-- Using standard checkbox without hidden field to avoid conflicts -->
+                            <input type="checkbox" class="form-check-input" id="IsactiveCheckbox"
+                                   name="IsactiveCheckbox" @(isActiveValue ? "checked" : "") />
+                            <label class="form-check-label" for="IsactiveCheckbox">
+                                <span id="activeStatusLabel" class="@(isActiveValue ? "text-success" : "text-danger")">
+                                    @(isActiveValue ? "Active" : "Inactive")
+                                </span>
+                            </label>
+                            <!-- Use hidden field with unique name -->
+                            <input type="hidden" name="Isactive" id="IsactiveHidden" value="@(isActiveValue ? "True" : "False")" />
+                        </div>
+                        <small class="form-text text-muted">Deactivating a student will affect related records.</small>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                <a asp-action="Details" asp-route-id="@Model.StudentId" class="btn btn-outline-secondary">
+                    <i class="bi bi-x-lg"></i> Cancel
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save"></i> Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        $(document).ready(function () {
+            console.log("Edit form initialized");
+
+            // Store initial values
+            var initialBranchId = $('#BranchId').val();
+            var initialTrackId = $('#TrackId').val();
+            var initialActiveState = $('#IsactiveCheckbox').is(':checked');
+            console.log("Initial values - Branch:", initialBranchId,
+                        "Track:", initialTrackId,
+                        "IsActive:", initialActiveState);
+
+            // Handle status checkbox change
+            $('#IsactiveCheckbox').on('change', function() {
+                var isChecked = $(this).is(':checked');
+                console.log("Status checkbox changed to:", isChecked);
+
+                // Update label style
+                $('#activeStatusLabel')
+                    .removeClass(isChecked ? 'text-danger' : 'text-success')
+                    .addClass(isChecked ? 'text-success' : 'text-danger')
+                    .text(isChecked ? 'Active' : 'Inactive');
+
+                // Update hidden field value
+                $('#IsactiveHidden').val(isChecked ? 'True' : 'False');
+            });
+
+            // Handle branch changes
+            $('#BranchId').on('change', function() {
+                var branchId = $(this).val();
+                console.log("Branch changed to:", branchId);
+
+                if (branchId) {
+                    $('#TrackId').prop('disabled', true);
+                    $('#TrackId').empty().append('<option value="">Loading tracks...</option>');
+
+                    // Use direct URL path to avoid routing issues
+                    $.ajax({
+                        url: '/AdminStudent/GetTracksByBranch',
+                        type: 'GET',
+                        data: { branchId: branchId },
+                        dataType: 'json',
+                        cache: false,
+                        success: function(data) {
+                            console.log("Loaded tracks:", data);
+                            $('#TrackId').empty().append('<option value="">-- Select Track --</option>');
+
+                            if (data && data.length > 0) {
+                                $.each(data, function(i, track) {
+                                    $('#TrackId').append($('<option>', {
+                                        value: track.trackId,
+                                        text: track.trackName
+                                    }));
+                                });
+                            } else {
+                                $('#TrackId').append('<option value="">-- No tracks available --</option>');
+                            }
+
+                            $('#TrackId').prop('disabled', false);
+                        },
+                        error: function(xhr, status, error) {
+                            console.error("AJAX Error:", error);
+                            console.error("Status:", status);
+                            console.error("Response:", xhr.responseText);
+
+                            $('#TrackId').empty().append('<option value="">-- Error loading tracks --</option>');
+                            $('#TrackId').prop('disabled', false);
+                        }
+                    });
+                } else {
+                    $('#TrackId').empty().append('<option value="">-- First select a branch --</option>');
+                }
+            });
+
+            // Form validation before submit
+            $('form').on('submit', function(e) {
+                var branchId = $('#BranchId').val();
+                var trackId = $('#TrackId').val();
+                var isActive = $('#IsactiveCheckbox').is(':checked');
+
+                console.log("Form submitting - Branch:", branchId, "Track:", trackId, "IsActive:", isActive);
+
+                if (!trackId) {
+                    e.preventDefault();
+                    alert('Please select a track');
+                    return false;
+                }
+
+                return true;
+            });
+
+            // Initial load if branch is already selected
+            if (initialBranchId) {
+                $('#BranchId').trigger('change');
+            }
+        });
+    </script>
+}

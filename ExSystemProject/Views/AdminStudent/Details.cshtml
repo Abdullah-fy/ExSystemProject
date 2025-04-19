@@ -1,0 +1,213 @@
+﻿@model ExSystemProject.DTOS.StudentDTO
+@{
+    ViewData["Title"] = "Student Details";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Student Details</h5>
+        <div>
+            <a asp-action="Edit" asp-route-id="@Model.StudentId" class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-pencil"></i> Edit
+            </a>
+            <a asp-action="Index" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back to List
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle me-2"></i> @TempData["SuccessMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <div class="row">
+            <div class="col-md-6">
+                <h6 class="border-bottom pb-2 mb-3">Basic Information</h6>
+                <table class="table table-borderless">
+                    <tr>
+                        <th style="width: 30%">Student ID:</th>
+                        <td>@Model.StudentId</td>
+                    </tr>
+                    <tr>
+                        <th>Name:</th>
+                        <td>@Model.Username</td>
+                    </tr>
+                    <tr>
+                        <th>Email:</th>
+                        <td>@Model.Email</td>
+                    </tr>
+                    <tr>
+                        <th>Gender:</th>
+                        <td>@(Model.Gender == "M" ? "Male" : "Female")</td>
+                    </tr>
+                    <tr>
+                        <th>Status:</th>
+                        <td>
+                            @if (Model.Isactive == true)
+                            {
+                                <span class="badge bg-success">Active</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">Inactive</span>
+                            }
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="col-md-6">
+                <h6 class="border-bottom pb-2 mb-3">Academic Information</h6>
+                <table class="table table-borderless">
+                    <tr>
+                        <th style="width: 30%">Track:</th>
+                        <td>@(Model.TrackName ?? "Not Assigned")</td>
+                    </tr>
+                    <tr>
+                        <th>Enrollment Date:</th>
+                        <td>@Model.EnrollmentDate?.ToString("d")</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <h6 class="border-bottom pb-2 mt-4 mb-3">
+            Enrolled Courses
+        </h6>
+
+        @if (Model.StudentCourses != null && Model.StudentCourses.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-sm table-striped">
+                    <thead>
+                        <tr>
+                            <th>Course Name</th>
+                            <th>Enrollment Date</th>
+                            <th>Grade</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var course in Model.StudentCourses)
+                        {
+                            <tr>
+                                <td>@course.CourseName</td>
+                                <td>@course.EnrolledAt?.ToString("d")</td>
+                                <td>@(course.Grade != null ? $"{course.Grade}/100" : "Not graded yet")</td>
+                                <td>
+                                    @if (course.Ispassed == true)
+                                    {
+                                        <span class="badge bg-success">Passed</span>
+                                    }
+                                    else if (course.Ispassed == false)
+                                    {
+                                        <span class="badge bg-danger">Failed</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Pending</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle me-2"></i>
+                No courses have been assigned to this student yet.
+            </div>
+        }
+
+        <h6 class="border-bottom pb-2 mt-4 mb-3">
+            Assigned Exams
+            <a asp-action="AssignExam" asp-route-id="@Model.StudentId" class="btn btn-sm btn-outline-primary float-end">
+                <i class="bi bi-plus"></i> Assign New Exam
+            </a>
+        </h6>
+
+        @if (Model.StudentExams != null && Model.StudentExams.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-sm table-striped">
+                    <thead>
+                        <tr>
+                            <th>Exam Name</th>
+                            <th>Score</th>
+                            <th>Result</th>
+                            <th>Exam Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var exam in Model.StudentExams)
+                        {
+                            <tr>
+                                <td>@exam.ExamName</td>
+                                <td>@exam.Score</td>
+                                <td>
+                                    @if (exam.PassFail == "Pass")
+                                    {
+                                        <span class="badge bg-success">Passed</span>
+                                    }
+                                    else if (exam.PassFail == "Fail")
+                                    {
+                                        <span class="badge bg-danger">Failed</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Not taken</span>
+                                    }
+                                </td>
+                                <td>@exam.ExaminationDate?.ToString("d")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle me-2"></i>
+                No exams have been assigned to this student yet.
+            </div>
+        }
+    </div>
+    <div class="card-footer text-end">
+        <a asp-action="AssignExam" asp-route-id="@Model.StudentId" class="btn btn-outline-primary">
+            <i class="bi bi-file-earmark-text"></i> Assign Exam
+        </a>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        $(document).ready(function() {
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <text>
+                        // Create a temporary div to decode HTML entities
+                        var tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = "@TempData["SuccessMessage"]";
+                        var decodedMessage = tempDiv.textContent;
+
+                        Swal.fire({
+                            title: "Success!",
+                            text: decodedMessage,
+                            icon: "success",
+                            confirmButtonColor: "#a41e22"
+                        });
+            </text>
+        }
+        });
+    </script>
+}
