@@ -1,0 +1,140 @@
+﻿@model ExSystemProject.DTOS.InstructorDTO
+@{
+    ViewData["Title"] = "Edit Instructor";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="card shadow">
+    <div class="card-header d-flex justify-content-between align-items-center bg-white py-3">
+        <h5 class="mb-0 text-primary">Edit Instructor</h5>
+        <a asp-action="Index" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to List
+        </a>
+    </div>
+    <div class="card-body p-4">
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+        <form asp-action="Edit" method="post">
+            <input type="hidden" asp-for="InsId" />
+            <input type="hidden" asp-for="UserId" />
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <h6 class="border-bottom pb-2 mb-3">User Information</h6>
+
+                    <div class="mb-3">
+                        <label asp-for="Username" class="form-label">Username <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-person"></i></span>
+                            <input asp-for="Username" class="form-control" required />
+                        </div>
+                        <span asp-validation-for="Username" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label">Email <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                            <input asp-for="Email" class="form-control" type="email" required />
+                        </div>
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Gender <span class="text-danger">*</span></label>
+                        <div>
+                            @{
+                                bool isMale = Model.Gender == "M";
+                                bool isFemale = Model.Gender == "F";
+                            }
+                            <div class="form-check form-check-inline">
+                                <input asp-for="Gender" class="form-check-input" type="radio" value="M" id="genderMale" checked="@isMale" />
+                                <label class="form-check-label" for="genderMale">Male</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input asp-for="Gender" class="form-check-input" type="radio" value="F" id="genderFemale" checked="@isFemale" />
+                                <label class="form-check-label" for="genderFemale">Female</label>
+                            </div>
+                        </div>
+                        <span asp-validation-for="Gender" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <h6 class="border-bottom pb-2 mb-3">Professional Information</h6>
+
+                    <div class="mb-3">
+                        <label asp-for="Salary" class="form-label">Salary <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-currency-dollar"></i></span>
+                            <input asp-for="Salary" class="form-control" type="number" step="0.01" min="0" required />
+                        </div>
+                        <span asp-validation-for="Salary" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="TrackId" class="form-label">Track <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-signpost"></i></span>
+                            <select asp-for="TrackId" class="form-select" asp-items="ViewBag.Tracks" required>
+                                <option value="">-- Select Track --</option>
+                            </select>
+                        </div>
+                        <span asp-validation-for="TrackId" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Account Status</label>
+                        <div class="form-check form-switch">
+                            @{
+                                var isActive = Model.Isactive ?? true;
+                            }
+                            <!-- Using standard checkbox without hidden field to avoid conflicts -->
+                            <input type="checkbox" class="form-check-input" id="IsactiveCheckbox"
+                                   name="IsactiveCheckbox" @(isActive ? "checked" : "") />
+                            <label class="form-check-label" for="IsactiveCheckbox">
+                                <span id="activeStatusLabel" class="@(isActive ? "text-success" : "text-danger")">
+                                    @(isActive ? "Active" : "Inactive")
+                                </span>
+                            </label>
+                            <!-- Use hidden field with unique name -->
+                            <input type="hidden" name="IsactiveHidden" id="IsactiveHidden" value="@(isActive ? "True" : "False")" />
+                        </div>
+                        <small class="form-text text-muted">Deactivating an instructor will affect related courses.</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                <a asp-action="Details" asp-route-id="@Model.InsId" class="btn btn-outline-secondary">
+                    <i class="bi bi-x-lg"></i> Cancel
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save"></i> Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        $(document).ready(function() {
+            // Handle account status toggling
+            $('#IsactiveCheckbox').on('change', function() {
+                var isChecked = $(this).is(':checked');
+                $('#activeStatusLabel')
+                    .removeClass(isChecked ? 'text-danger' : 'text-success')
+                    .addClass(isChecked ? 'text-success' : 'text-danger')
+                    .text(isChecked ? 'Active' : 'Inactive');
+
+                // Update hidden field value
+                $('#IsactiveHidden').val(isChecked ? 'True' : 'False');
+
+                console.log("IsActive changed to:", isChecked);
+            });
+        });
+    </script>
+}

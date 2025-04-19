@@ -23,10 +23,10 @@ namespace ExSystemProject.Controllers
         }
 
         // GET: AdminInstructor
-        public IActionResult Index(int? branchId = null, int? trackId = null, bool? activeOnly = true)
+        public IActionResult Index(int? branchId = null, int? trackId = null, bool? activeOnly = null)
         {
             List<Instructor> instructors;
-            
+
             if (branchId.HasValue)
             {
                 // Get instructors for a specific branch
@@ -49,7 +49,7 @@ namespace ExSystemProject.Controllers
 
             var branches = _unitOfWork.branchRepo.getAll();
             var tracks = _unitOfWork.trackRepo.getAll();
-            
+
             ViewBag.Branches = new SelectList(branches, "BranchId", "BranchName", branchId);
             ViewBag.Tracks = new SelectList(tracks, "TrackId", "TrackName", trackId);
             ViewBag.ActiveOnly = activeOnly;
@@ -66,11 +66,11 @@ namespace ExSystemProject.Controllers
                 return NotFound();
 
             var instructorDTO = _mapper.Map<InstructorDTO>(instructor);
-            
+
             // Get instructor courses with student count
             var coursesWithStudentCount = _unitOfWork.instructorRepo.GetInstructorCoursesWithStudentCount(id);
             ViewBag.CoursesReport = coursesWithStudentCount;
-            
+
             return View(instructorDTO);
         }
 
@@ -79,7 +79,7 @@ namespace ExSystemProject.Controllers
         {
             var tracks = _unitOfWork.trackRepo.getAll();
             ViewBag.Tracks = new SelectList(tracks, "TrackId", "TrackName");
-            
+
             return View();
         }
 
@@ -92,30 +92,16 @@ namespace ExSystemProject.Controllers
             {
                 try
                 {
-                    // Create new user first
-                    var user = new User
-                    {
-                        Username = instructorDTO.Username,
-                        Email = instructorDTO.Email,
-                        Gender = instructorDTO.Gender,
-                        Upassword = "defaultPassword123", // Consider generating a random password or requiring it in the form
-                        Role = "instructor",
-                        Isactive = true
-                    };
-                    
-                    _unitOfWork.userRepo.add(user);
-                    _unitOfWork.save(); // Save to get UserId
-                    
                     // Create instructor using stored procedure
                     _unitOfWork.instructorRepo.CreateInstructor(
                         instructorDTO.Username,
                         instructorDTO.Email,
                         instructorDTO.Gender,
-                        "defaultPassword123",
+                        "defaultPassword123", // Consider generating a random password or requiring it in the form
                         instructorDTO.Salary ?? 0,
                         instructorDTO.TrackId ?? 0
                     );
-                    
+
                     TempData["SuccessMessage"] = "Instructor created successfully!";
                     return RedirectToAction(nameof(Index));
                 }
@@ -124,11 +110,11 @@ namespace ExSystemProject.Controllers
                     ModelState.AddModelError("", $"Error creating instructor: {ex.Message}");
                 }
             }
-            
+
             // If we got this far, something failed, redisplay form
             var tracks = _unitOfWork.trackRepo.getAll();
             ViewBag.Tracks = new SelectList(tracks, "TrackId", "TrackName", instructorDTO.TrackId);
-            
+
             return View(instructorDTO);
         }
 
@@ -138,27 +124,30 @@ namespace ExSystemProject.Controllers
             var instructor = _unitOfWork.instructorRepo.GetInstructorById(id);
             if (instructor == null)
                 return NotFound();
-                
+
             var instructorDTO = _mapper.Map<InstructorDTO>(instructor);
-            
+
             var tracks = _unitOfWork.trackRepo.getAll();
             ViewBag.Tracks = new SelectList(tracks, "TrackId", "TrackName", instructor.TrackId);
-            
+
             return View(instructorDTO);
         }
 
         // POST: AdminInstructor/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Edit(int id, InstructorDTO instructorDTO)
+        public IActionResult Edit(int id, InstructorDTO instructorDTO, string IsactiveHidden)
         {
             if (id != instructorDTO.InsId)
                 return NotFound();
-                
+
             if (ModelState.IsValid)
             {
                 try
                 {
+                    // Explicitly set the active status based on the hidden field value
+                    instructorDTO.Isactive = IsactiveHidden?.ToLower() == "true";
+
                     // Update instructor using stored procedure
                     _unitOfWork.instructorRepo.UpdateInstructor(
                         instructorDTO.InsId,
@@ -169,7 +158,7 @@ namespace ExSystemProject.Controllers
                         instructorDTO.TrackId ?? 0,
                         instructorDTO.Isactive ?? true
                     );
-                    
+
                     TempData["SuccessMessage"] = "Instructor updated successfully!";
                     return RedirectToAction(nameof(Details), new { id = instructorDTO.InsId });
                 }
@@ -178,11 +167,11 @@ namespace ExSystemProject.Controllers
                     ModelState.AddModelError("", $"Error updating instructor: {ex.Message}");
                 }
             }
-            
+
             // If we got this far, something failed, redisplay form
             var tracks = _unitOfWork.trackRepo.getAll();
             ViewBag.Tracks = new SelectList(tracks, "TrackId", "TrackName", instructorDTO.TrackId);
-            
+
             return View(instructorDTO);
         }
 
@@ -192,7 +181,7 @@ namespace ExSystemProject.Controllers
             var instructor = _unitOfWork.instructorRepo.GetInstructorById(id);
             if (instructor == null)
                 return NotFound();
-                
+
             var instructorDTO = _mapper.Map<InstructorDTO>(instructor);
             return View(instructorDTO);
         }
@@ -206,7 +195,7 @@ namespace ExSystemProject.Controllers
             {
                 // Delete instructor using stored procedure (logical delete)
                 _unitOfWork.instructorRepo.DeleteInstructor(id);
-                
+
                 TempData["SuccessMessage"] = "Instructor deactivated successfully!";
                 return RedirectToAction(nameof(Index));
             }
@@ -216,19 +205,19 @@ namespace ExSystemProject.Controllers
                 return RedirectToAction(nameof(Delete), new { id = id });
             }
         }
-        
+
         // GET: AdminInstructor/Courses/5
         public IActionResult Courses(int id)
         {
             var instructor = _unitOfWork.instructorRepo.GetInstructorById(id);
             if (instructor == null)
                 return NotFound();
-                
+
             var courses = _unitOfWork.instructorRepo.GetInstructorCourses(id);
-            
+
             ViewBag.InstructorId = id;
             ViewBag.InstructorName = instructor.User?.Username;
-            
+
             return View(courses);
         }
     }

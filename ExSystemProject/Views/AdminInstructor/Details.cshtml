@@ -1,0 +1,173 @@
+﻿@model ExSystemProject.DTOS.InstructorDTO
+@{
+    ViewData["Title"] = $"Instructor: {Model.Username}";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="card shadow mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center bg-white py-3">
+        <h5 class="mb-0 text-primary">Instructor Details</h5>
+        <div>
+            <a asp-action="Index" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back to List
+            </a>
+            <a asp-action="Edit" asp-route-id="@Model.InsId" class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-pencil"></i> Edit
+            </a>
+            <a asp-action="Courses" asp-route-id="@Model.InsId" class="btn btn-sm btn-outline-info">
+                <i class="bi bi-book"></i> View Courses
+            </a>
+        </div>
+    </div>
+
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4 text-center mb-4">
+                @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                {
+                    <img src="@Model.ImageUrl" alt="@Model.Username" class="img-fluid rounded-circle mb-3" style="max-width: 200px; height: auto;">
+                }
+                else
+                {
+                    <div class="bg-light d-inline-flex align-items-center justify-content-center rounded-circle mb-3" style="width: 200px; height: 200px;">
+                        <i class="bi bi-person-circle text-secondary" style="font-size: 6rem;"></i>
+                    </div>
+                }
+                <h4 class="mb-1">@Model.Username</h4>
+                <p class="text-muted">Instructor</p>
+                <div class="badge @(Model.Isactive == true ? "bg-success" : "bg-danger") mb-2">
+                    @(Model.Isactive == true ? "Active" : "Inactive")
+                </div>
+            </div>
+
+            <div class="col-md-8">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0"><i class="bi bi-person-badge me-2"></i>Personal Information</h6>
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                        <span class="text-muted">Email:</span>
+                                        <span>@Model.Email</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                        <span class="text-muted">Gender:</span>
+                                        <span>@(Model.Gender == "M" ? "Male" : "Female")</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                        <span class="text-muted">Salary:</span>
+                                        <span>$@Model.Salary</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0"><i class="bi bi-diagram-3 me-2"></i>Track Information</h6>
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                        <span class="text-muted">Track:</span>
+                                        <span>@Model.TrackName</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                        <span class="text-muted">Branch:</span>
+                                        <span>@Model.BranchName</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Courses Statistics Section -->
+                <div class="card mt-4 border-0 shadow-sm">
+                    <div class="card-header bg-light">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0"><i class="bi bi-book me-2"></i>Course Statistics</h6>
+                            <a asp-action="Courses" asp-route-id="@Model.InsId" class="btn btn-sm btn-outline-primary">
+                                View All Courses
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        @if (ViewBag.CoursesReport != null && ((IEnumerable<dynamic>)ViewBag.CoursesReport).Any())
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Course</th>
+                                            <th>Students</th>
+                                            <th>Passed</th>
+                                            <th>Avg. Grade</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var course in (IEnumerable<dynamic>)ViewBag.CoursesReport)
+                                        {
+                                            <tr>
+                                                <td>@course.CourseName</td>
+                                                <td>@course.StudentCount</td>
+                                                <td>
+                                                    @if (course.StudentCount > 0)
+                                                    {
+                                                        <span data-bs-toggle="tooltip" title="@course.PassedStudents of @course.StudentCount students passed">
+                                                            @Math.Round((double)(course.PassedStudents * 100) / Math.Max(1, course.StudentCount))%
+                                                        </span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span>N/A</span>
+                                                    }
+                                                </td>
+                                                <td>
+                                                    @if (course.AverageGrade > 0)
+                                                    {
+                                                        @Math.Round(course.AverageGrade, 1)
+                                                    }
+                                                    else
+                                                    {
+                                                        <span>N/A</span>
+                                                    }
+                                                </td>
+                                                <td>
+                                                    <span class="badge @(course.CourseStatus == "Active" ? "bg-success" : "bg-secondary")">
+                                                        @course.CourseStatus
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="text-center py-4">
+                                <i class="bi bi-book text-muted" style="font-size: 2rem;"></i>
+                                <p class="text-muted mt-2">No courses assigned to this instructor yet.</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(function () {
+            $('[data-bs-toggle="tooltip"]').tooltip();
+        });
+    </script>
+}

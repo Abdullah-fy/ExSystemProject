@@ -1,0 +1,94 @@
+﻿@model IEnumerable<ExSystemProject.Models.Course>
+@{
+    ViewData["Title"] = $"Instructor Courses";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+
+    var instructorId = ViewBag.InstructorId;
+    var instructorName = ViewBag.InstructorName;
+}
+
+<div class="card shadow">
+    <div class="card-header d-flex justify-content-between align-items-center bg-white py-3">
+        <h5 class="mb-0 text-primary">@instructorName's Courses</h5>
+        <div>
+            <a asp-action="Details" asp-route-id="@instructorId" class="btn btn-sm btn-outline-secondary me-2">
+                <i class="bi bi-person"></i> Instructor Details
+            </a>
+            <a asp-action="Index" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back to List
+            </a>
+        </div>
+    </div>
+
+    <div class="card-body">
+        @if (Model != null && Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Course Name</th>
+                            <th>Duration</th>
+                            <th>Enrolled Students</th>
+                            <th>Exams</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var course in Model)
+                        {
+                            <tr>
+                                <td>@course.CrsName</td>
+                                <td>@course.CrsPeriod weeks</td>
+                                <td>
+                                    @if (course.StudentCourses != null)
+                                    {
+                                        @course.StudentCourses.Count(sc => sc.Isactive.GetValueOrDefault(false))
+                                    }
+                                    else
+                                    {
+                                        <span>0</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (course.Exams != null)
+                                    {
+                                        @course.Exams.Count(e => e.Isactive.GetValueOrDefault(false))
+                                    }
+                                    else
+                                    {
+                                        <span>0</span>
+                                    }
+                                </td>
+                                <td>
+                                    <span class="badge @(course.Isactive.GetValueOrDefault() ? "bg-success" : "bg-danger")">
+                                        @(course.Isactive.GetValueOrDefault() ? "Active" : "Inactive")
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="/AdminCourse/Details/@course.CrsId" class="btn btn-sm btn-outline-info">
+                                        <i class="bi bi-info-circle"></i> Details
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-info text-center py-5">
+                <i class="bi bi-book fs-1 d-block mb-3"></i>
+                <h5>No courses found</h5>
+                <p class="mb-0">This instructor has not been assigned to any courses yet.</p>
+                <div class="mt-3">
+                    <a href="/AdminCourse/Create" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> Create New Course
+                    </a>
+                </div>
+            </div>
+        }
+    </div>
+</div>
