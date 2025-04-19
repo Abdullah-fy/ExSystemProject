@@ -12,10 +12,19 @@
         </a>
     </div>
     <div class="card-body p-4">
-        <form asp-action="Edit" method="post">
+        <form asp-action="Edit" method="post" id="editStudentForm">
             <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+            <!-- Essential hidden fields -->
             <input type="hidden" asp-for="StudentId" />
             <input type="hidden" asp-for="UserId" />
+
+            <!-- Add hidden fields for TrackName and BranchName -->
+            <input type="hidden" asp-for="TrackName" id="hiddenTrackName" value="@Model.TrackName" />
+            <input type="hidden" asp-for="BranchName" id="hiddenBranchName" value="@Model.BranchName" />
+
+            <!-- Hidden field to store Isactive value from checkbox -->
+            <input type="hidden" name="IsactiveHidden" id="IsactiveHidden" value="@(Model.Isactive.HasValue && Model.Isactive.Value ? "True" : "False")" />
 
             <div class="row mb-3">
                 <div class="col-md-6">
@@ -67,7 +76,6 @@
                         <div class="input-group">
                             <span class="input-group-text"><i class="bi bi-building"></i></span>
                             <select id="BranchId" name="BranchId" class="form-select">
-                                <option value="">-- Select Branch --</option>
                                 @foreach (var branch in ViewBag.Branches)
                                 {
                                     if (branch.BranchId == Model.BranchId)
@@ -88,21 +96,7 @@
                         <div class="input-group">
                             <span class="input-group-text"><i class="bi bi-signpost"></i></span>
                             <select asp-for="TrackId" id="TrackId" class="form-select" required>
-                                <option value="">-- Select Track --</option>
-                                @if (ViewBag.Tracks != null)
-                                {
-                                    @foreach (var track in ViewBag.Tracks)
-                                    {
-                                        if (track.Value == Model.TrackId.ToString())
-                                        {
-                                            <option value="@track.Value" selected>@track.Text</option>
-                                        }
-                                        else
-                                        {
-                                            <option value="@track.Value">@track.Text</option>
-                                        }
-                                    }
-                                }
+                                <!-- Will be populated via JavaScript -->
                             </select>
                         </div>
                         <span asp-validation-for="TrackId" class="text-danger"></span>
@@ -121,23 +115,18 @@
                         <label class="form-label">Account Status</label>
                         <div class="form-check form-switch">
                             @{
-                                // Ensure we have a non-nullable boolean value
                                 bool isActiveValue = Model.Isactive.HasValue && Model.Isactive.Value;
                             }
-                            <!-- Using standard checkbox without hidden field to avoid conflicts -->
                             <input type="checkbox" class="form-check-input" id="IsactiveCheckbox"
-                                   name="IsactiveCheckbox" @(isActiveValue ? "checked" : "") />
+                            @(isActiveValue ? "checked" : "") />
                             <label class="form-check-label" for="IsactiveCheckbox">
                                 <span id="activeStatusLabel" class="@(isActiveValue ? "text-success" : "text-danger")">
                                     @(isActiveValue ? "Active" : "Inactive")
                                 </span>
                             </label>
-                            <!-- Use hidden field with unique name -->
-                            <input type="hidden" name="Isactive" id="IsactiveHidden" value="@(isActiveValue ? "True" : "False")" />
                         </div>
                         <small class="form-text text-muted">Deactivating a student will affect related records.</small>
                     </div>
-
                 </div>
             </div>
 
@@ -161,13 +150,24 @@
         $(document).ready(function () {
             console.log("Edit form initialized");
 
-            // Store initial values
-            var initialBranchId = $('#BranchId').val();
-            var initialTrackId = $('#TrackId').val();
-            var initialActiveState = $('#IsactiveCheckbox').is(':checked');
-            console.log("Initial values - Branch:", initialBranchId,
-                        "Track:", initialTrackId,
-                        "IsActive:", initialActiveState);
+            // Store current values for debugging
+            var currentBranchId = $('#BranchId').val();
+            var currentTrackId = '@Model.TrackId';
+            var currentTrackName = '@Model.TrackName';
+            var currentBranchName = '@Model.BranchName';
+            var currentIsActive = @(Json.Serialize(Model.Isactive.HasValue && Model.Isactive.Value));
+
+            console.log("Initial values:", {
+                branchId: currentBranchId,
+                trackId: currentTrackId,
+                trackName: currentTrackName,
+                branchName: currentBranchName,
+                isActive: currentIsActive
+            });
+
+            // Update hidden fields with current values
+            $('#hiddenTrackName').val(currentTrackName);
+            $('#hiddenBranchName').val(currentBranchName);
 
             // Handle status checkbox change
             $('#IsactiveCheckbox').on('change', function() {
@@ -180,64 +180,100 @@
                     .addClass(isChecked ? 'text-success' : 'text-danger')
                     .text(isChecked ? 'Active' : 'Inactive');
 
-                // Update hidden field value
+                // Set hidden field for form submission
                 $('#IsactiveHidden').val(isChecked ? 'True' : 'False');
             });
+
+            // Load tracks for a branch
+            function loadTracksForBranch(branchId, selectedTrackId) {
+                if (!branchId) return;
+
+                console.log("Loading tracks for branch:", branchId);
+                $('#TrackId').prop('disabled', true);
+                $('#TrackId').html('<option value="">-- Loading Tracks... --</option>');
+
+                $.ajax({
+                    url: '/AdminStudent/GetTracksByBranch',
+                    type: 'GET',
+                    data: { branchId: branchId },
+                    dataType: 'json',
+                    cache: false,
+                    success: function(data) {
+                        console.log("Tracks loaded:", data);
+                        $('#TrackId').empty();
+
+                        if (data && data.length > 0) {
+                            $.each(data, function(i, track) {
+                                var selected = (track.trackId.toString() === selectedTrackId.toString());
+                                var option = $('<option></option>')
+                                    .val(track.trackId)
+                                    .text(track.trackName);
+
+                                if (selected) {
+                                    option.prop('selected', true);
+                                    $('#hiddenTrackName').val(track.trackName);
+                                }
+
+                                $('#TrackId').append(option);
+                            });
+                            console.log("Track dropdown populated, selected track:", selectedTrackId);
+                        } else {
+                            $('#TrackId').append('<option value="">-- No tracks available --</option>');
+                        }
+
+                        $('#TrackId').prop('disabled', false);
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("AJAX Error:", error);
+                        $('#TrackId').html('<option value="">-- Error loading tracks --</option>');
+                        $('#TrackId').prop('disabled', false);
+                    }
+                });
+            }
 
             // Handle branch changes
             $('#BranchId').on('change', function() {
                 var branchId = $(this).val();
-                console.log("Branch changed to:", branchId);
+                var branchName = $(this).find("option:selected").text();
+                console.log("Branch changed to:", branchId, branchName);
 
-                if (branchId) {
-                    $('#TrackId').prop('disabled', true);
-                    $('#TrackId').empty().append('<option value="">Loading tracks...</option>');
+                // Update hidden branch name field
+                $('#hiddenBranchName').val(branchName);
 
-                    // Use direct URL path to avoid routing issues
-                    $.ajax({
-                        url: '/AdminStudent/GetTracksByBranch',
-                        type: 'GET',
-                        data: { branchId: branchId },
-                        dataType: 'json',
-                        cache: false,
-                        success: function(data) {
-                            console.log("Loaded tracks:", data);
-                            $('#TrackId').empty().append('<option value="">-- Select Track --</option>');
+                // Load tracks for this branch
+                loadTracksForBranch(branchId, '');  // No selected track when branch changes
+            });
 
-                            if (data && data.length > 0) {
-                                $.each(data, function(i, track) {
-                                    $('#TrackId').append($('<option>', {
-                                        value: track.trackId,
-                                        text: track.trackName
-                                    }));
-                                });
-                            } else {
-                                $('#TrackId').append('<option value="">-- No tracks available --</option>');
-                            }
-
-                            $('#TrackId').prop('disabled', false);
-                        },
-                        error: function(xhr, status, error) {
-                            console.error("AJAX Error:", error);
-                            console.error("Status:", status);
-                            console.error("Response:", xhr.responseText);
-
-                            $('#TrackId').empty().append('<option value="">-- Error loading tracks --</option>');
-                            $('#TrackId').prop('disabled', false);
-                        }
-                    });
-                } else {
-                    $('#TrackId').empty().append('<option value="">-- First select a branch --</option>');
-                }
+            // Track selection change handler
+            $('#TrackId').on('change', function() {
+                var trackName = $(this).find("option:selected").text();
+                $('#hiddenTrackName').val(trackName);
+                console.log("Selected track:", $(this).val(), "Track name:", trackName);
             });
 
             // Form validation before submit
-            $('form').on('submit', function(e) {
+            $('#editStudentForm').on('submit', function(e) {
+                console.log("Form submitting");
+
+                // Collect current values
                 var branchId = $('#BranchId').val();
                 var trackId = $('#TrackId').val();
+                var branchName = $('#BranchId option:selected').text();
+                var trackName = $('#TrackId option:selected').text();
                 var isActive = $('#IsactiveCheckbox').is(':checked');
 
-                console.log("Form submitting - Branch:", branchId, "Track:", trackId, "IsActive:", isActive);
+                // Update hidden fields
+                $('#hiddenBranchName').val(branchName);
+                $('#hiddenTrackName').val(trackName);
+                $('#IsactiveHidden').val(isActive ? 'True' : 'False');
+
+                console.log("Form submission values:", {
+                    branchId: branchId,
+                    trackId: trackId,
+                    branchName: branchName,
+                    trackName: trackName,
+                    isActive: isActive
+                });
 
                 if (!trackId) {
                     e.preventDefault();
@@ -245,12 +281,14 @@
                     return false;
                 }
 
+                // Form is valid, continue
                 return true;
             });
 
-            // Initial load if branch is already selected
-            if (initialBranchId) {
-                $('#BranchId').trigger('change');
+            // Load initial tracks on page load
+            if (currentBranchId) {
+                console.log("Loading initial tracks for branch:", currentBranchId);
+                loadTracksForBranch(currentBranchId, currentTrackId);
             }
         });
     </script>

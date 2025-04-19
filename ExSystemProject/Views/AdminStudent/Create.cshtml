@@ -12,8 +12,19 @@
         </a>
     </div>
     <div class="card-body p-4">
-        <form asp-action="Create" method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="alert alert-danger">
+                <h6 class="alert-heading">Please fix the following errors:</h6>
+                <div asp-validation-summary="All" class="text-danger"></div>
+            </div>
+        }
+
+        <form asp-action="Create" method="post" id="createStudentForm">
+            <!-- Hidden fields to store selected branch and track info -->
+            <input type="hidden" asp-for="BranchId" id="hiddenBranchId" />
+            <input type="hidden" asp-for="BranchName" id="hiddenBranchName" />
+            <input type="hidden" asp-for="TrackName" id="hiddenTrackName" />
 
             <div class="row mb-3">
                 <div class="col-md-6">
@@ -57,10 +68,10 @@
                     <h6 class="border-bottom pb-2 mb-3">Academic Information</h6>
 
                     <div class="mb-3">
-                        <label for="BranchId" class="form-label">Branch <span class="text-danger">*</span></label>
+                        <label for="BranchSelect" class="form-label">Branch <span class="text-danger">*</span></label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="bi bi-building"></i></span>
-                            <select id="BranchId" name="BranchId" class="form-select" required>
+                            <select id="BranchSelect" class="form-select" required>
                                 <option value="">-- Select Branch --</option>
                                 @foreach (var branch in ViewBag.Branches)
                                 {
@@ -68,6 +79,7 @@
                                 }
                             </select>
                         </div>
+                        <div class="invalid-feedback">Please select a branch</div>
                     </div>
 
                     <div class="mb-3">
@@ -87,13 +99,14 @@
                 <a asp-action="Index" class="btn btn-outline-secondary">
                     <i class="bi bi-x-lg"></i> Cancel
                 </a>
-                <button type="submit" class="btn btn-primary">
+                <button type="submit" class="btn btn-primary" id="createStudentBtn">
                     <i class="bi bi-person-plus"></i> Create Student
                 </button>
             </div>
         </form>
     </div>
 </div>
+
 
 @section Scripts {
     @{
@@ -104,9 +117,14 @@
             console.log("Document ready");
 
             // Function to load tracks when branch changes
-            $('#BranchId').on('change', function() {
+            $('#BranchSelect').on('change', function() {
                 var selectedBranchId = $(this).val();
-                console.log("Branch selected:", selectedBranchId);
+                var selectedBranchText = $(this).find("option:selected").text();
+                console.log("Branch selected:", selectedBranchId, selectedBranchText);
+
+                // Update hidden BranchId and BranchName fields
+                $('#hiddenBranchId').val(selectedBranchId);
+                $('#hiddenBranchName').val(selectedBranchText);
 
                 if (selectedBranchId) {
                     // Disable track dropdown during loading
@@ -159,37 +177,75 @@
                     // No branch selected
                     $('#TrackId').html('<option value="">-- First select a branch --</option>');
                     $('#TrackId').prop('disabled', true);
+
+                    // Clear hidden fields
+                    $('#hiddenBranchName').val('');
+                    $('#hiddenTrackName').val('');
                 }
             });
 
-            // Form validation
-            $('form').on('submit', function(e) {
-                var branchId = $('#BranchId').val();
+            // Track selection change event
+            $('#TrackId').on('change', function() {
+                var selectedTrackId = $(this).val();
+                var selectedTrackText = $(this).find("option:selected").text();
+                console.log("Track selected:", selectedTrackId, selectedTrackText);
+
+                // Update hidden TrackName field
+                $('#hiddenTrackName').val(selectedTrackText);
+            });
+
+            // Form validation and submission
+            $('#createStudentForm').on('submit', function(e) {
+                console.log("Form submitting");
+
+                var isValid = true;
+                var branchId = $('#BranchSelect').val();
                 var trackId = $('#TrackId').val();
 
-                console.log("Form submitting - Branch:", branchId, "Track:", trackId);
+                // Get selected text values
+                var branchText = $('#BranchSelect option:selected').text();
+                var trackText = $('#TrackId option:selected').text();
+
+                // Update all hidden fields
+                $('#hiddenBranchId').val(branchId);
+                $('#hiddenBranchName').val(branchText);
+                $('#hiddenTrackName').val(trackText);
+
+                console.log("Form data - Branch:", branchId, branchText, "Track:", trackId, trackText);
 
                 if (!branchId) {
-                    e.preventDefault();
-                    alert("Please select a branch");
-                    return false;
+                    isValid = false;
+                    $('#BranchSelect').addClass('is-invalid');
+                } else {
+                    $('#BranchSelect').removeClass('is-invalid');
                 }
 
                 if (!trackId) {
+                    isValid = false;
+                    $('#TrackId').addClass('is-invalid');
+                } else {
+                    $('#TrackId').removeClass('is-invalid');
+                }
+
+                if (!isValid) {
                     e.preventDefault();
-                    alert("Please select a track");
+                    console.log("Form validation failed");
                     return false;
                 }
 
-                return true;
+                console.log("Form validation passed, submitting with:");
+                console.log("- BranchId:", $('#hiddenBranchId').val());
+                console.log("- BranchName:", $('#hiddenBranchName').val());
+                console.log("- TrackId:", $('#TrackId').val());
+                console.log("- TrackName:", $('#hiddenTrackName').val());
+
+                // The form will submit normally if all validations pass
             });
 
             // Initial load if a branch is already selected
-            if ($('#BranchId').val()) {
-                $('#BranchId').trigger('change');
+            if ($('#BranchSelect').val()) {
+                $('#BranchSelect').trigger('change');
             }
         });
     </script>
 }
-
-

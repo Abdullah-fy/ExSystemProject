@@ -23,10 +23,10 @@ namespace ExSystemProject.Controllers
         }
 
         // GET: AdminStudent
-        public IActionResult Index(int? branchId = null, int? trackId = null, bool? activeOnly = true)
+        public IActionResult Index(int? branchId = null, int? trackId = null, bool? activeOnly = null)
         {
             List<Student> students;
-            
+
             if (branchId.HasValue)
             {
                 // Get students for a specific branch using stored procedure
@@ -49,7 +49,7 @@ namespace ExSystemProject.Controllers
 
             var branches = _unitOfWork.branchRepo.getAll();
             var tracks = _unitOfWork.trackRepo.getAll();
-            
+
             ViewBag.Branches = new SelectList(branches, "BranchId", "BranchName", branchId);
             ViewBag.Tracks = new SelectList(tracks, "TrackId", "TrackName", trackId);
             ViewBag.ActiveOnly = activeOnly;
@@ -96,107 +96,35 @@ namespace ExSystemProject.Controllers
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Create(StudentDTO studentDTO, int BranchId)
+        public IActionResult Create(StudentDTO studentDTO)
         {
-            // Log input values for debugging
-            System.Diagnostics.Debug.WriteLine($"Create POST called with: Username={studentDTO.Username}, Email={studentDTO.Email}, Gender={studentDTO.Gender}, TrackId={studentDTO.TrackId}, BranchId={BranchId}");
-
-            try
+            if (ModelState.IsValid)
             {
-                if (ModelState.IsValid)
+                try
                 {
-                    // Check if username or email already exists
-                    if (_unitOfWork.userRepo.getActiveByName(studentDTO.Username) != null)
-                    {
-                        ModelState.AddModelError("Username", "Username already exists");
-                        PopulateFormDropdowns(BranchId, studentDTO.TrackId);
-                        return View(studentDTO);
-                    }
+                    // Log received data for debugging
+                    Console.WriteLine($"Creating student: {studentDTO.Username}, Email: {studentDTO.Email}, TrackId: {studentDTO.TrackId}");
 
-                    if (_unitOfWork.userRepo.GetByEmail(studentDTO.Email) != null)
-                    {
-                        ModelState.AddModelError("Email", "Email already exists");
-                        PopulateFormDropdowns(BranchId, studentDTO.TrackId);
-                        return View(studentDTO);
-                    }
+                    // Use the CreateStudentWithStoredProcedure method instead
+                    _unitOfWork.studentRepo.CreateStudentWithStoredProcedure(
+                        studentDTO.Username,
+                        studentDTO.Email,
+                        studentDTO.Gender,
+                        "DefaultPassword123", // You should generate a random password or add password field to form
+                        studentDTO.TrackId);
 
-                    // Verify that the track belongs to the selected branch
-                    if (studentDTO.TrackId.HasValue)
-                    {
-                        var track = _unitOfWork.trackRepo.getById(studentDTO.TrackId.Value);
-                        if (track == null)
-                        {
-                            ModelState.AddModelError("TrackId", "Selected track not found");
-                            PopulateFormDropdowns(BranchId, null);
-                            return View(studentDTO);
-                        }
-
-                        if (track.BranchId != BranchId)
-                        {
-                            ModelState.AddModelError("TrackId", "Selected track doesn't belong to the chosen branch");
-                            PopulateFormDropdowns(BranchId, null);
-                            return View(studentDTO);
-                        }
-
-                        // Store the track's branch ID
-                        studentDTO.BranchId = track.BranchId;
-                        System.Diagnostics.Debug.WriteLine($"Track validated successfully. Track belongs to branch ID: {track.BranchId}");
-                    }
-                    else
-                    {
-                        ModelState.AddModelError("TrackId", "Please select a track");
-                        PopulateFormDropdowns(BranchId, null);
-                        return View(studentDTO);
-                    }
-
-                    // Create a new student using stored procedure
-                    try
-                    {
-                        System.Diagnostics.Debug.WriteLine("Calling CreateStudentWithStoredProcedure with values: " +
-                            $"Username={studentDTO.Username}, Email={studentDTO.Email}, Gender={studentDTO.Gender}, TrackId={studentDTO.TrackId}");
-
-                        _unitOfWork.studentRepo.CreateStudentWithStoredProcedure(
-                            studentDTO.Username,
-                            studentDTO.Email,
-                            studentDTO.Gender,
-                            "defaultPassword123",  // Default password
-                            studentDTO.TrackId
-                        );
-
-                        System.Diagnostics.Debug.WriteLine("CreateStudentWithStoredProcedure completed successfully");
-
-                        TempData["SuccessMessage"] = "Student created successfully!";
-                        return RedirectToAction(nameof(Index));
-                    }
-                    catch (Exception ex)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"Error in stored procedure: {ex.Message}");
-                        ModelState.AddModelError("", $"Database error: {ex.Message}");
-                        PopulateFormDropdowns(BranchId, studentDTO.TrackId);
-                        return View(studentDTO);
-                    }
+                    TempData["SuccessMessage"] = "Student created successfully!";
+                    return RedirectToAction(nameof(Index));
                 }
-                else
+                catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine("ModelState is invalid:");
-                    foreach (var state in ModelState)
-                    {
-                        foreach (var error in state.Value.Errors)
-                        {
-                            System.Diagnostics.Debug.WriteLine($"- {state.Key}: {error.ErrorMessage}");
-                        }
-                    }
+                    ModelState.AddModelError("", $"Error creating student: {ex.Message}");
                 }
             }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Exception in Create action: {ex.Message}");
-                ModelState.AddModelError("", $"Error creating student: {ex.Message}");
-            }
 
-            // If we got this far, something failed, redisplay form
-            System.Diagnostics.Debug.WriteLine("Repopulating dropdowns for failed submission");
-            PopulateFormDropdowns(BranchId, studentDTO.TrackId);
+            // If we get here, there was an error - reload the form with the same data
+            var branches = _unitOfWork.branchRepo.getAll();
+            ViewBag.Branches = new SelectList(branches, "BranchId", "BranchName");
             return View(studentDTO);
         }
 
