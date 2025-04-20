@@ -16,7 +16,7 @@
             <form id="filterForm" method="get" class="row g-3">
                 <div class="col-md-3">
                     <label for="branchId" class="form-label">Branch</label>
-                    <select id="branchId" name="branchId" class="form-select">
+                    <select id="branchId" name="branchId" class="form-select" onchange="this.form.submit()">
                         <option value="">All Branches</option>
                         @foreach (var branch in ViewBag.Branches)
                         {
@@ -33,7 +33,7 @@
                 </div>
                 <div class="col-md-3">
                     <label for="trackId" class="form-label">Track</label>
-                    <select id="trackId" name="trackId" class="form-select">
+                    <select id="trackId" name="trackId" class="form-select" onchange="this.form.submit()">
                         <option value="">All Tracks</option>
                         @if (ViewBag.Tracks != null)
                         {
@@ -53,11 +53,16 @@
                 </div>
                 <div class="col-md-3">
                     <label for="searchString" class="form-label">Search</label>
-                    <input type="text" id="searchString" name="searchString" class="form-control" value="@ViewBag.SearchString" placeholder="Name, Email, Track...">
+                    <div class="input-group">
+                        <input type="text" id="searchString" name="searchString" class="form-control" value="@ViewBag.SearchString" placeholder="Name, Email, Track...">
+                        <button class="btn btn-outline-secondary" type="submit">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
                 </div>
                 <div class="col-md-3">
                     <label for="activeOnly" class="form-label">Status</label>
-                    <select id="activeOnly" name="activeOnly" class="form-select">
+                    <select id="activeOnly" name="activeOnly" class="form-select" onchange="this.form.submit()">
                         @if (ViewBag.ActiveOnly == null || (bool)ViewBag.ActiveOnly)
                         {
                             <option value="true" selected>Active Only</option>
@@ -86,13 +91,38 @@
                         }
                     </select>
                 </div>
-                <div class="col-12">
-                    <button type="submit" class="btn btn-primary">Apply Filters</button>
-                    <a href="@Url.Action("Index", "AdminInstructor")" class="btn btn-secondary">Reset</a>
-                </div>
             </form>
         </div>
     </div>
+
+    @if (ViewBag.SelectedBranch != null || ViewBag.SelectedTrack != null || !string.IsNullOrEmpty(ViewBag.SearchString))
+    {
+        <div class="alert alert-info mb-3">
+            @if (ViewBag.SelectedBranch != null)
+            {
+                <div>
+                    <i class="bi bi-filter"></i> Filtered by Branch
+                    <a asp-action="Index" class="float-end">Clear Filter</a>
+                </div>
+            }
+
+            @if (ViewBag.SelectedTrack != null)
+            {
+                <div>
+                    <i class="bi bi-filter"></i> Filtered by Track
+                    <a asp-action="Index" class="float-end">Clear Filter</a>
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(ViewBag.SearchString))
+            {
+                <div>
+                    <i class="bi bi-search"></i> Search: "@ViewBag.SearchString"
+                    <a asp-action="Index" class="float-end">Clear Filter</a>
+                </div>
+            }
+        </div>
+    }
 
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
@@ -105,57 +135,85 @@
             </a>
         </div>
         <div class="card-body">
-            <table id="instructorsTable" class="table table-striped table-hover table-responsive">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Gender</th>
-                        <th>Track</th>
-                        <th>Branch</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var instructor in Model)
-                    {
-                        <tr>
-                            <td>@instructor.Username</td>
-                            <td>@instructor.Email</td>
-                            <td>@(instructor.Gender == "M" ? "Male" : "Female")</td>
-                            <td>@instructor.TrackName</td>
-                            <td>@instructor.BranchName</td>
-                            <td>
-                                @if (instructor.Isactive == true)
-                                {
-                                    <span class="badge bg-success">Active</span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-danger">Inactive</span>
-                                }
-                            </td>
-                            <td>
-                                <div class="btn-group">
-                                    <a href="@Url.Action("Details", "AdminInstructor", new { id = instructor.InsId })" class="btn btn-info btn-sm">
-                                        <i class="bi bi-info-circle"></i>
-                                    </a>
-                                    <a href="@Url.Action("Edit", "AdminInstructor", new { id = instructor.InsId })" class="btn btn-warning btn-sm">
-                                        <i class="bi bi-pencil"></i>
-                                    </a>
-                                    <a href="@Url.Action("Courses", "AdminInstructor", new { id = instructor.InsId })" class="btn btn-primary btn-sm">
-                                        <i class="bi bi-book"></i>
-                                    </a>
-                                    <a href="@Url.Action("Delete", "AdminInstructor", new { id = instructor.InsId })" class="btn btn-danger btn-sm">
-                                        <i class="bi bi-trash"></i>
-                                    </a>
-                                </div>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["ErrorMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            @if (Model != null && Model.Any())
+            {
+                <div class="table-responsive">
+                    <table id="instructorsTable" class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Gender</th>
+                                <th>Track</th>
+                                <th>Branch</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var instructor in Model)
+                            {
+                                <tr>
+                                    <td>@instructor.Username</td>
+                                    <td>@instructor.Email</td>
+                                    <td>@(instructor.Gender == "M" ? "Male" : "Female")</td>
+                                    <td>@instructor.TrackName</td>
+                                    <td>@instructor.BranchName</td>
+                                    <td>
+                                        @if (instructor.Isactive == true)
+                                        {
+                                            <span class="badge bg-success">Active</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger">Inactive</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <a href="@Url.Action("Details", "AdminInstructor", new { id = instructor.InsId })" class="btn btn-info btn-sm">
+                                                <i class="bi bi-info-circle"></i>
+                                            </a>
+                                            <a href="@Url.Action("Edit", "AdminInstructor", new { id = instructor.InsId })" class="btn btn-warning btn-sm">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <a href="@Url.Action("Courses", "AdminInstructor", new { id = instructor.InsId })" class="btn btn-primary btn-sm">
+                                                <i class="bi bi-book"></i>
+                                            </a>
+                                            <a href="@Url.Action("Delete", "AdminInstructor", new { id = instructor.InsId })" class="btn btn-danger btn-sm">
+                                                <i class="bi bi-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info">
+                    <h5 class="alert-heading">No instructors found</h5>
+                    <p>There are no instructors matching your filter criteria. Try adjusting your filters or <a href="@Url.Action("Create", "AdminInstructor")">add a new instructor</a>.</p>
+                </div>
+            }
         </div>
     </div>
 </div>
@@ -163,10 +221,16 @@
 @section Scripts {
     <script>
         $(document).ready(function() {
-            // Initialize DataTable
-            $('#instructorsTable').DataTable({
-                responsive: true
-            });
+            // Initialize DataTable with modified options
+            if ($('#instructorsTable tbody tr').length > 0) {
+                $('#instructorsTable').DataTable({
+                    responsive: true,
+                    // Disable searching since we have custom search
+                    searching: false,
+                    // Let server handle pagination
+                    paging: true
+                });
+            }
 
             // Branch change handler to update tracks dropdown
             $('#branchId').change(function() {
@@ -177,11 +241,26 @@
                         trackSelect.empty();
                         trackSelect.append($('<option>').val('').text('All Tracks'));
                         $.each(data, function(index, item) {
-                            trackSelect.append($('<option>').val(item.value).text(item.text));
+                            trackSelect.append(
+                                $('<option>').val(item.value).text(item.text)
+                            );
                         });
+                        // Submit form after populating tracks
+                        $('#filterForm').submit();
                     });
                 } else {
                     $('#trackId').empty().append($('<option>').val('').text('All Tracks'));
+                    // Submit the form immediately
+                    $('#filterForm').submit();
+                }
+                return false; // Prevent double submission
+            });
+
+            // Handle Enter key in search box
+            $('#searchString').keypress(function(e) {
+                if(e.which === 13) { // Enter key
+                    e.preventDefault();
+                    $('#filterForm').submit();
                 }
             });
         });
