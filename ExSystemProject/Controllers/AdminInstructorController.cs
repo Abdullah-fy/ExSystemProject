@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Diagnostics;
 
 namespace ExSystemProject.Controllers
 {
@@ -23,53 +24,81 @@ namespace ExSystemProject.Controllers
         }
 
         // GET: AdminInstructor
-        public IActionResult Index(int? branchId = null, int? trackId = null, bool? activeOnly = null)
+        public IActionResult Index(int? branchId = null, int? trackId = null, string searchString = null, bool? activeOnly = true)
         {
             List<Instructor> instructors;
 
-            if (branchId.HasValue)
+            // Apply filters
+            if (branchId.HasValue && trackId.HasValue)
             {
-                // Get instructors for a specific branch
-                instructors = _unitOfWork.instructorRepo.GetInstructorsByBranchId(branchId.Value, activeOnly);
-                ViewBag.BranchId = branchId;
-                ViewBag.BranchName = _unitOfWork.branchRepo.getById(branchId.Value)?.BranchName;
+                instructors = _unitOfWork.instructorRepo.GetInstructorsByTrackWithBranch(trackId.Value, activeOnly);
             }
-            else if (trackId.HasValue)
+            else if (branchId.HasValue)
             {
-                // Get instructors for a specific track
-                instructors = _unitOfWork.instructorRepo.GetInstructorsByTrackId(trackId.Value, activeOnly);
-                ViewBag.TrackId = trackId;
-                ViewBag.TrackName = _unitOfWork.trackRepo.getById(trackId.Value)?.TrackName;
+                instructors = _unitOfWork.instructorRepo.GetInstructorsByBranchWithBranch(branchId.Value, activeOnly);
             }
             else
             {
-                // Get all instructors
-                instructors = _unitOfWork.instructorRepo.GetAllInstructors(activeOnly);
+                instructors = _unitOfWork.instructorRepo.GetAllInstructorsWithBranch(activeOnly);
             }
 
-            var branches = _unitOfWork.branchRepo.getAll();
-            var tracks = _unitOfWork.trackRepo.getAll();
+            // Apply search filter if provided
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                instructors = instructors.Where(i =>
+                    i.User.Username.Contains(searchString, StringComparison.OrdinalIgnoreCase) ||
+                    i.User.Email.Contains(searchString, StringComparison.OrdinalIgnoreCase) ||
+                    (i.Track != null && i.Track.TrackName.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+                ).ToList();
+            }
 
-            ViewBag.Branches = new SelectList(branches, "BranchId", "BranchName", branchId);
-            ViewBag.Tracks = new SelectList(tracks, "TrackId", "TrackName", trackId);
+            // Map to DTOs
+            var instructorDTOs = _mapper.Map<List<InstructorDTO>>(instructors);
+
+            // Get branches for filtering
+            ViewBag.Branches = _unitOfWork.branchRepo.getAll().Select(b => new SelectListItem
+            {
+                Text = b.BranchName,
+                Value = b.BranchId.ToString()
+            }).ToList();
+
+            // Get tracks for the selected branch
+            if (branchId.HasValue)
+            {
+                ViewBag.Tracks = _unitOfWork.trackRepo.GetTracksByBranchId(branchId.Value).Select(t => new SelectListItem
+                {
+                    Text = t.TrackName,
+                    Value = t.TrackId.ToString()
+                }).ToList();
+            }
+
+            // Set filter values for the view
+            ViewBag.SelectedBranch = branchId;
+            ViewBag.SelectedTrack = trackId;
+            ViewBag.SearchString = searchString;
             ViewBag.ActiveOnly = activeOnly;
 
-            var instructorDTOs = _mapper.Map<List<InstructorDTO>>(instructors);
             return View(instructorDTOs);
         }
 
         // GET: AdminInstructor/Details/5
         public IActionResult Details(int id)
         {
-            var instructor = _unitOfWork.instructorRepo.GetInstructorById(id);
-            if (instructor == null)
-                return NotFound();
+            var instructor = _unitOfWork.instructorRepo.GetInstructorByIdWithBranch(id);
 
+            if (instructor == null)
+            {
+                return NotFound();
+            }
+
+            // Get instructor courses
+            var courses = _unitOfWork.instructorRepo.GetInstructorCourses(id);
+
+            // Map instructor to DTO
             var instructorDTO = _mapper.Map<InstructorDTO>(instructor);
 
-            // Get instructor courses with student count
-            var coursesWithStudentCount = _unitOfWork.instructorRepo.GetInstructorCoursesWithStudentCount(id);
-            ViewBag.CoursesReport = coursesWithStudentCount;
+            // Map courses to DTOs
+            instructorDTO.AssignedCourses = _mapper.Map<List<CourseDTO>>(courses);
 
             return View(instructorDTO);
         }
@@ -77,9 +106,7 @@ namespace ExSystemProject.Controllers
         // GET: AdminInstructor/Create
         public IActionResult Create()
         {
-            var tracks = _unitOfWork.trackRepo.getAll();
-            ViewBag.Tracks = new SelectList(tracks, "TrackId", "TrackName");
-
+            PopulateDropDowns();
             return View();
         }
 
@@ -88,67 +115,79 @@ namespace ExSystemProject.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Create(InstructorDTO instructorDTO)
         {
-            if (ModelState.IsValid)
+            try
             {
-                try
+                // Simple validation
+                if (string.IsNullOrEmpty(instructorDTO.Username) ||
+                    string.IsNullOrEmpty(instructorDTO.Email) ||
+                    string.IsNullOrEmpty(instructorDTO.Gender) ||
+                    !instructorDTO.TrackId.HasValue ||
+                    !instructorDTO.Salary.HasValue)
                 {
-                    // Create instructor using stored procedure
-                    _unitOfWork.instructorRepo.CreateInstructor(
-                        instructorDTO.Username,
-                        instructorDTO.Email,
-                        instructorDTO.Gender,
-                        "defaultPassword123", // Consider generating a random password or requiring it in the form
-                        instructorDTO.Salary ?? 0,
-                        instructorDTO.TrackId ?? 0
-                    );
+                    TempData["ErrorMessage"] = "Please fill in all required fields";
+                    PopulateDropDowns();
+                    return View(instructorDTO);
+                }
 
-                    TempData["SuccessMessage"] = "Instructor created successfully!";
-                    return RedirectToAction(nameof(Index));
-                }
-                catch (Exception ex)
-                {
-                    ModelState.AddModelError("", $"Error creating instructor: {ex.Message}");
-                }
+                // Create instructor
+                _unitOfWork.instructorRepo.CreateInstructor(
+                    instructorDTO.Username,
+                    instructorDTO.Email,
+                    instructorDTO.Gender,
+                    "DefaultPassword123!", // Default password
+                    instructorDTO.Salary ?? 0,
+                    instructorDTO.TrackId ?? 0
+                );
+
+                TempData["SuccessMessage"] = "Instructor created successfully!";
+                return RedirectToAction(nameof(Index));
             }
-
-            // If we got this far, something failed, redisplay form
-            var tracks = _unitOfWork.trackRepo.getAll();
-            ViewBag.Tracks = new SelectList(tracks, "TrackId", "TrackName", instructorDTO.TrackId);
-
-            return View(instructorDTO);
+            catch (Exception ex)
+            {
+                // Simple error handling
+                TempData["ErrorMessage"] = "Error creating instructor: " + ex.Message;
+                PopulateDropDowns();
+                return View(instructorDTO);
+            }
         }
+
 
         // GET: AdminInstructor/Edit/5
         public IActionResult Edit(int id)
         {
-            var instructor = _unitOfWork.instructorRepo.GetInstructorById(id);
+            var instructor = _unitOfWork.instructorRepo.GetInstructorByIdWithBranch(id);
+
             if (instructor == null)
+            {
                 return NotFound();
+            }
 
             var instructorDTO = _mapper.Map<InstructorDTO>(instructor);
 
-            var tracks = _unitOfWork.trackRepo.getAll();
-            ViewBag.Tracks = new SelectList(tracks, "TrackId", "TrackName", instructor.TrackId);
-
+            PopulateDropDowns(instructorDTO.BranchId);
             return View(instructorDTO);
         }
 
         // POST: AdminInstructor/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Edit(int id, InstructorDTO instructorDTO, string IsactiveHidden)
+        public IActionResult Edit(int id, InstructorDTO instructorDTO)
         {
             if (id != instructorDTO.InsId)
+            {
                 return NotFound();
+            }
 
+            // Check if ModelState is valid
             if (ModelState.IsValid)
             {
                 try
                 {
-                    // Explicitly set the active status based on the hidden field value
-                    instructorDTO.Isactive = IsactiveHidden?.ToLower() == "true";
+                    // Ensure isactive is properly handled - the hidden field is already set in the client-side script
+                    bool isActive = instructorDTO.Isactive ?? true;
+                    Console.WriteLine($"IsActive value being used: {isActive}");
 
-                    // Update instructor using stored procedure
+                    // Use stored procedure to update instructor
                     _unitOfWork.instructorRepo.UpdateInstructor(
                         instructorDTO.InsId,
                         instructorDTO.Username,
@@ -156,31 +195,44 @@ namespace ExSystemProject.Controllers
                         instructorDTO.Gender,
                         instructorDTO.Salary ?? 0,
                         instructorDTO.TrackId ?? 0,
-                        instructorDTO.Isactive ?? true
+                        isActive  // Pass the correct active status here
                     );
 
                     TempData["SuccessMessage"] = "Instructor updated successfully!";
-                    return RedirectToAction(nameof(Details), new { id = instructorDTO.InsId });
+                    return RedirectToAction(nameof(Index));
                 }
                 catch (Exception ex)
                 {
                     ModelState.AddModelError("", $"Error updating instructor: {ex.Message}");
+                    Console.WriteLine($"Error updating instructor: {ex.Message}");
+                }
+            }
+            else
+            {
+                // Log ModelState errors for debugging
+                foreach (var state in ModelState)
+                {
+                    foreach (var error in state.Value.Errors)
+                    {
+                        Console.WriteLine($"Error in {state.Key}: {error.ErrorMessage}");
+                    }
                 }
             }
 
-            // If we got this far, something failed, redisplay form
-            var tracks = _unitOfWork.trackRepo.getAll();
-            ViewBag.Tracks = new SelectList(tracks, "TrackId", "TrackName", instructorDTO.TrackId);
-
+            PopulateDropDowns(instructorDTO.BranchId);
             return View(instructorDTO);
         }
+
 
         // GET: AdminInstructor/Delete/5
         public IActionResult Delete(int id)
         {
-            var instructor = _unitOfWork.instructorRepo.GetInstructorById(id);
+            var instructor = _unitOfWork.instructorRepo.GetInstructorByIdWithBranch(id);
+
             if (instructor == null)
+            {
                 return NotFound();
+            }
 
             var instructorDTO = _mapper.Map<InstructorDTO>(instructor);
             return View(instructorDTO);
@@ -193,32 +245,72 @@ namespace ExSystemProject.Controllers
         {
             try
             {
-                // Delete instructor using stored procedure (logical delete)
                 _unitOfWork.instructorRepo.DeleteInstructor(id);
-
-                TempData["SuccessMessage"] = "Instructor deactivated successfully!";
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = $"Error deactivating instructor: {ex.Message}";
-                return RedirectToAction(nameof(Delete), new { id = id });
+                TempData["ErrorMessage"] = $"Error deleting instructor: {ex.Message}";
+                return RedirectToAction(nameof(Details), new { id });
             }
         }
 
         // GET: AdminInstructor/Courses/5
         public IActionResult Courses(int id)
         {
-            var instructor = _unitOfWork.instructorRepo.GetInstructorById(id);
+            var instructor = _unitOfWork.instructorRepo.GetInstructorByIdWithBranch(id);
+
             if (instructor == null)
+            {
                 return NotFound();
+            }
 
-            var courses = _unitOfWork.instructorRepo.GetInstructorCourses(id);
+            // Get instructor courses with student details
+            var coursesData = _unitOfWork.instructorRepo.GetInstructorCoursesWithStudentCount(id);
 
-            ViewBag.InstructorId = id;
-            ViewBag.InstructorName = instructor.User?.Username;
+            // Pass instructor data to view
+            var instructorDTO = _mapper.Map<InstructorDTO>(instructor);
 
-            return View(courses);
+            ViewBag.InstructorData = instructorDTO;
+            ViewBag.CoursesData = coursesData;
+
+            return View();
+        }
+
+        // Helper method to populate dropdowns for branches and tracks
+        private void PopulateDropDowns(int? branchId = null)
+        {
+            // Get all branches
+            ViewBag.Branches = _unitOfWork.branchRepo.getAll().Select(b => new SelectListItem
+            {
+                Text = b.BranchName,
+                Value = b.BranchId.ToString()
+            }).ToList();
+
+            // Get tracks for selected branch
+            if (branchId.HasValue)
+            {
+                ViewBag.Tracks = _unitOfWork.trackRepo.GetTracksByBranchId(branchId.Value).Select(t => new SelectListItem
+                {
+                    Text = t.TrackName,
+                    Value = t.TrackId.ToString()
+                }).ToList();
+            }
+            else
+            {
+                ViewBag.Tracks = new List<SelectListItem>();
+            }
+        }
+
+        // Ajax endpoint to get tracks by branch id
+        [HttpGet]
+        public JsonResult GetTracksByBranch(int branchId)
+        {
+            var tracks = _unitOfWork.trackRepo.GetTracksByBranchId(branchId)
+                .Select(t => new { value = t.TrackId.ToString(), text = t.TrackName })
+                .ToList();
+
+            return Json(tracks);
         }
     }
 }

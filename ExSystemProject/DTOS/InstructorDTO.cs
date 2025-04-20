@@ -29,14 +29,11 @@ namespace ExSystemProject.DTOS
         [Required(ErrorMessage = "Gender is required")]
         public string Gender { get; set; }
 
-        public string TrackName { get; set; }
-
+        // Remove Required attribute from these properties
+        public string TrackName { get; set; } = string.Empty; // Default empty string
         public List<CourseDTO> AssignedCourses { get; set; } = new List<CourseDTO>();
-
         public int? BranchId { get; set; }
-
-        public string BranchName { get; set; }
-
-        public string ImageUrl { get; set; }
+        public string BranchName { get; set; } = string.Empty; // Default empty string
+        public string ImageUrl { get; set; } = "default.jpg"; // Default value
     }
 }
