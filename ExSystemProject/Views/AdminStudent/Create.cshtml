@@ -22,9 +22,9 @@
 
         <form asp-action="Create" method="post" id="createStudentForm">
             <!-- Hidden fields to store selected branch and track info -->
-            <input type="hidden" asp-for="BranchId" id="hiddenBranchId" />
-            <input type="hidden" asp-for="BranchName" id="hiddenBranchName" />
-            <input type="hidden" asp-for="TrackName" id="hiddenTrackName" />
+            <input type="hidden" name="BranchId" id="hiddenBranchId" value="@Model?.BranchId" />
+            <input type="hidden" name="BranchName" id="hiddenBranchName" value="@Model?.BranchName" />
+            <input type="hidden" name="TrackName" id="hiddenTrackName" value="@Model?.TrackName" />
 
             <div class="row mb-3">
                 <div class="col-md-6">
@@ -52,11 +52,11 @@
                         <label class="form-label">Gender <span class="text-danger">*</span></label>
                         <div>
                             <div class="form-check form-check-inline">
-                                <input asp-for="Gender" class="form-check-input" type="radio" value="M" id="genderMale" checked />
+                                <input name="Gender" class="form-check-input" type="radio" value="M" id="genderMale" checked />
                                 <label class="form-check-label" for="genderMale">Male</label>
                             </div>
                             <div class="form-check form-check-inline">
-                                <input asp-for="Gender" class="form-check-input" type="radio" value="F" id="genderFemale" />
+                                <input name="Gender" class="form-check-input" type="radio" value="F" id="genderFemale" />
                                 <label class="form-check-label" for="genderFemale">Female</label>
                             </div>
                         </div>
@@ -83,14 +83,14 @@
                     </div>
 
                     <div class="mb-3">
-                        <label asp-for="TrackId" class="form-label">Track <span class="text-danger">*</span></label>
+                        <label for="TrackId" class="form-label">Track <span class="text-danger">*</span></label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="bi bi-signpost"></i></span>
-                            <select asp-for="TrackId" id="TrackId" class="form-select" required>
+                            <select name="TrackId" id="TrackId" class="form-select" required>
                                 <option value="">-- First Select Branch --</option>
                             </select>
                         </div>
-                        <span asp-validation-for="TrackId" class="text-danger"></span>
+                        <span data-valmsg-for="TrackId" class="text-danger"></span>
                     </div>
                 </div>
             </div>
@@ -109,9 +109,10 @@
 
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+    <!-- Direct CDN references for jQuery validation instead of using _ValidationScriptsPartial -->
+    <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery-validation-unobtrusive@3.2.13/dist/jquery.validate.unobtrusive.min.js"></script>
+
     <script>
         $(document).ready(function() {
             console.log("Document ready");

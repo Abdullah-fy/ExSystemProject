@@ -1,6 +1,8 @@
 using ExSystemProject.DTOS;
 using ExSystemProject.Models;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using System.Data;
 
 namespace ExSystemProject.Repository
 {
@@ -41,5 +43,22 @@ namespace ExSystemProject.Repository
 
             return trackDTO;
         }
+        public List<Track> GetTracksByBranchId(int branchId)
+        {
+            try
+            {
+                // Use LINQ to query tracks by branch ID
+                var tracks = context.Tracks
+                             .Where(t => t.BranchId == branchId && t.IsActive == true)
+                             .ToList();
+
+                return tracks;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in GetTracksByBranchId: {ex.Message}");
+                return new List<Track>();
+            }
+        }
     }
-}
+    }

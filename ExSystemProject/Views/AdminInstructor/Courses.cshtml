@@ -1,94 +1,227 @@
-﻿@model IEnumerable<ExSystemProject.Models.Course>
-@{
-    ViewData["Title"] = $"Instructor Courses";
+﻿@{
+    ViewData["Title"] = "Instructor Courses";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 
-    var instructorId = ViewBag.InstructorId;
-    var instructorName = ViewBag.InstructorName;
+    var instructorData = (ExSystemProject.DTOS.InstructorDTO)ViewBag.InstructorData;
+    var coursesData = ViewBag.CoursesData;
 }
 
-<div class="card shadow">
-    <div class="card-header d-flex justify-content-between align-items-center bg-white py-3">
-        <h5 class="mb-0 text-primary">@instructorName's Courses</h5>
-        <div>
-            <a asp-action="Details" asp-route-id="@instructorId" class="btn btn-sm btn-outline-secondary me-2">
-                <i class="bi bi-person"></i> Instructor Details
-            </a>
-            <a asp-action="Index" class="btn btn-sm btn-outline-secondary">
-                <i class="bi bi-arrow-left"></i> Back to List
-            </a>
+<div class="container-fluid">
+    <h2>Instructor Courses</h2>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="bi bi-person-badge me-1"></i>
+            Instructor Information
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-12">
+                    <h4>@instructorData.Username</h4>
+                    <p class="text-muted mb-1">@instructorData.Email</p>
+                    <p class="mb-1">Track: <strong>@instructorData.TrackName</strong> | Branch: <strong>@instructorData.BranchName</strong></p>
+                    <div>
+                        <a asp-action="Details" asp-route-id="@instructorData.InsId" class="btn btn-sm btn-info">
+                            <i class="bi bi-info-circle"></i> Details
+                        </a>
+                        <a asp-action="Edit" asp-route-id="@instructorData.InsId" class="btn btn-sm btn-warning">
+                            <i class="bi bi-pencil"></i> Edit
+                        </a>
+                        <a asp-action="Index" class="btn btn-sm btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Back to List
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div class="card-body">
-        @if (Model != null && Model.Any())
-        {
-            <div class="table-responsive">
-                <table class="table table-hover align-middle">
+    <div class="row">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Courses
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                @coursesData.Summary.TotalCourses
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-book fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Total Students
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                @coursesData.Summary.TotalStudents
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-people fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Course Status
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                @coursesData.Summary.CourseStatusSummary
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-clipboard-check fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Track
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                @coursesData.Summary.TrackName
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-diagram-3 fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <i class="bi bi-table me-1"></i>
+            Courses and Students Information
+        </div>
+        <div class="card-body">
+            @if (coursesData.Courses != null && coursesData.Courses.Count > 0)
+            {
+                <table class="table table-striped table-hover">
                     <thead>
                         <tr>
                             <th>Course Name</th>
                             <th>Duration</th>
-                            <th>Enrolled Students</th>
-                            <th>Exams</th>
+                            <th>Students</th>
+                            <th>Pass Rate</th>
+                            <th>Avg. Grade</th>
                             <th>Status</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var course in Model)
+                        @foreach (var course in coursesData.Courses)
                         {
                             <tr>
-                                <td>@course.CrsName</td>
-                                <td>@course.CrsPeriod weeks</td>
+                                <td><strong>@course.CourseName</strong></td>
+                                <td>@(course.CoursePeriod != null ? course.CoursePeriod + " months" : "N/A")</td>
                                 <td>
-                                    @if (course.StudentCourses != null)
+                                    <div class="d-flex align-items-center">
+                                        <div class="me-2">@course.StudentCount</div>
+                                        @if (course.StudentCount > 0)
+                                        {
+                                            <div class="progress" style="width: 100px; height: 10px;">
+                                                <div class="progress-bar bg-success" role="progressbar" style="width: @(course.StudentCount > 0 ? (course.PassedStudents * 100 / course.StudentCount) : 0)%"></div>
+                                                <div class="progress-bar bg-danger" role="progressbar" style="width: @(course.StudentCount > 0 ? (course.FailedStudents * 100 / course.StudentCount) : 0)%"></div>
+                                            </div>
+                                        }
+                                    </div>
+                                </td>
+                                <td>
+                                    @if (course.StudentCount > 0)
                                     {
-                                        @course.StudentCourses.Count(sc => sc.Isactive.GetValueOrDefault(false))
+                                        <span class="@(course.PassedStudents * 100 / course.StudentCount >= 60 ? "text-success" : "text-danger")">
+                                            @(course.StudentCount > 0 ? (course.PassedStudents * 100 / course.StudentCount).ToString("0") : "0")%
+                                        </span>
                                     }
                                     else
                                     {
-                                        <span>0</span>
+                                        <span class="text-muted">N/A</span>
                                     }
                                 </td>
                                 <td>
-                                    @if (course.Exams != null)
+                                    @if (course.AverageGrade > 0)
                                     {
-                                        @course.Exams.Count(e => e.Isactive.GetValueOrDefault(false))
+                                        <span class="@(course.AverageGrade >= 60 ? "text-success" : "text-danger")">
+                                            @course.AverageGrade.ToString("0.0")
+                                        </span>
                                     }
                                     else
                                     {
-                                        <span>0</span>
+                                        <span class="text-muted">N/A</span>
                                     }
                                 </td>
                                 <td>
-                                    <span class="badge @(course.Isactive.GetValueOrDefault() ? "bg-success" : "bg-danger")">
-                                        @(course.Isactive.GetValueOrDefault() ? "Active" : "Inactive")
-                                    </span>
+                                    @if (course.CourseStatus == "Active")
+                                    {
+                                        <span class="badge bg-success">Active</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">Inactive</span>
+                                    }
                                 </td>
                                 <td>
-                                    <a href="/AdminCourse/Details/@course.CrsId" class="btn btn-sm btn-outline-info">
-                                        <i class="bi bi-info-circle"></i> Details
-                                    </a>
+                                    <div class="btn-group">
+                                        <a href="@Url.Action("Details", "AdminCourse", new { id = course.CourseId })" class="btn btn-sm btn-outline-info">
+                                            <i class="bi bi-info-circle"></i>
+                                        </a>
+                                        <a href="@Url.Action("Index", "AdminExam", new { courseId = course.CourseId })" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-file-earmark-text"></i> Exams
+                                        </a>
+                                    </div>
                                 </td>
                             </tr>
                         }
                     </tbody>
                 </table>
-            </div>
-        }
-        else
-        {
-            <div class="alert alert-info text-center py-5">
-                <i class="bi bi-book fs-1 d-block mb-3"></i>
-                <h5>No courses found</h5>
-                <p class="mb-0">This instructor has not been assigned to any courses yet.</p>
-                <div class="mt-3">
-                    <a href="/AdminCourse/Create" class="btn btn-primary">
-                        <i class="bi bi-plus-circle"></i> Create New Course
-                    </a>
+            }
+            else
+            {
+                <div class="alert alert-info">
+                    This instructor has no assigned courses yet.
                 </div>
-            </div>
-        }
+            }
+        </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $('table').DataTable({
+                responsive: true,
+                order: [[0, 'asc']]
+            });
+        });
+    </script>
+}
