@@ -178,10 +178,15 @@ namespace ExSystemProject.Controllers
                 return NotFound();
             }
 
+            // Check if ModelState is valid
             if (ModelState.IsValid)
             {
                 try
                 {
+                    // Ensure isactive is properly handled - the hidden field is already set in the client-side script
+                    bool isActive = instructorDTO.Isactive ?? true;
+                    Console.WriteLine($"IsActive value being used: {isActive}");
+
                     // Use stored procedure to update instructor
                     _unitOfWork.instructorRepo.UpdateInstructor(
                         instructorDTO.InsId,
@@ -190,20 +195,34 @@ namespace ExSystemProject.Controllers
                         instructorDTO.Gender,
                         instructorDTO.Salary ?? 0,
                         instructorDTO.TrackId ?? 0,
-                        instructorDTO.Isactive ?? true
+                        isActive  // Pass the correct active status here
                     );
 
+                    TempData["SuccessMessage"] = "Instructor updated successfully!";
                     return RedirectToAction(nameof(Index));
                 }
                 catch (Exception ex)
                 {
                     ModelState.AddModelError("", $"Error updating instructor: {ex.Message}");
+                    Console.WriteLine($"Error updating instructor: {ex.Message}");
+                }
+            }
+            else
+            {
+                // Log ModelState errors for debugging
+                foreach (var state in ModelState)
+                {
+                    foreach (var error in state.Value.Errors)
+                    {
+                        Console.WriteLine($"Error in {state.Key}: {error.ErrorMessage}");
+                    }
                 }
             }
 
             PopulateDropDowns(instructorDTO.BranchId);
             return View(instructorDTO);
         }
+
 
         // GET: AdminInstructor/Delete/5
         public IActionResult Delete(int id)
