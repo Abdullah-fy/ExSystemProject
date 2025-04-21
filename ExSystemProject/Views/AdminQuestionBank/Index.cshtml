@@ -17,9 +17,17 @@
             }
         </h5>
         <div>
-            <a asp-action="Create" asp-route-examId="@ViewBag.ExamId" class="btn btn-primary">
-                <i class="bi bi-plus-lg"></i> Add New Question
-            </a>
+            <!-- Dropdown for adding different question types -->
+            <div class="dropdown d-inline-block">
+                <button class="btn btn-primary dropdown-toggle" type="button" id="addQuestionDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-plus-lg"></i> Add New Question
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="addQuestionDropdown">
+                    <li><a class="dropdown-item" asp-action="Create" asp-route-examId="@ViewBag.ExamId">Multiple Choice Question</a></li>
+                    <li><a class="dropdown-item" asp-action="CreateTrueFalse" asp-route-examId="@ViewBag.ExamId">True/False Question</a></li>
+                </ul>
+            </div>
+
             @if (ViewBag.ExamId != null)
             {
                 <a asp-controller="AdminExam" asp-action="Details" asp-route-id="@ViewBag.ExamId" class="btn btn-outline-secondary ms-2">

@@ -81,29 +81,17 @@ namespace ExSystemProject.Controllers
         }
 
         // POST: AdminQuestionBank/Create
-        // Controller Action
-        // Controller Action
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Create(QuestionBankDTO questionDTO, string tfCorrectAnswer)
+        public IActionResult Create(QuestionBankDTO questionDTO)
         {
-            // Add form debugging
-            var form = Request.Form;
-            System.Diagnostics.Debug.WriteLine("--- FORM DATA ---");
-            foreach (var key in form.Keys)
-            {
-                System.Diagnostics.Debug.WriteLine($"{key}: {form[key]}");
-            }
-            System.Diagnostics.Debug.WriteLine("-----------------");
-
-            // Debug model binding
-            System.Diagnostics.Debug.WriteLine($"QuesText from model: {questionDTO.QuesText}");
-            System.Diagnostics.Debug.WriteLine($"QuesType from model: {questionDTO.QuesType}");
-            System.Diagnostics.Debug.WriteLine($"QuesScore from model: {questionDTO.QuesScore}");
-            System.Diagnostics.Debug.WriteLine($"tfCorrectAnswer from parameter: {tfCorrectAnswer}");
-
             try
             {
+                // Force the question type to be MCQ for this action
+                questionDTO.QuesType = "MCQ";
+
+                System.Diagnostics.Debug.WriteLine($"Create MCQ POST: Text={questionDTO.QuesText}, Score={questionDTO.QuesScore}");
+
                 if (ModelState.IsValid)
                 {
                     var question = new Question
@@ -117,49 +105,57 @@ namespace ExSystemProject.Controllers
 
                     int questionId = 0;
 
-                    if (questionDTO.QuesType == "TF")
+                    // Process MCQ choices
+                    var choices = new List<Choice>();
+                    bool hasCorrectChoice = false;
+
+                    foreach (var choice in questionDTO.Choices.Where(c => !string.IsNullOrWhiteSpace(c.ChoiceText)))
                     {
-                        // Try to get tfCorrectAnswer directly from form if it's not coming through parameter
-                        if (string.IsNullOrEmpty(tfCorrectAnswer) && form.ContainsKey("tfCorrectAnswer"))
+                        choices.Add(new Choice
                         {
-                            tfCorrectAnswer = form["tfCorrectAnswer"].ToString();
-                            System.Diagnostics.Debug.WriteLine($"tfCorrectAnswer from form: {tfCorrectAnswer}");
-                        }
+                            ChoiceText = choice.ChoiceText,
+                            IsCorrect = choice.IsCorrect
+                        });
 
-                        // Convert to expected format
-                        string correctAnswerValue = (tfCorrectAnswer?.ToLower() == "true") ? "1" : "0";
-                        System.Diagnostics.Debug.WriteLine($"Controller: TF answer converted to '{correctAnswerValue}'");
-
-                        // Log properties of the question object
-                        System.Diagnostics.Debug.WriteLine($"Controller: Question object - Text='{question.QuesText}', Type='{question.QuesType}', Score={question.QuesScore}, ExamId={question.ExamId}, Active={question.Isactive}");
-
-                        try
+                        if (choice.IsCorrect)
                         {
-                            questionId = _unitOfWork.questionRepo.InsertQuestionTF(question, correctAnswerValue);
-                            System.Diagnostics.Debug.WriteLine($"Controller: Repository returned questionId: {questionId}");
-                        }
-                        catch (Exception ex)
-                        {
-                            System.Diagnostics.Debug.WriteLine($"Controller: Repository exception: {ex.Message}");
-                            System.Diagnostics.Debug.WriteLine($"Controller: Stack trace: {ex.StackTrace}");
-                            // Try to get inner exception details
-                            if (ex.InnerException != null)
-                            {
-                                System.Diagnostics.Debug.WriteLine($"Controller: Inner exception: {ex.InnerException.Message}");
-                            }
-                            throw;
+                            hasCorrectChoice = true;
                         }
                     }
-                    else // MCQ
+
+                    if (!hasCorrectChoice)
                     {
-                        // Process MCQ choices
-                        // ...
+                        ModelState.AddModelError("", "You must select one correct answer for the MCQ question.");
+                        var exams = _unitOfWork.examRepo.GetAllExams();
+                        ViewBag.Exams = new SelectList(exams, "ExamId", "ExamName", questionDTO.ExamId);
+                        ViewBag.ExamId = questionDTO.ExamId;
+                        return View(questionDTO);
                     }
+
+                    if (choices.Count < 2)
+                    {
+                        ModelState.AddModelError("", "MCQ questions must have at least 2 choices.");
+                        var exams = _unitOfWork.examRepo.GetAllExams();
+                        ViewBag.Exams = new SelectList(exams, "ExamId", "ExamName", questionDTO.ExamId);
+                        ViewBag.ExamId = questionDTO.ExamId;
+                        return View(questionDTO);
+                    }
+
+                    while (choices.Count < 4)
+                    {
+                        choices.Add(new Choice
+                        {
+                            ChoiceText = "N/A",
+                            IsCorrect = false
+                        });
+                    }
+
+                    questionId = _unitOfWork.questionRepo.InsertQuestionMCQ(question, choices);
 
                     if (questionId > 0)
                     {
                         TempData["Success"] = true;
-                        TempData["Message"] = $"Question created successfully.";
+                        TempData["Message"] = $"MCQ question created successfully.";
 
                         if (questionDTO.ExamId.HasValue)
                             return RedirectToAction("Index", new { examId = questionDTO.ExamId });
@@ -168,34 +164,19 @@ namespace ExSystemProject.Controllers
                     }
                     else
                     {
-                        ModelState.AddModelError("", "Failed to create question. Question ID was not returned.");
-                        System.Diagnostics.Debug.WriteLine("Question ID was 0 or negative");
-                    }
-                }
-                else
-                {
-                    System.Diagnostics.Debug.WriteLine("ModelState is invalid");
-                    foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
-                    {
-                        System.Diagnostics.Debug.WriteLine($"Error: {error.ErrorMessage}");
+                        ModelState.AddModelError("", "Failed to create MCQ question");
                     }
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"EXCEPTION: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"STACK: {ex.StackTrace}");
-                ModelState.AddModelError("", $"Error creating question: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Create MCQ ERROR: {ex.Message}");
+                ModelState.AddModelError("", $"Error creating MCQ question: {ex.Message}");
             }
 
             var examsList = _unitOfWork.examRepo.GetAllExams();
             ViewBag.Exams = new SelectList(examsList, "ExamId", "ExamName", questionDTO.ExamId);
             ViewBag.ExamId = questionDTO.ExamId;
-
-            // IMPORTANT: Send back the values that were submitted
-            ViewBag.SubmittedQuesText = questionDTO.QuesText;
-            ViewBag.SubmittedQuesScore = questionDTO.QuesScore;
-            ViewBag.SubmittedTfCorrectAnswer = tfCorrectAnswer;
 
             return View(questionDTO);
         }
@@ -460,6 +441,67 @@ namespace ExSystemProject.Controllers
 
                 return RedirectToAction(nameof(Index), new { examId = examId });
             }
+
+        }
+        // New action specifically for True/False questions
+        [HttpGet]
+        public IActionResult CreateTrueFalse()
+        {
+            var examsList = _unitOfWork.examRepo.GetAllExams();
+            ViewBag.Exams = new SelectList(examsList, "ExamId", "ExamName");
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult CreateTrueFalse(string quesText, int quesScore, string tfCorrectAnswer, int? examId)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"CreateTrueFalse POST: Text={quesText}, Score={quesScore}, Answer={tfCorrectAnswer}, ExamId={examId}");
+
+                // Create question object
+                var question = new Question
+                {
+                    QuesText = quesText,
+                    QuesType = "TF", // Fixed to TF
+                    QuesScore = quesScore,
+                    ExamId = examId,
+                    Isactive = true
+                };
+
+                // Convert to "1" or "0" for the stored procedure
+                string correctAnswerValue = tfCorrectAnswer?.ToLower() == "true" ? "1" : "0";
+
+                // Insert TF question
+                int questionId = _unitOfWork.questionRepo.InsertQuestionTF(question, correctAnswerValue);
+
+                if (questionId > 0)
+                {
+                    TempData["Success"] = true;
+                    TempData["Message"] = "True/False question created successfully.";
+                    return RedirectToAction("Index", new { examId = examId });
+                }
+                else
+                {
+                    ModelState.AddModelError("", "Failed to create True/False question");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"CreateTrueFalse ERROR: {ex.Message}");
+                ModelState.AddModelError("", $"Error creating True/False question: {ex.Message}");
+            }
+
+            var examsList = _unitOfWork.examRepo.GetAllExams();
+            ViewBag.Exams = new SelectList(examsList, "ExamId", "ExamName", examId);
+
+            // Keep the submitted values
+            ViewBag.QuesText = quesText;
+            ViewBag.QuesScore = quesScore;
+            ViewBag.TFCorrectAnswer = tfCorrectAnswer;
+
+            return View();
         }
     }
 }
