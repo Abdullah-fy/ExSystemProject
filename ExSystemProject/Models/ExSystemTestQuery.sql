@@ -65,6 +65,8 @@ CREATE Table Courses(
 	Crs_period int,
 	ins_id int ,
 	isactive bit default 1,
+	poster VARCHAR(255) NULL,
+    description TEXT NULL,
 	FOREIGN KEY (ins_id) REFERENCES Instructor(ins_id) on delete set null
 )
 --NOTE!!! when delete course reflect this on other tables aslo like (Exam)
@@ -1506,15 +1508,17 @@ END
 GO
 ---------------------------------------COURSES TABLE STORED PROCEDURES
 -- Create a new course
-CREATE PROCEDURE sp_CreateCourse
+CREATE OR ALTER PROCEDURE sp_CreateCourse
     @crs_name VARCHAR(255),
     @crs_period INT = NULL,
-    @ins_id INT = NULL
+    @ins_id INT = NULL,
+    @poster VARCHAR(255) = NULL,
+    @description TEXT = NULL
 AS
 BEGIN
     BEGIN TRY
-        INSERT INTO Courses (Crs_Name, Crs_period, ins_id)
-        VALUES (@crs_name, @crs_period, @ins_id)
+        INSERT INTO Courses (Crs_Name, Crs_period, ins_id, poster, description)
+        VALUES (@crs_name, @crs_period, @ins_id, @poster, @description)
         
         SELECT c.*, i.Ins_Id, u.username as instructor_name
         FROM Courses c
@@ -1527,13 +1531,12 @@ BEGIN
         RAISERROR(@ErrorMessage, 16, 1)
     END CATCH
 END
-exec sp_CreateCourse @crs_name = 'c#', @crs_period = 2, @ins_id = 1
-exec sp_CreateCourse @crs_name = 'c++', @crs_period = 2, @ins_id = 2
-exec sp_CreateCourse @crs_name = 'html', @crs_period = 2, @ins_id = 3
-exec sp_CreateCourse @crs_name = 'js', @crs_period = 2, @ins_id = 4
-exec sp_CreateCourse @crs_name = 'jquery', @crs_period = 2, @ins_id = 5
-exec sp_CreateCourse @crs_name = 'oop', @crs_period = 2, @ins_id = 6
-
+exec sp_CreateCourse @crs_name = 'c#', @crs_period = 2, @ins_id = 1, @poster = 'csharp.jpg', @description = 'Introduction to C# programming'
+exec sp_CreateCourse @crs_name = 'c++', @crs_period = 2, @ins_id = 2, @poster = 'cpp.jpg', @description = 'OOP with C++'
+exec sp_CreateCourse @crs_name = 'html', @crs_period = 2, @ins_id = 3, @poster = 'html.png', @description = 'Web fundamentals with HTML5'
+exec sp_CreateCourse @crs_name = 'js', @crs_period = 2, @ins_id = 3, @poster = 'js.jpg', @description = 'JavaScript programming for web apps'
+exec sp_CreateCourse @crs_name = 'jquery', @crs_period = 2, @ins_id = 5, @poster = 'jquery.png', @description = 'DOM manipulation and effects with jQuery'
+exec sp_CreateCourse @crs_name = 'oop', @crs_period = 2, @ins_id = 5, @poster = 'oop.jpg', @description = 'Object-Oriented Programming concepts'
 
 GO
 -- Get all courses
@@ -1626,12 +1629,14 @@ END
 exec sp_GetCourseTopics @crs_id = 1
 GO
 -- Update course
-CREATE PROCEDURE sp_UpdateCourse
+CREATE OR ALTER PROCEDURE sp_UpdateCourse
     @crs_id INT,
     @crs_name VARCHAR(255),
     @crs_period INT = NULL,
     @ins_id INT = NULL,
-    @isactive BIT = 1
+    @isactive BIT = 1,
+    @poster VARCHAR(255) = NULL,
+    @description TEXT = NULL
 AS
 BEGIN
     BEGIN TRY
@@ -1639,9 +1644,11 @@ BEGIN
         SET Crs_Name = @crs_name,
             Crs_period = @crs_period,
             ins_id = @ins_id,
-            isactive = @isactive
+            isactive = @isactive,
+            poster = @poster,
+            description = @description
         WHERE Crs_Id = @crs_id
-        
+
         SELECT c.*, u.username as instructor_name
         FROM Courses c
         LEFT JOIN Instructor i ON c.ins_id = i.Ins_Id

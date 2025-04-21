@@ -1,137 +1,77 @@
 ﻿@model ExSystemProject.DTOS.QuestionBankDTO
 @{
-    ViewData["Title"] = "Create Question";
+    ViewData["Title"] = "Create True/False Question";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
 <div class="card">
     <div class="card-header">
-        <h5 class="mb-0">Create New Question</h5>
+        <h5>Create True/False Question</h5>
     </div>
     <div class="card-body">
-        <form asp-action="Create" method="post" id="questionForm">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <form method="post" action="@Url.Action("Create", "AdminQuestionBank")">
+            @Html.AntiForgeryToken()
+
+            <!-- Hidden field to set question type -->
+            <input type="hidden" name="QuesType" value="TF" />
 
             <div class="mb-3">
-                <label asp-for="QuesText" class="form-label">Question Text</label>
-                <textarea asp-for="QuesText" class="form-control" rows="3" required></textarea>
-                <span asp-validation-for="QuesText" class="text-danger"></span>
+                <label for="QuesText">Question Text</label>
+                <textarea name="QuesText" class="form-control" required>@(ViewBag.SubmittedQuesText ?? "")</textarea>
             </div>
 
             <div class="mb-3">
-                <label asp-for="QuesType" class="form-label">Question Type</label>
-                <select asp-for="QuesType" class="form-select" id="questionType">
-                    <option value="MCQ">Multiple Choice</option>
-                    <option value="TF">True/False</option>
-                </select>
-                <span asp-validation-for="QuesType" class="text-danger"></span>
-            </div>
-
-            <div id="mcqOptions">
-                <h6 class="mt-4 mb-3">Answer Choices</h6>
-                <div class="alert alert-info">
-                    <i class="bi bi-info-circle me-2"></i>
-                    Please enter four options and select the correct answer.
+                <label>Correct Answer</label>
+                <div class="form-check">
+                    <input type="radio" id="tfTrue" name="tfCorrectAnswer" value="true"
+                    @(ViewBag.SubmittedTfCorrectAnswer == "false" ? "" : "checked") class="form-check-input">
+                    <label for="tfTrue" class="form-check-label">True</label>
                 </div>
-
-                @for (int i = 0; i < Model.Choices.Count; i++)
-                {
-                    <div class="card mb-3">
-                        <div class="card-body">
-                            <div class="mb-2">
-                                <label class="form-label">Choice @(i + 1)</label>
-                                <input name="Choices[@i].ChoiceText" class="form-control choice-input" required />
-                            </div>
-                            <div class="form-check">
-                                <!-- Hidden field to make sure we capture unchecked checkboxes -->
-                                <input type="hidden" name="Choices[@i].IsCorrect" value="false" />
-                                <input type="radio" id="correctAnswer_@i" name="correctAnswer" value="@i" class="form-check-input" />
-                                <label class="form-check-label" for="correctAnswer_@i">
-                                    Correct Answer
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                }
-            </div>
-
-            <div id="tfOptions" class="card mb-3" style="display: none;">
-                <div class="card-body">
-                    <h6 class="mb-3">Correct Answer</h6>
-                    <div class="form-check form-check-inline">
-                        <input type="radio" id="trueOption" name="tfCorrectAnswer" class="form-check-input" value="true" checked />
-                        <label class="form-check-label" for="trueOption">True</label>
-                    </div>
-                    <div class="form-check form-check-inline">
-                        <input type="radio" id="falseOption" name="tfCorrectAnswer" class="form-check-input" value="false" />
-                        <label class="form-check-label" for="falseOption">False</label>
-                    </div>
+                <div class="form-check">
+                    <input type="radio" id="tfFalse" name="tfCorrectAnswer" value="false"
+                    @(ViewBag.SubmittedTfCorrectAnswer == "false" ? "checked" : "") class="form-check-input">
+                    <label for="tfFalse" class="form-check-label">False</label>
                 </div>
             </div>
 
             <div class="mb-3">
-                <label asp-for="QuesScore" class="form-label">Question Score</label>
-                <input asp-for="QuesScore" class="form-control" type="number" min="1" max="100" value="5" required />
-                <span asp-validation-for="QuesScore" class="text-danger"></span>
+                <label for="QuesScore">Question Score</label>
+                <input type="number" name="QuesScore" value="@(ViewBag.SubmittedQuesScore ?? 5)" min="1" class="form-control" required />
             </div>
 
             <div class="mb-3">
-                <label asp-for="ExamId" class="form-label">Exam</label>
-                <select asp-for="ExamId" class="form-select" asp-items="ViewBag.Exams">
+                <label for="ExamId">Exam</label>
+                <select name="ExamId" class="form-select">
                     <option value="">-- None (Question Bank Only) --</option>
+                    @foreach (var item in ViewBag.Exams)
+                    {
+                        <option value="@item.Value">@item.Text</option>
+                    }
                 </select>
-                <span asp-validation-for="ExamId" class="text-danger"></span>
             </div>
 
-            <div class="d-flex justify-content-between">
-                <a asp-action="Index" asp-route-examId="@ViewBag.ExamId" class="btn btn-outline-secondary">
-                    <i class="bi bi-arrow-left"></i> Back to List
-                </a>
-                <button type="submit" class="btn btn-primary" id="submitBtn">
-                    <i class="bi bi-save"></i> Create Question
-                </button>
+            <div class="mb-3">
+                <!-- Display errors if any -->
+                <div class="text-danger">
+                    @Html.ValidationSummary()
+                </div>
+
+                <!-- Debug info -->
+                <div style="display:none;" id="debugInfo">
+                    <pre>@Json.Serialize(ViewBag)</pre>
+                </div>
             </div>
+
+            <button type="submit" class="btn btn-primary">Create Question</button>
         </form>
     </div>
 </div>
 
-@section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
-
-    <script>
-        $(document).ready(function () {
-            // Handle question type change
-            $('#questionType').change(function () {
-                if ($(this).val() === 'MCQ') {
-                    $('#mcqOptions').show();
-                    $('#tfOptions').hide();
-                    $('.choice-input').prop('required', true);
-                } else {
-                    $('#mcqOptions').hide();
-                    $('#tfOptions').show();
-                    $('.choice-input').prop('required', false);
-                }
-            });
-
-            // Handle form submission
-            $('#questionForm').submit(function (e) {
-                if ($('#questionType').val() === 'MCQ') {
-                    // Ensure one option is selected for MCQ
-                    if ($('input[name="correctAnswer"]:checked').length === 0) {
-                        alert('Please select one correct answer for the multiple choice question.');
-                        e.preventDefault();
-                        return false;
-                    }
-
-                    // Mark the selected answer as correct in the form data
-                    var selectedIndex = $('input[name="correctAnswer"]:checked').val();
-                    if (selectedIndex !== undefined) {
-                        $('input[name="Choices[' + selectedIndex + '].IsCorrect"]').val('true');
-                    }
-                }
-            });
-        });
-    </script>
-}
+<script>
+    // Show debug info in console
+    document.addEventListener('DOMContentLoaded', function() {
+        if (document.getElementById('debugInfo')) {
+            console.log('ViewBag data:', document.getElementById('debugInfo').textContent);
+        }
+    });
+</script>

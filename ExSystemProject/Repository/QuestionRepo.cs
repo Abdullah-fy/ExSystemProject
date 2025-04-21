@@ -65,29 +65,122 @@ namespace ExSystemProject.Repository
             }
         }
 
-        public int InsertQuestionTF(Question question, bool isTrue)
+
+
+
+        // Repository Implementation
+        public int InsertQuestionTF(Question question, string correctAnswer)
         {
             // Always set questions to active when creating
             question.Isactive = true;
 
             try
             {
+                System.Diagnostics.Debug.WriteLine($"Repository: Inserting TF question with answer={correctAnswer}");
+
                 var quesTextParam = new SqlParameter("@ques_text", question.QuesText);
                 var quesScoreParam = new SqlParameter("@ques_score", question.QuesScore);
-                var correctAnswerParam = new SqlParameter("@correct_answer", isTrue ? 1 : 0);
+
+                // Ensure correctAnswer is "1" or "0" for the stored procedure
+                var correctAnswerParam = new SqlParameter("@correct_answer", SqlDbType.VarChar, 20)
+                {
+                    Value = correctAnswer // Should be "1" or "0"
+                };
+
                 var examIdParam = new SqlParameter("@exam_id", question.ExamId ?? (object)DBNull.Value);
 
-                // Execute stored procedure
-                var result = _context.Questions
-                    .FromSqlRaw("EXEC sp_insert_ques_tf @ques_text, @ques_score, @correct_answer, @exam_id",
-                        quesTextParam, quesScoreParam, correctAnswerParam, examIdParam)
-                    .AsEnumerable()
-                    .FirstOrDefault();
+                System.Diagnostics.Debug.WriteLine($"Repository: Parameters - Text='{question.QuesText}', Score={question.QuesScore}, Answer='{correctAnswer}', ExamId={question.ExamId ?? (object)DBNull.Value}");
 
-                return result?.QuesId ?? 0;
+                // Try a different approach to call the stored procedure
+                try
+                {
+                    // Try direct SQL execution with explicit parameter values to debug
+                    var sql = $"EXEC sp_insert_ques_tf @ques_text='{question.QuesText.Replace("'", "''")}', @ques_score={question.QuesScore}, @correct_answer='{correctAnswer}', @exam_id={question.ExamId ?? (object)DBNull.Value}";
+                    System.Diagnostics.Debug.WriteLine($"Repository: Executing SQL: {sql}");
+
+                    // Use the normal method for actual execution
+                    var result = _context.Questions
+                        .FromSqlRaw("EXEC sp_insert_ques_tf @ques_text, @ques_score, @correct_answer, @exam_id",
+                            quesTextParam, quesScoreParam, correctAnswerParam, examIdParam)
+                        .AsEnumerable()
+                        .FirstOrDefault();
+
+                    int resultId = result?.QuesId ?? 0;
+                    System.Diagnostics.Debug.WriteLine($"Repository: Result ID = {resultId}");
+
+                    if (resultId <= 0)
+                    {
+                        System.Diagnostics.Debug.WriteLine("Repository: No question ID returned or ID was 0");
+                        // Try to get more information about why no result was returned
+                        var testQuery = _context.Questions.Where(q => q.QuesText == question.QuesText).FirstOrDefault();
+                        if (testQuery != null)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"Repository: Found matching question with ID {testQuery.QuesId}");
+                            return testQuery.QuesId;
+                        }
+                    }
+
+                    return resultId;
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Repository: SQL execution error: {ex.Message}");
+                    System.Diagnostics.Debug.WriteLine($"Repository: Stack trace: {ex.StackTrace}");
+
+                    // Try a fallback approach - direct SQL without using FromSqlRaw
+                    try
+                    {
+                        System.Diagnostics.Debug.WriteLine("Repository: Trying fallback approach with direct SQL");
+
+                        // Insert the question directly with SQL
+                        var insertSql = $"INSERT INTO Question (ques_text, ques_type, ques_score, exam_id, Isactive) VALUES (@p0, @p1, @p2, @p3, @p4); SELECT SCOPE_IDENTITY();";
+                        var insertParams = new object[] {
+                    question.QuesText,
+                    "True/False",
+                    question.QuesScore,
+                    question.ExamId ?? (object)DBNull.Value,
+                    true
+                };
+
+                        var quesId = _context.Database.ExecuteSqlRaw(insertSql, insertParams);
+                        System.Diagnostics.Debug.WriteLine($"Repository: Direct insert result: {quesId}");
+
+                        if (quesId > 0)
+                        {
+                            // Now insert the choices
+                            var choiceSql = $"INSERT INTO Choice (ques_id, choice_text, is_correct) VALUES (@p0, 'True', @p1), (@p0, 'False', @p2)";
+                            var choiceParams = new object[] {
+                        quesId,
+                        correctAnswer == "1" ? 1 : 0,
+                        correctAnswer == "0" ? 1 : 0
+                    };
+
+                            _context.Database.ExecuteSqlRaw(choiceSql, choiceParams);
+                            System.Diagnostics.Debug.WriteLine($"Repository: Inserted choices for question {quesId}");
+
+                            // Update exam total marks if needed
+                            if (question.ExamId.HasValue)
+                            {
+                                var updateSql = "UPDATE Exam SET TotalMarks += @p0 WHERE exam_id = @p1";
+                                var updateParams = new object[] { question.QuesScore, question.ExamId.Value };
+                                _context.Database.ExecuteSqlRaw(updateSql, updateParams);
+                            }
+
+                            return quesId;
+                        }
+                    }
+                    catch (Exception fallbackEx)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Repository: Fallback approach error: {fallbackEx.Message}");
+                    }
+
+                    throw; // Re-throw the original exception if all approaches fail
+                }
             }
             catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"Repository: Error in InsertQuestionTF: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Repository: Stack trace: {ex.StackTrace}");
                 throw new Exception($"Error inserting True/False question: {ex.Message}", ex);
             }
         }
