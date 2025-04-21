@@ -106,47 +106,52 @@ namespace ExSystemProject.Controllers
 
             if (ModelState.IsValid)
             {
-                // Get current course to compare isactive state
-                var currentCourse = _unitOfWork.courseRepo.GetCourseById(id);
-                var wasActive = currentCourse?.Isactive ?? true;
-
-                // The issue: courseDTO.Isactive might be null when the checkbox is unchecked
-                // Fix: Ensure isactive always has an explicit value, never null
-                if (courseDTO.Isactive == null)
+                try
                 {
-                    // In web forms, unchecked checkboxes don't send any value
-                    // This is likely why isactive is null when deactivating
-                    courseDTO.Isactive = false;
+                    // Get current course to compare isactive state
+                    var currentCourse = _unitOfWork.courseRepo.GetCourseById(id);
+                    var wasActive = currentCourse?.Isactive ?? true;
+
+                    // Log for debugging
+                    System.Diagnostics.Debug.WriteLine($"Form submitted Isactive value: {courseDTO.Isactive}");
+
+                    // Make sure Isactive is never null before updating
+                    if (courseDTO.Isactive == null)
+                    {
+                        // If somehow it's still null (shouldn't happen with our updated form), 
+                        // keep the current status
+                        courseDTO.Isactive = wasActive;
+                    }
+
+                    var course = _mapper.Map<Course>(courseDTO);
+
+                    // Using the enhanced repository method to update a course
+                    _unitOfWork.courseRepo.UpdateCourse(course);
+
+                    TempData["Success"] = true;
+
+                    // Custom message based on active status change
+                    if (wasActive == true && courseDTO.Isactive == false)
+                    {
+                        TempData["Message"] = $"Course '{courseDTO.CrsName}' has been deactivated successfully.";
+                    }
+                    else if (wasActive == false && courseDTO.Isactive == true)
+                    {
+                        TempData["Message"] = $"Course '{courseDTO.CrsName}' has been activated successfully.";
+                    }
+                    else
+                    {
+                        TempData["Message"] = $"Course '{courseDTO.CrsName}' has been updated successfully.";
+                    }
+
+                    return RedirectToAction(nameof(Index));
                 }
-
-                System.Diagnostics.Debug.WriteLine($"Incoming IsActive (after fix): {courseDTO.Isactive}");
-                System.Diagnostics.Debug.WriteLine($"Previous IsActive: {wasActive}");
-
-                var course = _mapper.Map<Course>(courseDTO);
-
-                // Double-check that isactive has an explicit value
-                System.Diagnostics.Debug.WriteLine($"Mapped Course IsActive: {course.Isactive}");
-
-                // Using the enhanced repository method to update a course
-                _unitOfWork.courseRepo.UpdateCourse(course);
-
-                TempData["Success"] = true;
-
-                // Custom message based on active status change
-                if (wasActive == true && courseDTO.Isactive == false)
+                catch (Exception ex)
                 {
-                    TempData["Message"] = $"Course '{courseDTO.CrsName}' has been deactivated successfully.";
+                    // Log the exception
+                    System.Diagnostics.Debug.WriteLine($"Error updating course: {ex.Message}");
+                    ModelState.AddModelError(string.Empty, $"Error updating course: {ex.Message}");
                 }
-                else if (wasActive == false && courseDTO.Isactive == true)
-                {
-                    TempData["Message"] = $"Course '{courseDTO.CrsName}' has been activated successfully.";
-                }
-                else
-                {
-                    TempData["Message"] = $"Course '{courseDTO.CrsName}' has been updated successfully.";
-                }
-
-                return RedirectToAction(nameof(Index));
             }
 
             var instructors = _unitOfWork.instructorRepo.getAll();
@@ -169,14 +174,266 @@ namespace ExSystemProject.Controllers
             return View(courseDTO);
         }
 
-        // POST: AdminCourse/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public IActionResult DeleteConfirmed(int id)
+        //// POST: AdminCourse/Delete/5
+        //[HttpPost, ActionName("DeleteTopic")]
+        //[ValidateAntiForgeryToken]
+        //public IActionResult DeleteTopicConfirmed(int id)
+        //{
+        //    try
+        //    {
+        //        // Get the topic to determine the course ID for redirect
+        //        var topic = _unitOfWork.topicRepo.GetTopicById(id);
+        //        if (topic == null)
+        //            return NotFound();
+
+        //        int courseId = topic.CrsId ?? 0;
+
+        //        // Delete the topic using stored procedure
+        //        _unitOfWork.topicRepo.DeleteTopic(id);
+
+        //        TempData["Success"] = true;
+        //        TempData["Message"] = "Topic deleted successfully.";
+
+        //        return RedirectToAction(nameof(Topics), new { id = courseId });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        // Log the error
+        //        System.Diagnostics.Debug.WriteLine($"Error deleting topic: {ex.Message}");
+
+        //        // Use TempData to display error message
+        //        TempData["Error"] = true;
+        //        TempData["Message"] = $"Error deleting topic: {ex.Message}";
+
+        //        // Get the topic again to determine course ID
+        //        var topic = _unitOfWork.topicRepo.GetTopicById(id);
+        //        int courseId = topic?.CrsId ?? 0;
+
+        //        return RedirectToAction(nameof(Topics), new { id = courseId });
+        //    }
+        //}
+
+        // GET: AdminCourse/Topics/5
+        public IActionResult Topics(int id)
         {
-            // Using the enhanced repository method to delete a course
-            _unitOfWork.courseRepo.DeleteCourse(id);
-            return RedirectToAction(nameof(Index));
+            var course = _unitOfWork.courseRepo.GetCourseById(id);
+            if (course == null)
+                return NotFound();
+
+            var courseDTO = _mapper.Map<CourseDTO>(course);
+
+            // Get topics for this course
+            var topics = _unitOfWork.topicRepo.GetTopicsByCourseId(id, null); // Get all topics (active and inactive)
+
+            ViewBag.Course = courseDTO;
+            ViewBag.Topics = topics;
+
+            return View();
         }
+
+        // GET: AdminCourse/AddTopic/5
+        public IActionResult AddTopic(int id)
+        {
+            var course = _unitOfWork.courseRepo.GetCourseById(id);
+            if (course == null)
+                return NotFound();
+
+            var courseDTO = _mapper.Map<CourseDTO>(course);
+            ViewBag.Course = courseDTO;
+
+            return View(new TopicDTO { CrsId = id });
+        }
+
+        // POST: AdminCourse/AddTopic
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult AddTopic(TopicDTO topicDTO)
+        {
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    var course = _unitOfWork.courseRepo.GetCourseById(topicDTO.CrsId ?? 0);
+                    if (course == null)
+                        return NotFound();
+
+                    // Create the topic
+                    _unitOfWork.topicRepo.CreateTopic(
+                        topicDTO.TopicName ?? string.Empty,
+                        topicDTO.Description ?? string.Empty,
+                        topicDTO.CrsId ?? 0
+                    );
+
+                    TempData["Success"] = true;
+                    TempData["Message"] = $"Topic '{topicDTO.TopicName}' added successfully to course '{course.CrsName}'.";
+
+                    return RedirectToAction(nameof(Topics), new { id = topicDTO.CrsId });
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", $"Error adding topic: {ex.Message}");
+                }
+            }
+
+            var courseDTO = _mapper.Map<CourseDTO>(_unitOfWork.courseRepo.GetCourseById(topicDTO.CrsId ?? 0));
+            ViewBag.Course = courseDTO;
+
+            return View(topicDTO);
+        }
+        // GET: AdminCourse/EditTopic/5
+        public IActionResult EditTopic(int id)
+        {
+            var topic = _unitOfWork.topicRepo.GetTopicById(id);
+            if (topic == null)
+                return NotFound();
+
+            var topicDTO = new TopicDTO
+            {
+                TopicId = topic.TopicId,
+                TopicName = topic.TopicName,
+                Description = topic.Descrtption,
+                CrsId = topic.CrsId,
+                IsActive = topic.Isactive,
+                CourseName = topic.Crs?.CrsName
+            };
+
+            // Get course info for the view header
+            var course = _unitOfWork.courseRepo.GetCourseById(topic.CrsId ?? 0);
+            ViewBag.Course = _mapper.Map<CourseDTO>(course);
+
+            return View(topicDTO);
+        }
+
+        // POST: AdminCourse/EditTopic/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult EditTopic(int id, TopicDTO topicDTO)
+        {
+            if (id != topicDTO.TopicId)
+                return NotFound();
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    // Update the topic
+                    _unitOfWork.topicRepo.UpdateTopic(
+                        topicDTO.TopicId ?? 0,
+                        topicDTO.TopicName ?? string.Empty,
+                        topicDTO.Description ?? string.Empty,
+                        topicDTO.CrsId ?? 0,
+                        topicDTO.IsActive ?? true
+                    );
+
+                    TempData["Success"] = true;
+                    TempData["Message"] = $"Topic '{topicDTO.TopicName}' updated successfully.";
+
+                    return RedirectToAction(nameof(Topics), new { id = topicDTO.CrsId });
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", $"Error updating topic: {ex.Message}");
+                }
+            }
+
+            // If we got this far, something failed; redisplay form
+            var course = _unitOfWork.courseRepo.GetCourseById(topicDTO.CrsId ?? 0);
+            ViewBag.Course = _mapper.Map<CourseDTO>(course);
+
+            return View(topicDTO);
+        }
+
+        // GET: AdminCourse/DeleteTopic/5
+        public IActionResult DeleteTopic(int id)
+        {
+            var topic = _unitOfWork.topicRepo.GetTopicById(id);
+            if (topic == null)
+                return NotFound();
+
+            var topicDTO = new TopicDTO
+            {
+                TopicId = topic.TopicId,
+                TopicName = topic.TopicName,
+                Description = topic.Descrtption,
+                CrsId = topic.CrsId,
+                IsActive = topic.Isactive,
+                CourseName = topic.Crs?.CrsName
+            };
+
+            // Get course info for the view header
+            var course = _unitOfWork.courseRepo.GetCourseById(topic.CrsId ?? 0);
+            ViewBag.Course = _mapper.Map<CourseDTO>(course);
+
+            return View(topicDTO);
+        }
+
+        // POST: AdminCourse/DeleteTopic/5
+        [HttpPost, ActionName("DeleteTopic")]
+        [ValidateAntiForgeryToken]
+        public IActionResult DeleteTopicConfirmed(int id)
+        {
+            var topic = _unitOfWork.topicRepo.GetTopicById(id);
+            if (topic == null)
+                return NotFound();
+
+            var courseId = topic.CrsId;
+
+            try
+            {
+                _unitOfWork.topicRepo.DeleteTopic(id);
+
+                TempData["Success"] = true;
+                TempData["Message"] = "Topic deleted successfully.";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = true;
+                TempData["Message"] = $"Error deleting topic: {ex.Message}";
+            }
+
+            return RedirectToAction(nameof(Topics), new { id = courseId });
+        }
+
+        // POST: AdminCourse/ToggleTopicStatus/5
+        [HttpPost]
+        public IActionResult ToggleTopicStatus(int id)
+        {
+            try
+            {
+                // Get the topic
+                var topic = _unitOfWork.topicRepo.GetTopicById(id);
+                if (topic == null)
+                    return Json(new { success = false, message = "Topic not found" });
+
+                // Determine the new status (opposite of current)
+                bool currentStatus = topic.Isactive ?? true;
+                bool newStatus = !currentStatus;
+
+                // Update the topic using stored procedure
+                _unitOfWork.topicRepo.UpdateTopic(
+                    topic.TopicId,
+                    topic.TopicName ?? string.Empty,
+                    topic.Descrtption ?? string.Empty,
+                    topic.CrsId ?? 0,
+                    newStatus
+                );
+
+                // Return success response with the new status
+                string statusText = newStatus ? "activated" : "deactivated";
+                return Json(new
+                {
+                    success = true,
+                    message = $"Topic {statusText} successfully",
+                    isActive = newStatus
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+
+
     }
 }
