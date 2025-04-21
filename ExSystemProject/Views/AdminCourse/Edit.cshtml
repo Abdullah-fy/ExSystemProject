@@ -34,6 +34,12 @@
             </div>
 
             <div class="mb-3">
+                <label asp-for="Description" class="form-label">Description (Optional)</label>
+                <textarea asp-for="Description" class="form-control" rows="4"></textarea>
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
                 <label class="form-label d-block">Status</label>
                 <div class="form-check form-switch">
                     @{

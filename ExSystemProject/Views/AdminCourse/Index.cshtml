@@ -20,6 +20,7 @@
                         <tr>
                             <th>ID</th>
                             <th>Name</th>
+                            <th>Description</th>
                             <th>Duration (Hours)</th>
                             <th>Instructor</th>
                             <th>Status</th>
@@ -32,6 +33,16 @@
                             <tr>
                                 <td>@course.CrsId</td>
                                 <td>@course.CrsName</td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(course.Description))
+                                    {
+                                        @(course.Description.Length > 50 ? course.Description.Substring(0, 50) + "..." : course.Description)
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">No description</span>
+                                    }
+                                </td>
                                 <td>@(course.CrsPeriod != null ? course.CrsPeriod : "-")</td>
                                 <td>@(string.IsNullOrEmpty(course.InstructorName) ? "Not Assigned" : course.InstructorName)</td>
                                 <td>
@@ -82,17 +93,17 @@
         @if (TempData["Success"] != null && ((bool)TempData["Success"]))
         {
             <text>
-                            // Create a temporary div to decode HTML entities
-                            var tempDiv = document.createElement('div');
-                            tempDiv.innerHTML = "@TempData["Message"]";
-                            var decodedMessage = tempDiv.textContent;
+                                // Create a temporary div to decode HTML entities
+                                var tempDiv = document.createElement('div');
+                                tempDiv.innerHTML = "@TempData["Message"]";
+                                var decodedMessage = tempDiv.textContent;
 
-                            Swal.fire({
-                                title: "Success!",
-                                text: decodedMessage,
-                                icon: "success",
-                                confirmButtonColor: "#a41e22"
-                            });
+                                Swal.fire({
+                                    title: "Success!",
+                                    text: decodedMessage,
+                                    icon: "success",
+                                    confirmButtonColor: "#a41e22"
+                                });
             </text>
         }
         });
