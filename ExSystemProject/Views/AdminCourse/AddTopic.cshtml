@@ -1,0 +1,45 @@
+﻿@model ExSystemProject.DTOS.TopicDTO
+@{
+    ViewData["Title"] = "Add Topic";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    var course = ViewBag.Course as ExSystemProject.DTOS.CourseDTO;
+}
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">Add Topic to Course: @course.CrsName</h5>
+    </div>
+    <div class="card-body">
+        <form asp-action="AddTopic" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="CrsId" />
+
+            <div class="mb-3">
+                <label asp-for="TopicName" class="form-label">Topic Name</label>
+                <input asp-for="TopicName" class="form-control" required />
+                <span asp-validation-for="TopicName" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Description" class="form-label">Description</label>
+                <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+
+            <div class="d-flex justify-content-between">
+                <a asp-action="Topics" asp-route-id="@Model.CrsId" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to Topics
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save"></i> Save Topic
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

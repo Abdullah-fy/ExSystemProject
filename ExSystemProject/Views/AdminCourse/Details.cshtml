@@ -54,7 +54,13 @@
             </div>
 
             <div class="col-md-6">
-                <h6>Topics</h6>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6>Topics</h6>
+                    <a asp-action="Topics" asp-route-id="@Model.CrsId" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-list"></i> Manage Topics
+                    </a>
+                </div>
+
                 @if (ViewBag.Topics != null && ((List<ExSystemProject.Models.Topic>)ViewBag.Topics).Any())
                 {
                     <ul class="list-group">
@@ -76,7 +82,10 @@
                 }
                 else
                 {
-                    <div class="alert alert-info">No topics available for this course.</div>
+                    <div class="alert alert-info">
+                        No topics available for this course.
+                        <a asp-action="AddTopic" asp-route-id="@Model.CrsId">Add a topic</a> to get started.
+                    </div>
                 }
             </div>
         </div>

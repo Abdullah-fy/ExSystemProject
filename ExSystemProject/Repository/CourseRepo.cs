@@ -39,21 +39,22 @@ namespace ExSystemProject.Repository
                     .AsNoTracking()
                     .FirstOrDefault(c => c.CrsId == course.CrsId);
 
-                course.Isactive = currentCourse?.Isactive;
+                course.Isactive = currentCourse?.Isactive ?? true;  // Default to true if somehow null
             }
 
-            var crsIdParam = new SqlParameter("@CrsId", course.CrsId);
-            var crsNameParam = new SqlParameter("@CrsName", course.CrsName);
-            var crsPeriodParam = new SqlParameter("@CrsPeriod", course.CrsPeriod ?? (object)DBNull.Value);
-            var insIdParam = new SqlParameter("@InsId", course.InsId ?? (object)DBNull.Value);
+            var crsIdParam = new SqlParameter("@crs_id", course.CrsId);
+            var crsNameParam = new SqlParameter("@crs_name", course.CrsName);
+            var crsPeriodParam = new SqlParameter("@crs_period", course.CrsPeriod ?? (object)DBNull.Value);
+            var insIdParam = new SqlParameter("@ins_id", course.InsId ?? (object)DBNull.Value);
 
-            // Always send an explicit value, never null
-            var isActiveParam = new SqlParameter("@IsActive", (object)course.Isactive.Value);
+            // Always send an explicit value for isactive, never null
+            var isActiveParam = new SqlParameter("@isactive", course.Isactive.Value);
 
             _context.Database.ExecuteSqlRaw(
-                "EXEC sp_UpdateCourse @CrsId, @CrsName, @CrsPeriod, @InsId, @IsActive",
+                "EXEC sp_UpdateCourse @crs_id, @crs_name, @crs_period, @ins_id, @isactive",
                 crsIdParam, crsNameParam, crsPeriodParam, insIdParam, isActiveParam);
         }
+
 
         // Call stored procedure to delete a course
         public void DeleteCourse(int courseId)
