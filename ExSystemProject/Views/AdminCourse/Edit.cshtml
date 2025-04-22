@@ -34,16 +34,22 @@
             </div>
 
             <div class="mb-3">
+                <label asp-for="Description" class="form-label">Description (Optional)</label>
+                <textarea asp-for="Description" class="form-control" rows="4"></textarea>
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
                 <label class="form-label d-block">Status</label>
                 <div class="form-check form-switch">
                     @{
                         // Convert nullable bool to non-nullable for the checkbox
-                        bool isActiveValue = Model.Isactive ?? false;
+                        bool isActiveValue = Model.Isactive ?? true;  // Default to true if null
                     }
-                    <input type="hidden" name="Isactive" value="false" />
-                    <input id="Isactive" name="Isactive" class="form-check-input" type="checkbox" role="switch" value="true" @(isActiveValue ? "checked" : "") />
+                    <input type="checkbox" id="Isactive" name="Isactive" class="form-check-input"
+                           checked="@isActiveValue" value="true" />
                     <label class="form-check-label" for="Isactive">
-                        <span class="badge @(isActiveValue ? "bg-success" : "bg-danger")">
+                        <span id="statusBadge" class="badge @(isActiveValue ? "bg-success" : "bg-danger")">
                             @(isActiveValue ? "Active" : "Inactive")
                         </span>
                     </label>
@@ -67,16 +73,23 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
     <script>
-                $(document).ready(function() {
+        $(document).ready(function() {
             // Update badge on toggle change
             $('#Isactive').change(function() {
                 if ($(this).is(':checked')) {
-                    $(this).next('label').find('span').removeClass('bg-danger').addClass('bg-success').text('Active');
+                    $('#statusBadge').removeClass('bg-danger').addClass('bg-success').text('Active');
                 } else {
-                    $(this).next('label').find('span').removeClass('bg-success').addClass('bg-danger').text('Inactive');
+                    $('#statusBadge').removeClass('bg-success').addClass('bg-danger').text('Inactive');
+                }
+            });
+
+            // Add hidden field on form submit to properly handle the unchecked state
+            $('form').submit(function() {
+                // If checkbox is not checked, we need to add a hidden field with value 'false'
+                if (!$('#Isactive').is(':checked')) {
+                    $(this).append('<input type="hidden" name="Isactive" value="false" />');
                 }
             });
         });
-
     </script>
 }

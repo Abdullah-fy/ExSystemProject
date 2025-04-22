@@ -1,0 +1,220 @@
+﻿@model ExSystemProject.DTOS.InstructorDTO
+@{
+    ViewData["Title"] = "Create Instructor";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <!-- Title with Underline -->
+            <div class="d-flex align-items-center pb-2 mb-4 border-bottom border-3 border-primary">
+                <h2 class="mb-0"><i class="bi bi-person-plus-fill me-2 text-primary"></i> Create New Instructor</h2>
+            </div>
+
+            <!-- Form Card with Shadow -->
+            <div class="card shadow">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 text-primary">Instructor Information</h5>
+                </div>
+                <div class="card-body p-4">
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="alert alert-danger mb-3">
+                            <h6 class="alert-heading">Please fix the following errors:</h6>
+                            <div asp-validation-summary="All" class="text-danger"></div>
+                        </div>
+                    }
+
+                    <form method="post">
+                        <!-- Hidden fields for required model properties -->
+                        <input type="hidden" name="TrackName" value="Selected Track" />
+                        <input type="hidden" name="BranchName" value="Selected Branch" />
+                        <input type="hidden" name="ImageUrl" value="default.jpg" />
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <!-- Username field -->
+                                <div class="form-group mb-3">
+                                    <label for="Username" class="form-label">Username <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                        <input type="text" id="Username" name="Username" class="form-control" placeholder="Enter username" required />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <!-- Email field -->
+                                <div class="form-group mb-3">
+                                    <label for="Email" class="form-label">Email <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                                        <input type="email" id="Email" name="Email" class="form-control" placeholder="example@domain.com" required />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <!-- Gender field -->
+                                <div class="form-group mb-3">
+                                    <label for="Gender" class="form-label">Gender <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-gender-ambiguous"></i></span>
+                                        <select id="Gender" name="Gender" class="form-select" required>
+                                            <option value="">-- Select Gender --</option>
+                                            <option value="M">Male</option>
+                                            <option value="F">Female</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <!-- Salary field -->
+                                <div class="form-group mb-3">
+                                    <label for="Salary" class="form-label">Salary <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-cash"></i></span>
+                                        <input type="number" id="Salary" name="Salary" class="form-control" step="0.01" min="0" placeholder="Enter salary amount" required />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <!-- Branch field -->
+                                <div class="form-group mb-3">
+                                    <label for="BranchId" class="form-label">Branch <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-building"></i></span>
+                                        <select id="BranchId" name="BranchId" class="form-select" required>
+                                            <option value="">-- Select Branch --</option>
+                                            @foreach (var branch in ViewBag.Branches)
+                                            {
+                                                <option value="@branch.Value">@branch.Text</option>
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <!-- Track field -->
+                                <div class="form-group mb-3">
+                                    <label for="TrackId" class="form-label">Track <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-diagram-3"></i></span>
+                                        <select id="TrackId" name="TrackId" class="form-select" required>
+                                            <option value="">-- First Select Branch --</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Submit buttons -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-between mt-4">
+                            <a asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i> Back to List
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save"></i> Create Instructor
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        $(document).ready(function() {
+            // When branch changes, load tracks
+            $('#BranchId').change(function() {
+                var branchId = $(this).val();
+                var branchText = $(this).find("option:selected").text();
+                var trackDropdown = $('#TrackId');
+
+                // Update hidden field
+                $('input[name="BranchName"]').val(branchText);
+
+                trackDropdown.empty();
+
+                if (!branchId) {
+                    trackDropdown.append('<option value="">-- First Select Branch --</option>');
+                    return;
+                }
+
+                // Show loading state with elegant spinner
+                trackDropdown.append('<option value="">-- Loading Tracks... --</option>');
+                trackDropdown.prop('disabled', true);
+
+                // Fetch tracks from server
+                $.ajax({
+                    url: '/AdminInstructor/GetTracksByBranch',
+                    type: 'GET',
+                    data: { branchId: branchId },
+                    dataType: 'json',
+                    success: function(data) {
+                        trackDropdown.empty();
+                        trackDropdown.append('<option value="">-- Select Track --</option>');
+
+                        if (data && data.length > 0) {
+                            $.each(data, function(i, track) {
+                                trackDropdown.append(
+                                    $('<option></option>')
+                                        .val(track.value || track.trackId)
+                                        .text(track.text || track.trackName)
+                                );
+                            });
+                        } else {
+                            trackDropdown.append('<option value="">-- No tracks available --</option>');
+                        }
+
+                        trackDropdown.prop('disabled', false);
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error loading tracks:', error);
+                        trackDropdown.empty();
+                        trackDropdown.append('<option value="">-- Error loading tracks --</option>');
+                        trackDropdown.prop('disabled', false);
+
+                        // Show error notification using SweetAlert
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Failed to load tracks',
+                            text: 'Please try refreshing the page or selecting a different branch',
+                            confirmButtonColor: '#a41e22'
+                        });
+                    }
+                });
+            });
+
+            // When track changes, update hidden field
+            $('#TrackId').change(function() {
+                var trackText = $(this).find("option:selected").text();
+                $('input[name="TrackName"]').val(trackText);
+            });
+
+            // Form submission with loading indicator
+            $('form').submit(function() {
+                // Check if the form is valid before showing the loader
+                if (this.checkValidity()) {
+                    Swal.fire({
+                        title: 'Creating instructor...',
+                        html: 'Please wait while we process your request',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        },
+                        showConfirmButton: false
+                    });
+                }
+            });
+        });
+    </script>
+}

@@ -1,0 +1,306 @@
+﻿@model ExSystemProject.DTOS.InstructorDTO
+@{
+    ViewData["Title"] = "Edit Instructor";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <!-- Title with Underline -->
+            <div class="d-flex align-items-center pb-2 mb-4 border-bottom border-3 border-primary">
+                <h2 class="mb-0"><i class="bi bi-person-edit me-2 text-primary"></i> Edit Instructor</h2>
+            </div>
+
+            <!-- Form Card with Shadow -->
+            <div class="card shadow">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 text-primary">Instructor Information</h5>
+                </div>
+                <div class="card-body p-4">
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="alert alert-danger mb-3">
+                            <h6 class="alert-heading">Please fix the following errors:</h6>
+                            <div asp-validation-summary="All" class="text-danger"></div>
+                        </div>
+                    }
+
+                    <form method="post" id="editForm">
+                        <!-- Hidden fields -->
+                        <input type="hidden" name="InsId" value="@Model.InsId" />
+                        <input type="hidden" name="UserId" value="@Model.UserId" />
+                        <input type="hidden" name="TrackName" id="TrackName" value="@Model.TrackName" />
+                        <input type="hidden" name="BranchName" id="BranchName" value="@Model.BranchName" />
+                        <input type="hidden" name="ImageUrl" value="@(Model.ImageUrl ?? "default.jpg")" />
+                        <input type="hidden" name="Isactive" value="false" id="isactiveHiddenField" />
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <!-- Username field -->
+                                <div class="form-group mb-3">
+                                    <label for="Username" class="form-label">Username <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                        <input type="text" id="Username" name="Username" class="form-control" value="@Model.Username" required />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <!-- Email field -->
+                                <div class="form-group mb-3">
+                                    <label for="Email" class="form-label">Email <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                                        <input type="email" id="Email" name="Email" class="form-control" value="@Model.Email" required />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <!-- Gender field -->
+                                <div class="form-group mb-3">
+                                    <label for="Gender" class="form-label">Gender <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-gender-ambiguous"></i></span>
+                                        <select id="Gender" name="Gender" class="form-select" required>
+                                            @if (Model.Gender == "M")
+                                            {
+                                                <option value="M" selected>Male</option>
+                                                <option value="F">Female</option>
+                                            }
+                                            else
+                                            {
+                                                <option value="M">Male</option>
+                                                <option value="F" selected>Female</option>
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <!-- Salary field -->
+                                <div class="form-group mb-3">
+                                    <label for="Salary" class="form-label">Salary <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-cash"></i></span>
+                                        <input type="number" id="Salary" name="Salary" class="form-control" step="0.01" min="0" value="@Model.Salary" required />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <!-- Branch field -->
+                                <div class="form-group mb-3">
+                                    <label for="BranchId" class="form-label">Branch <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-building"></i></span>
+                                        <select id="BranchId" name="BranchId" class="form-select" required>
+                                            @foreach (var branch in ViewBag.Branches)
+                                            {
+                                                if (branch.Value == Model.BranchId.ToString())
+                                                {
+                                                    <option value="@branch.Value" selected>@branch.Text</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="@branch.Value">@branch.Text</option>
+                                                }
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <!-- Track field -->
+                                <div class="form-group mb-3">
+                                    <label for="TrackId" class="form-label">Track <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-diagram-3"></i></span>
+                                        <select id="TrackId" name="TrackId" class="form-select" required>
+                                            <!-- Will be populated via JavaScript -->
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Active Status with toggle switch -->
+                        <div class="mb-4">
+                            <label class="form-label d-block">Status</label>
+                            <div class="form-check form-switch">
+                                @{
+                                    bool isActive = Model.Isactive ?? true;
+                                }
+                                <input id="IsactiveCheckbox" class="form-check-input" type="checkbox" role="switch"
+                                @(isActive ? "checked" : "") />
+                                <label class="form-check-label" for="IsactiveCheckbox">
+                                    <span id="activeStatusBadge" class="badge @(isActive ? "bg-success" : "bg-danger")">
+                                        @(isActive ? "Active" : "Inactive")
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Submit buttons -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-between mt-4">
+                            <a href="/AdminInstructor" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i> Back to List
+                            </a>
+                            <button type="submit" id="saveButton" class="btn btn-primary">
+                                <i class="bi bi-save"></i> Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log("Edit instructor form initialized");
+
+        // Current values for reference
+        var currentBranchId = '@Model.BranchId';
+        var currentTrackId = '@Model.TrackId';
+        var currentIsActive = @(Json.Serialize(Model.Isactive ?? true));
+
+        console.log("Initial values: BranchId=" + currentBranchId + ", TrackId=" + currentTrackId + ", IsActive=" + currentIsActive);
+
+        // Handle active status switch
+        var isactiveCheckbox = document.getElementById('IsactiveCheckbox');
+        var statusBadge = document.getElementById('activeStatusBadge');
+        var isactiveHiddenField = document.getElementById('isactiveHiddenField');
+
+        isactiveCheckbox.addEventListener('change', function() {
+            var isChecked = this.checked;
+
+            if (isChecked) {
+                statusBadge.classList.replace('bg-danger', 'bg-success');
+                statusBadge.innerText = 'Active';
+            } else {
+                statusBadge.classList.replace('bg-success', 'bg-danger');
+                statusBadge.innerText = 'Inactive';
+            }
+
+            isactiveHiddenField.value = isChecked ? "true" : "false";
+        });
+
+        // Initialize hidden field with current status
+        isactiveHiddenField.value = isactiveCheckbox.checked ? "true" : "false";
+
+        // Load tracks for a branch
+        function loadTracksForBranch(branchId, selectedTrackId) {
+            if (!branchId) return;
+
+            console.log("Loading tracks for branch ID: " + branchId + ", selected track ID: " + selectedTrackId);
+
+            var trackDropdown = document.getElementById('TrackId');
+            var trackNameField = document.getElementById('TrackName');
+            var branchNameField = document.getElementById('BranchName');
+            var branchSelect = document.getElementById('BranchId');
+
+            // Update branch name hidden field
+            branchNameField.value = branchSelect.options[branchSelect.selectedIndex].text;
+
+            trackDropdown.innerHTML = '<option value="">-- Loading... --</option>';
+            trackDropdown.disabled = true;
+
+            fetch('/AdminInstructor/GetTracksByBranch?branchId=' + branchId)
+                .then(function(response) { return response.json(); })
+                .then(function(data) {
+                    console.log("Received tracks data:", data);
+                    trackDropdown.innerHTML = '';
+
+                    if (data && data.length > 0) {
+                        var defaultOption = document.createElement('option');
+                        defaultOption.value = '';
+                        defaultOption.text = '-- Select Track --';
+                        trackDropdown.appendChild(defaultOption);
+
+                        data.forEach(function(track) {
+                            var option = document.createElement('option');
+                            option.value = track.value || track.trackId;
+                            option.text = track.text || track.trackName;
+
+                            if (selectedTrackId && option.value == selectedTrackId) {
+                                option.selected = true;
+                                trackNameField.value = option.text;
+                            }
+
+                            trackDropdown.appendChild(option);
+                        });
+
+                        // If selected track wasn't in the returned data but we need to select one
+                        if (trackDropdown.selectedIndex === -1 && data.length > 0) {
+                            trackDropdown.selectedIndex = 0;
+                        }
+
+                        // Update track name hidden field based on selection
+                        var selectedOption = trackDropdown.options[trackDropdown.selectedIndex];
+                        if (selectedOption && selectedOption.value) {
+                            trackNameField.value = selectedOption.text;
+                        }
+                    } else {
+                        var option = document.createElement('option');
+                        option.value = '';
+                        option.text = '-- No tracks available --';
+                        trackDropdown.appendChild(option);
+                    }
+
+                    trackDropdown.disabled = false;
+                })
+                .catch(function(error) {
+                    console.error("Error loading tracks:", error);
+                    trackDropdown.innerHTML = '<option value="">-- Error loading tracks --</option>';
+                    trackDropdown.disabled = false;
+                });
+        }
+
+        // Handle branch change
+        document.getElementById('BranchId').addEventListener('change', function() {
+            var branchId = this.value;
+            var branchText = this.options[this.selectedIndex].text;
+            document.getElementById('BranchName').value = branchText;
+            loadTracksForBranch(branchId, '');
+        });
+
+        // Track selection change
+        document.getElementById('TrackId').addEventListener('change', function() {
+            var selectedOption = this.options[this.selectedIndex];
+            if (selectedOption && selectedOption.value) {
+                document.getElementById('TrackName').value = selectedOption.text;
+            }
+        });
+
+        // Form submission handler
+        document.getElementById('editForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // Ensure active status is properly set - this is critical for the form submission
+            var isActive = document.getElementById('IsactiveCheckbox').checked;
+            document.getElementById('isactiveHiddenField').value = isActive ? "true" : "false";
+
+            // Verify track is selected
+            var trackId = document.getElementById('TrackId').value;
+            if (!trackId) {
+                alert("Please select a Track");
+                return false;
+            }
+
+            // All validations passed, submit the form
+            this.submit();
+        });
+
+        // Initialize by loading tracks for the current branch
+        if (currentBranchId) {
+            loadTracksForBranch(currentBranchId, currentTrackId);
+        }
+    });
+</script>

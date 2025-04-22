@@ -1,16 +1,21 @@
 ﻿@model ExSystemProject.DTOS.QuestionBankDTO
 @{
-    ViewData["Title"] = "Create Question";
+    ViewData["Title"] = "Create Multiple Choice Question";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
 <div class="card">
     <div class="card-header">
-        <h5 class="mb-0">Create New Question</h5>
+        <h5>Create Multiple Choice Question</h5>
     </div>
     <div class="card-body">
-        <form asp-action="Create" method="post" id="questionForm">
+        <form asp-action="Create" method="post">
+            @Html.AntiForgeryToken()
+
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <!-- Set question type explicitly -->
+            <input type="hidden" asp-for="QuesType" value="MCQ" />
 
             <div class="mb-3">
                 <label asp-for="QuesText" class="form-label">Question Text</label>
@@ -18,60 +23,32 @@
                 <span asp-validation-for="QuesText" class="text-danger"></span>
             </div>
 
-            <div class="mb-3">
-                <label asp-for="QuesType" class="form-label">Question Type</label>
-                <select asp-for="QuesType" class="form-select" id="questionType">
-                    <option value="MCQ">Multiple Choice</option>
-                    <option value="TF">True/False</option>
-                </select>
-                <span asp-validation-for="QuesType" class="text-danger"></span>
+            <h6 class="mt-4 mb-3">Answer Choices</h6>
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle me-2"></i>
+                Please enter at least two options and select the correct answer.
             </div>
 
-            <div id="mcqOptions">
-                <h6 class="mt-4 mb-3">Answer Choices</h6>
-                <div class="alert alert-info">
-                    <i class="bi bi-info-circle me-2"></i>
-                    Please enter four options and select the correct answer.
-                </div>
-
-                @for (int i = 0; i < Model.Choices.Count; i++)
-                {
-                    <div class="card mb-3">
-                        <div class="card-body">
-                            <div class="mb-2">
-                                <label class="form-label">Choice @(i + 1)</label>
-                                <input name="Choices[@i].ChoiceText" class="form-control choice-input" required />
-                            </div>
-                            <div class="form-check">
-                                <!-- Hidden field to make sure we capture unchecked checkboxes -->
-                                <input type="hidden" name="Choices[@i].IsCorrect" value="false" />
-                                <input type="radio" id="correctAnswer_@i" name="correctAnswer" value="@i" class="form-check-input" />
-                                <label class="form-check-label" for="correctAnswer_@i">
-                                    Correct Answer
-                                </label>
-                            </div>
+            @for (int i = 0; i < Model.Choices.Count; i++)
+            {
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <div class="mb-2">
+                            <label class="form-label">Choice @(i + 1)</label>
+                            <input name="Choices[@i].ChoiceText" class="form-control choice-input" />
+                        </div>
+                        <div class="form-check">
+                            <input type="hidden" name="Choices[@i].IsCorrect" value="false" />
+                            <input type="radio" id="correctAnswer_@i" name="correctAnswer" value="@i" class="form-check-input" />
+                            <label class="form-check-label" for="correctAnswer_@i">Correct Answer</label>
                         </div>
                     </div>
-                }
-            </div>
-
-            <div id="tfOptions" class="card mb-3" style="display: none;">
-                <div class="card-body">
-                    <h6 class="mb-3">Correct Answer</h6>
-                    <div class="form-check form-check-inline">
-                        <input type="radio" id="trueOption" name="tfCorrectAnswer" class="form-check-input" value="true" checked />
-                        <label class="form-check-label" for="trueOption">True</label>
-                    </div>
-                    <div class="form-check form-check-inline">
-                        <input type="radio" id="falseOption" name="tfCorrectAnswer" class="form-check-input" value="false" />
-                        <label class="form-check-label" for="falseOption">False</label>
-                    </div>
                 </div>
-            </div>
+            }
 
             <div class="mb-3">
                 <label asp-for="QuesScore" class="form-label">Question Score</label>
-                <input asp-for="QuesScore" class="form-control" type="number" min="1" max="100" value="5" required />
+                <input asp-for="QuesScore" class="form-control" type="number" min="1" value="5" required />
                 <span asp-validation-for="QuesScore" class="text-danger"></span>
             </div>
 
@@ -84,14 +61,15 @@
             </div>
 
             <div class="d-flex justify-content-between">
-                <a asp-action="Index" asp-route-examId="@ViewBag.ExamId" class="btn btn-outline-secondary">
-                    <i class="bi bi-arrow-left"></i> Back to List
-                </a>
-                <button type="submit" class="btn btn-primary" id="submitBtn">
-                    <i class="bi bi-save"></i> Create Question
-                </button>
+                <a asp-action="Index" asp-route-examId="@ViewBag.ExamId" class="btn btn-outline-secondary">Back to List</a>
+                <button type="submit" class="btn btn-primary" id="submitBtn">Create MCQ Question</button>
             </div>
         </form>
+
+        <!-- Link to TF question creation -->
+        <div class="mt-3 text-center">
+            <a asp-action="CreateTrueFalse" class="btn btn-outline-primary">Switch to True/False Question</a>
+        </div>
     </div>
 </div>
 
@@ -101,37 +79,34 @@
     }
 
     <script>
-        $(document).ready(function () {
-            // Handle question type change
-            $('#questionType').change(function () {
-                if ($(this).val() === 'MCQ') {
-                    $('#mcqOptions').show();
-                    $('#tfOptions').hide();
-                    $('.choice-input').prop('required', true);
-                } else {
-                    $('#mcqOptions').hide();
-                    $('#tfOptions').show();
-                    $('.choice-input').prop('required', false);
+        // Add MCQ validation
+        document.getElementById('submitBtn').addEventListener('click', function(e) {
+            // Check if a correct answer is selected
+            if (!document.querySelector('input[name="correctAnswer"]:checked')) {
+                e.preventDefault();
+                alert('Please select a correct answer for the multiple choice question');
+                return;
+            }
+
+            // Count filled choices
+            var filledChoices = 0;
+            document.querySelectorAll('.choice-input').forEach(function(input) {
+                if (input.value.trim() !== '') {
+                    filledChoices++;
                 }
             });
 
-            // Handle form submission
-            $('#questionForm').submit(function (e) {
-                if ($('#questionType').val() === 'MCQ') {
-                    // Ensure one option is selected for MCQ
-                    if ($('input[name="correctAnswer"]:checked').length === 0) {
-                        alert('Please select one correct answer for the multiple choice question.');
-                        e.preventDefault();
-                        return false;
-                    }
+            if (filledChoices < 2) {
+                e.preventDefault();
+                alert('Please provide at least 2 choices for multiple choice questions');
+                return;
+            }
 
-                    // Mark the selected answer as correct in the form data
-                    var selectedIndex = $('input[name="correctAnswer"]:checked').val();
-                    if (selectedIndex !== undefined) {
-                        $('input[name="Choices[' + selectedIndex + '].IsCorrect"]').val('true');
-                    }
-                }
-            });
+            // Set the correct answer
+            if (document.querySelector('input[name="correctAnswer"]:checked')) {
+                var selectedIndex = document.querySelector('input[name="correctAnswer"]:checked').value;
+                document.querySelector('input[name="Choices[' + selectedIndex + '].IsCorrect"]').value = 'true';
+            }
         });
     </script>
 }

@@ -18,16 +18,18 @@ namespace ExSystemProject.Repository
         }
 
         // Call stored procedure to create a course
-       
+
         public void CreateCourse(Course course)
         {
             var crsNameParam = new SqlParameter("@crs_name", course.CrsName);
             var crsPeriodParam = new SqlParameter("@crs_period", course.CrsPeriod ?? (object)DBNull.Value);
             var insIdParam = new SqlParameter("@ins_id", course.InsId ?? (object)DBNull.Value);
+            var descriptionParam = new SqlParameter("@description", string.IsNullOrEmpty(course.Description) ? (object)DBNull.Value : course.Description);
+            var posterParam = new SqlParameter("@poster", string.IsNullOrEmpty(course.Poster) ? (object)DBNull.Value : course.Poster);
 
             _context.Database.ExecuteSqlRaw(
-                "EXEC sp_CreateCourse @crs_name, @crs_period, @ins_id",
-                crsNameParam, crsPeriodParam, insIdParam);
+                "EXEC sp_CreateCourse @crs_name, @crs_period, @ins_id, @poster, @description",
+                crsNameParam, crsPeriodParam, insIdParam, posterParam, descriptionParam);
         }
 
         // Call stored procedure to update a course
@@ -40,20 +42,20 @@ namespace ExSystemProject.Repository
                     .AsNoTracking()
                     .FirstOrDefault(c => c.CrsId == course.CrsId);
 
-                course.Isactive = currentCourse?.Isactive;
+                course.Isactive = currentCourse?.Isactive ?? true;  // Default to true if somehow null
             }
 
-            var crsIdParam = new SqlParameter("@CrsId", course.CrsId);
-            var crsNameParam = new SqlParameter("@CrsName", course.CrsName);
-            var crsPeriodParam = new SqlParameter("@CrsPeriod", course.CrsPeriod ?? (object)DBNull.Value);
-            var insIdParam = new SqlParameter("@InsId", course.InsId ?? (object)DBNull.Value);
-
-            // Always send an explicit value, never null
-            var isActiveParam = new SqlParameter("@IsActive", (object)course.Isactive.Value);
+            var crsIdParam = new SqlParameter("@crs_id", course.CrsId);
+            var crsNameParam = new SqlParameter("@crs_name", course.CrsName);
+            var crsPeriodParam = new SqlParameter("@crs_period", course.CrsPeriod ?? (object)DBNull.Value);
+            var insIdParam = new SqlParameter("@ins_id", course.InsId ?? (object)DBNull.Value);
+            var isActiveParam = new SqlParameter("@isactive", course.Isactive.Value);
+            var descriptionParam = new SqlParameter("@description", string.IsNullOrEmpty(course.Description) ? (object)DBNull.Value : course.Description);
+            var posterParam = new SqlParameter("@poster", string.IsNullOrEmpty(course.Poster) ? (object)DBNull.Value : course.Poster);
 
             _context.Database.ExecuteSqlRaw(
-                "EXEC sp_UpdateCourse @CrsId, @CrsName, @CrsPeriod, @InsId, @IsActive",
-                crsIdParam, crsNameParam, crsPeriodParam, insIdParam, isActiveParam);
+                "EXEC sp_UpdateCourse @crs_id, @crs_name, @crs_period, @ins_id, @isactive, @poster, @description",
+                crsIdParam, crsNameParam, crsPeriodParam, insIdParam, isActiveParam, posterParam, descriptionParam);
         }
 
         // Call stored procedure to delete a course

@@ -13,7 +13,13 @@ public partial class Course
 
     public int? InsId { get; set; }
 
+
+    public string Poster { get; set; }
+
     public bool? Isactive { get; set; }
+
+
+    public string? Description { get; set; }
 
     public virtual ICollection<Exam> Exams { get; set; } = new List<Exam>();
 
