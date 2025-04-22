@@ -10,5 +10,7 @@
         public int? InsId { get; set; }
         public bool? Isactive { get; set; }
         public string? InstructorName { get; set; }
+        public string? Description { get; set; }
+        public string? Poster { get; set; }
     }
 }

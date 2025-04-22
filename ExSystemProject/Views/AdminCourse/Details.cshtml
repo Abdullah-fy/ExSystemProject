@@ -50,6 +50,23 @@
                             }
                         </td>
                     </tr>
+                    <tr>
+                        <th>Description:</th>
+                        <td>
+                            @if (!string.IsNullOrEmpty(Model.Description))
+                            {
+                                <div class="card bg-light">
+                                    <div class="card-body py-2">
+                                        @Model.Description
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <span class="text-muted">No description provided</span>
+                            }
+                        </td>
+                    </tr>
                 </table>
             </div>
 
