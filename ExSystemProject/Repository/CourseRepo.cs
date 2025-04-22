@@ -1,4 +1,5 @@
 ﻿using ExSystemProject.Models;
+using Humanizer;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -110,5 +111,27 @@ namespace ExSystemProject.Repository
                 .AsEnumerable()
                 .ToList();
         }
+
+
+        public List<Course> GetCoursesByInstructor(int instructorId)
+        {
+            return _context.Courses.Where(a => a.InsId == instructorId).ToList();
+        }
+
+
+        public List<Course> getCourseByStudentAndInstructor(int studentId, int instructorId)
+        {
+            var  course = _context.Courses.FromSqlRaw("EXEC GetCourseByInstructorIdAndStudentId @instructorId, @studentId",
+                new SqlParameter("@instructorId", instructorId),
+                new SqlParameter("@studentId", studentId)).ToList();
+
+            return course;
+        }
+
+        public List<Course> InstructorCourses(int instructorId)
+        {
+           return _context.Courses.Where(c => c.InsId == instructorId).ToList();
+        }
+
     }
 }

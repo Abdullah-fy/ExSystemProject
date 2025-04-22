@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using BCrypt.Net;
 public enum approles{
     admin, instructor, student,	 superadmin, supervisor
 }
@@ -43,21 +44,22 @@ namespace ExSystemProject.Controllers
                 ModelState.AddModelError("", "Invalid User Name Or Password");
                 return View(loginVM);
             }
-            //if (!VerifyPassword(loginVM.password, user.Upassword))
-            //{
-            //    ModelState.AddModelError("", "Invalid username or password");
-            //    return View(loginVM);
-            //}
-
-            if(loginVM.password != user.Upassword)
+            if (!BCrypt.Net.BCrypt.Verify(loginVM.password, user.Upassword))
             {
-                ModelState.AddModelError("", "Invalid User Name Or Password");
+                ModelState.AddModelError("", "Invalid username or password");
                 return View(loginVM);
             }
-            var userAssignment = _unit.userAssignmentRepo.getById(user.UserId);
-            var instructor = _unit.instructorRepo.getById(user.UserId);
-            var student = _unit.studentRepo.getById(user.UserId);
 
+            //if(loginVM.password != user.Upassword)
+            //{
+            //    ModelState.AddModelError("", "Invalid User Name Or Password");
+            //    return View(loginVM);
+            //}
+            var userAssignment = _unit.userAssignmentRepo.getById(user.UserId);
+            //var instructor = _unit.instructorRepo.getById(user.UserId);
+            //var student = _unit.studentRepo.getById(user.UserId);
+            var student = _unit.studentRepo.getByUserId(user.UserId);
+            var instructor = _unit.instructorRepo.getByUserId(user.UserId);
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
@@ -80,6 +82,7 @@ namespace ExSystemProject.Controllers
             else if (user.Role == "instructor" && instructor?.Isactive == true && instructor.TrackId.HasValue)
             {
                 trackId = instructor.TrackId.Value.ToString();
+                //claims.Add(new Claim("InsId", instructor.InsId.ToString()));
             }
             else if (user.Role == "student" && student?.Isactive == true && student.TrackId.HasValue)
             {
@@ -226,8 +229,8 @@ namespace ExSystemProject.Controllers
                 {
                     Username = model.Username,
                     Email = model.Email,
-                    //Upassword = BCrypt.Net.BCrypt.HashPassword(model.Password),
-                    Upassword = model.Password,
+                    Upassword = BCrypt.Net.BCrypt.HashPassword(model.Password),
+                    //Upassword = model.Password,
                     Gender = model.Gender,
                     Role = model.Role,
                     Img = imagePath,

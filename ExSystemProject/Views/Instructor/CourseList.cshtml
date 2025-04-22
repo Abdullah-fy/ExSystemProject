@@ -1,0 +1,60 @@
+﻿@model IEnumerable<ExSystemProject.Models.Course>
+
+@{
+    ViewData["Title"] = "CourseList";
+}
+
+<h1>CourseList</h1>
+
+<p>
+    @* <a asp-action="Create">Create New</a> *@
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.CrsId)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.CrsName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.CrsPeriod)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.InsId)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Isactive)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.CrsId)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.CrsName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.CrsPeriod)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.InsId)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Isactive)
+            </td>
+            <td>
+                @* @Html.ActionLink("Edit", "Edit", new { /* id=item.PrimaryKey */ }) | *@
+                @* @Html.ActionLink("Details", "Details", new { /* id=item.PrimaryKey */ }) | *@
+                @* @Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ }) *@
+                    <a asp-route-crsId="@item.CrsId" asp-action="CourseStudentDetails"> More </a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

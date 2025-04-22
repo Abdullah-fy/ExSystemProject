@@ -1,0 +1,30 @@
+﻿@model ExamCreationViewModel
+
+<form asp-action="GenerateExamForTrack" method="post">
+    <div>
+        <label>Course:</label>
+        <select asp-for="SelectedCourseId" asp-items="@(new SelectList(Model.InstructorCourses, "CrsId", "CrsName"))"></select>
+    </div>
+
+    <div>
+        <label asp-for="MCQCount"></label>
+        <input asp-for="MCQCount" type="number" />
+    </div>
+
+    <div>
+        <label asp-for="TFCount"></label>
+        <input asp-for="TFCount" type="number" />
+    </div>
+
+    <div>
+        <label asp-for="StartTime"></label>
+        <input asp-for="StartTime" type="datetime-local" />
+    </div>
+
+    <div>
+        <label asp-for="EndTime"></label>
+        <input asp-for="EndTime" type="datetime-local" />
+    </div>
+
+    <button type="submit">Generate Exam</button>
+</form>

@@ -1,4 +1,6 @@
-﻿using ExSystemProject.Models;
+﻿using ExSystemProject.DTOS;
+using ExSystemProject.Models;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 
@@ -29,5 +31,14 @@ namespace ExSystemProject.Repository
             }
             return insDto;
         }
+        public List<Student> GetStudentsByInstructor(int instructorId)
+        {
+            return _context.StudentCourses.Where(sc => sc.Crs.InsId == instructorId && sc.Isactive == true).Select(sc => sc.Student).Distinct().Include(a => a.Track).Include(b => b.User).ToList();
+        }
+        public Instructor getByUserId(int userId)
+        {
+            return _context.Instructors.FirstOrDefault(i => i.UserId == userId && i.Isactive == true);
+        }
+
     }
 }
