@@ -112,7 +112,7 @@ namespace ExSystemProject.Controllers
                 case "instructor":
                     return RedirectToAction("Index", "Home");
                 case "student":
-                    return RedirectToAction("Index", "Student");
+                    return RedirectToAction("Index", "Home");
                 case "supervisor":
                     return RedirectToAction("Index", "Supervisor");
                 default:

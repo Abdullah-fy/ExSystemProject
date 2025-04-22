@@ -456,5 +456,114 @@ namespace ExSystemProject.Repository
                 throw; // Rethrow to allow caller to handle
             }
         }
+
+
+
+        public Student GetStudentByIdBETA(int studentId)
+        {
+            Student student = null;
+
+            using (var command = _context.Database.GetDbConnection().CreateCommand())
+            {
+                command.CommandText = "sp_GetStudentById";
+                command.CommandType = CommandType.StoredProcedure;
+                command.Parameters.Add(new SqlParameter("@student_id", SqlDbType.Int) { Value = studentId });
+
+                try
+                {
+                    _context.Database.OpenConnection();
+
+                    using (var reader = command.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            student = new Student
+                            {
+                                StudentId = reader.GetInt32(reader.GetOrdinal("StudentId")),
+                                TrackId = reader.IsDBNull(reader.GetOrdinal("track_id")) ? null : (int?)reader.GetInt32(reader.GetOrdinal("track_id")),
+                                UserId = reader.GetInt32(reader.GetOrdinal("userId")),
+                                Isactive = reader.GetBoolean(reader.GetOrdinal("isactive")),
+                                User = new User
+                                {
+                                    Username = reader.GetString(reader.GetOrdinal("username")),
+                                    Email = reader.GetString(reader.GetOrdinal("email")),
+                                    Gender = reader.GetString(reader.GetOrdinal("gender")),
+                                    Img = reader.IsDBNull(reader.GetOrdinal("img")) ? null : reader.GetString(reader.GetOrdinal("img"))
+                                },
+                                Track = reader.IsDBNull(reader.GetOrdinal("track_name")) ? null : new Track
+                                {
+                                    TrackName = reader.GetString(reader.GetOrdinal("track_name"))
+                                }
+                            };
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error retrieving student by ID: {ex.Message}");
+                    throw;
+                }
+            }
+
+            return student;
+        }
+
+
+        public Student Getstd(int userid)
+        {
+            var stdd = _context.Students.FirstOrDefault(s => s.UserId == userid);
+            return stdd; 
+        }
+
+
+        // repo to insert into student-course 
+
+        public bool Enrollment(int userid , int crsid)
+        {
+            var student = _context.Students.FirstOrDefault(s => s.UserId == userid);
+          //  var course = _context.Courses.FirstOrDefault(c => c.CrsId == crsid);
+
+            var exists = _context.StudentCourses.Any(s => s.StudentId == student.StudentId && s.CrsId == crsid);
+
+            if (!exists) {
+
+                var stdcrs = new StudentCourse()
+                {
+                    CrsId = crsid,
+                    StudentId = student.StudentId
+                };
+
+                _context.StudentCourses.Add(stdcrs);
+                _context.SaveChanges();
+                return true; 
+
+            }
+            else
+            {
+                return false;
+            }
+
+
+
+
+
+        }
+
+        public bool ISEnroll(int userid , int crsid)
+        {
+            var student = _context.Students.FirstOrDefault(s => s.UserId == userid);
+           bool dd =  _context.StudentCourses.Any(s => s.StudentId == student.StudentId && s.CrsId == crsid);
+
+            if (!dd)
+            {
+                return true; 
+            }
+            return false; 
+        }
+
     }
+
+   
+
+
 }

@@ -393,7 +393,9 @@ namespace ExSystemProject.Repository
                                 CrsName = reader.GetString(reader.GetOrdinal("Crs_Name")),
                                 CrsPeriod = reader.IsDBNull(reader.GetOrdinal("Crs_period")) ? null : (int?)reader.GetInt32(reader.GetOrdinal("Crs_period")),
                                 InsId = reader.IsDBNull(reader.GetOrdinal("ins_id")) ? null : (int?)reader.GetInt32(reader.GetOrdinal("ins_id")),
-                                Isactive = reader.GetBoolean(reader.GetOrdinal("isactive"))
+                                Isactive = reader.GetBoolean(reader.GetOrdinal("isactive")),
+                                description = reader.GetString(reader.GetOrdinal("Description")), 
+                                Poster = reader.GetString(reader.GetOrdinal("Poster"))
                             };
 
                             courses.Add(course);
@@ -475,5 +477,61 @@ namespace ExSystemProject.Repository
 
             return result;
         }
+
+
+        // extend this repo to return all instructors by track id 
+        public List<Instructor> GetInstructorsByTrackId(int trackId, bool? isActive = true)
+        {
+            var instructors = new List<Instructor>();
+
+            using (var command = _context.Database.GetDbConnection().CreateCommand())
+            {
+                command.CommandText = "sp_GetInstructorsByTrackId";
+                command.CommandType = CommandType.StoredProcedure;
+
+                command.Parameters.Add(new SqlParameter("@track_id", SqlDbType.Int) { Value = trackId });
+                command.Parameters.Add(new SqlParameter("@Getactive", SqlDbType.Bit)
+                {
+                    Value = isActive.HasValue ? (object)isActive.Value : DBNull.Value
+                });
+
+                try
+                {
+                    _context.Database.OpenConnection();
+
+                    using (var reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            var instructor = new Instructor
+                            {
+                                InsId = reader.GetInt32(reader.GetOrdinal("Ins_Id")),
+                                Salary = reader.GetDecimal(reader.GetOrdinal("Salary")),
+                                Isactive = reader.GetBoolean(reader.GetOrdinal("isactive")),
+                                TrackId = reader.IsDBNull(reader.GetOrdinal("track_id")) ? null : (int?)reader.GetInt32(reader.GetOrdinal("track_id")),
+                                UserId = reader.GetInt32(reader.GetOrdinal("userId")),
+                                User = new User
+                                {
+                                    Username = reader.GetString(reader.GetOrdinal("username")),
+                                    Email = reader.GetString(reader.GetOrdinal("email")),
+                                    Gender = reader.GetString(reader.GetOrdinal("gender")),
+                                    // Optional: img or others if needed
+                                }
+                            };
+
+                            instructors.Add(instructor);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error retrieving instructors by track: {ex.Message}");
+                    throw;
+                }
+            }
+
+            return instructors;
+        }
+
     }
 }
