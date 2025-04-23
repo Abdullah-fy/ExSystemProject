@@ -1,31 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace ExSystemProject.Models;
-
-public partial class Course
+namespace ExSystemProject.Models
 {
-    public int CrsId { get; set; }
+    public partial class Course
+    {
+        public int CrsId { get; set; }
+        public string CrsName { get; set; } = null!;
+        public int? CrsPeriod { get; set; }
+        public int? InsId { get; set; }
+        public bool? Isactive { get; set; }
+        public string? Poster { get; set; }
+        public string? description { get; set; }  
 
-    public string CrsName { get; set; } = null!;
-
-    public int? CrsPeriod { get; set; }
-
-    public int? InsId { get; set; }
-
-    public string? description { get; set; }
-    public string? Poster { get; set; }
-
-    public bool? Isactive { get; set; }
-
-
-    public string? Description { get; set; }
-
-    public virtual ICollection<Exam> Exams { get; set; } = new List<Exam>();
-
-    public virtual Instructor? Ins { get; set; }
-
-    public virtual ICollection<StudentCourse> StudentCourses { get; set; } = new List<StudentCourse>();
-
-    public virtual ICollection<Topic> Topics { get; set; } = new List<Topic>();
+        public virtual ICollection<Exam> Exams { get; set; } = new List<Exam>();
+        public virtual Instructor? Ins { get; set; }
+        public virtual ICollection<StudentCourse> StudentCourses { get; set; } = new List<StudentCourse>();
+        public virtual ICollection<Topic> Topics { get; set; } = new List<Topic>();
+    }
 }
