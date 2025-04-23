@@ -174,44 +174,42 @@ namespace ExSystemProject.Controllers
             return View(courseDTO);
         }
 
-        //// POST: AdminCourse/Delete/5
-        //[HttpPost, ActionName("DeleteTopic")]
-        //[ValidateAntiForgeryToken]
-        //public IActionResult DeleteTopicConfirmed(int id)
-        //{
-        //    try
-        //    {
-        //        // Get the topic to determine the course ID for redirect
-        //        var topic = _unitOfWork.topicRepo.GetTopicById(id);
-        //        if (topic == null)
-        //            return NotFound();
+        // POST: AdminCourse/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public IActionResult DeleteConfirmed(int id)
+        {
+            try
+            {
+                // Get the course to check if it exists
+                var course = _unitOfWork.courseRepo.GetCourseById(id);
+                if (course == null)
+                {
+                    return NotFound();
+                }
 
-        //        int courseId = topic.CrsId ?? 0;
+                // Delete the course using the repository method
+                _unitOfWork.courseRepo.DeleteCourse(id);
 
-        //        // Delete the topic using stored procedure
-        //        _unitOfWork.topicRepo.DeleteTopic(id);
+                TempData["Success"] = true;
+                TempData["Message"] = "Course deleted successfully.";
 
-        //        TempData["Success"] = true;
-        //        TempData["Message"] = "Topic deleted successfully.";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                // Log the error
+                System.Diagnostics.Debug.WriteLine($"Error deleting course: {ex.Message}");
 
-        //        return RedirectToAction(nameof(Topics), new { id = courseId });
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        // Log the error
-        //        System.Diagnostics.Debug.WriteLine($"Error deleting topic: {ex.Message}");
+                // Use TempData to display error message
+                TempData["Error"] = true;
+                TempData["Message"] = $"Error deleting course: {ex.Message}";
 
-        //        // Use TempData to display error message
-        //        TempData["Error"] = true;
-        //        TempData["Message"] = $"Error deleting topic: {ex.Message}";
+                // Redirect back to the delete confirmation page
+                return RedirectToAction(nameof(Delete), new { id });
+            }
+        }
 
-        //        // Get the topic again to determine course ID
-        //        var topic = _unitOfWork.topicRepo.GetTopicById(id);
-        //        int courseId = topic?.CrsId ?? 0;
-
-        //        return RedirectToAction(nameof(Topics), new { id = courseId });
-        //    }
-        //}
 
         // GET: AdminCourse/Topics/5
         public IActionResult Topics(int id)
