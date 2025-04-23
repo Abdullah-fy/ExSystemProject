@@ -64,7 +64,7 @@ namespace ExSystemProject.Controllers
                         CrsId = course.CrsId,
                         CrsName = course.CrsName,
                         CrsPeriod = course.CrsPeriod,
-                        Description = course.Description,
+                        Description = course.description,
                         Poster = course.Poster, 
                         InsId = course.InsId,
                         Isactive = course.Isactive,
@@ -94,7 +94,7 @@ namespace ExSystemProject.Controllers
                 CrsId= crs.CrsId,
                 CrsName= crs.CrsName,
                 CrsPeriod= crs.CrsPeriod,
-                Description = crs.Description,
+                Description = crs.description,
                 InsId= crs.InsId,
                 Poster = crs.Poster, 
                 
