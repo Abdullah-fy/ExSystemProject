@@ -13,8 +13,8 @@ public partial class Course
 
     public int? InsId { get; set; }
 
-
-    public string Poster { get; set; }
+    public string? description { get; set; }
+    public string? Poster { get; set; }
 
     public bool? Isactive { get; set; }
 

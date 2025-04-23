@@ -251,10 +251,10 @@ namespace ExSystemProject.Controllers
 
             model.InstructorCourses = unit.courseRepo.InstructorCourses(instructor.InsId);
 
-            if (!ModelState.IsValid)
-            {
-                return View(model);
-            }
+            //if (!ModelState.IsValid)
+            //{
+            //    return View(model);
+            //}
 
             if (model.EndTime <= model.StartTime)
             {
@@ -272,9 +272,97 @@ namespace ExSystemProject.Controllers
                     model.StartTime,
                     model.EndTime);
 
+                unit.save();
                 TempData["SuccessMessage"] = "Exam generated successfully!";
 
                 return RedirectToAction("ExamPage");
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", "An error occurred while generating the exam: " + ex.Message);
+                return View(model);
+            }
+        }
+
+
+        [HttpGet]
+        public IActionResult GenerateExamForStudent(int? id)
+        {
+            var UserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            var ins = unit.instructorRepo.getByUserId(UserId);
+            if (ins == null)
+            {
+                return NotFound("Instructor not found");
+            }
+            //var st = unit.studentRepo.getByUserId(UserId);
+            var courses = unit.courseRepo.GetCoursesByInstructor(ins.InsId);
+            List<Student> studs = new List<Student>();
+            if (id.HasValue)
+            {
+                studs = unit.studentRepo.GetStudentByInstructorAndCourse(ins.InsId, id.Value);
+            }
+
+            var mappedStudents = studs.Select(s => new StudentViewModelForInstructor
+            {
+                UserId = (int)s.UserId,
+                username = s.User?.Username,
+                email = s.User?.Email,
+                image = s.User?.Img,
+                trackname = s.Track?.TrackName
+            }).ToList();
+
+            var st = new StudentFilterViewModelForInstructor
+            {
+                selectedCourse = id,
+                students = mappedStudents,
+                courses = courses
+            };
+            return View("GenerateExamForStudent", st);
+        }
+
+        [HttpGet]
+        public IActionResult AddExamToStudent(int userId, int courseId)
+        {
+            var userClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            var loggedInUserId = int.Parse(userClaim.Value);
+            var instructor = unit.instructorRepo.getByUserId(loggedInUserId); 
+            var instructorId = instructor.InsId;
+
+            var student = unit.studentRepo.getByUserId(userId);
+            var studentId = student.StudentId;
+
+            var model = new AddExamToStudentViewModel
+            {
+                SelectedCourseId = courseId,
+                InstructorId = instructorId,
+                StudentId = studentId
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult AddExamToStudent(AddExamToStudentViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            try
+            {
+                unit.examRepo.GenerateAndAssignExamForStudent(
+                    model.SelectedCourseId,
+                    model.MCQCount,
+                    model.TFCount,
+                    model.InstructorId,
+                    model.StudentId,
+                    model.StartTime,
+                    model.EndTime
+                );
+                unit.save();
+                return RedirectToAction("ExamPage");  
             }
             catch (Exception ex)
             {

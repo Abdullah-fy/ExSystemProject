@@ -11,12 +11,14 @@ using Microsoft.Data.SqlClient;
 using System.Data;
 using System;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace ExSystemProject.Repository
 {
     public class StudentRepo : GenaricRepo<Student>
     {
-<<<<<<< HEAD
+
         ExSystemTestContext _context;
 
         public StudentRepo(ExSystemTestContext context ) : base(context)
@@ -44,12 +46,7 @@ namespace ExSystemProject.Repository
                     new SqlParameter("@CourseId", courseId),
                     new SqlParameter("@InstructorId", instructorId))
                 .ToList();
-=======
-        private readonly ExSystemTestContext _context;
-
-        public StudentRepo(ExSystemTestContext context) : base(context)
-        {
-            _context = context;
+            return students;
         }
 
         public List<Student> GetAllStudents(bool? activeStudents = null)
@@ -112,14 +109,10 @@ namespace ExSystemProject.Repository
             {
                 Console.WriteLine($"Error in GetAllStudents: {ex.Message}");
             }
->>>>>>> d9b930721eb08b0249c6985ba249afaa6e9e0b81
 
             return students;
         }
 
-<<<<<<< HEAD
-          
-=======
         public Student GetStudentById(int studentId)
         {
             var parameter = new SqlParameter("@student_id", SqlDbType.Int)
@@ -600,7 +593,21 @@ namespace ExSystemProject.Repository
             return false; 
         }
 
->>>>>>> d9b930721eb08b0249c6985ba249afaa6e9e0b81
+
+
+        public IEnumerable<Student> GetStudentByCourseId(int courseId)
+        {
+            return _context.Students
+                .Join(_context.StudentCourses,
+                    s => s.StudentId,
+                    sc => sc.StudentId,
+                    (s, sc) => new { Student = s, StudentCourse = sc })
+                .Where(x => x.StudentCourse.CrsId == courseId
+                    && x.Student.Isactive == true
+                    && x.StudentCourse.Isactive == true)
+                .Select(x => x.Student)
+                .ToList();
+        }
     }
 
    

@@ -36,7 +36,6 @@ namespace ExSystemProject.Repository
             }
             return insDto;
         }
-<<<<<<< HEAD
         public List<Student> GetStudentsByInstructor(int instructorId)
         {
             return _context.StudentCourses.Where(sc => sc.Crs.InsId == instructorId && sc.Isactive == true).Select(sc => sc.Student).Distinct().Include(a => a.Track).Include(b => b.User).ToList();
@@ -44,8 +43,8 @@ namespace ExSystemProject.Repository
         public Instructor getByUserId(int userId)
         {
             return _context.Instructors.FirstOrDefault(i => i.UserId == userId && i.Isactive == true);
-=======
 
+        }
         // Get all instructors with branch information using stored procedure
         public List<Instructor> GetAllInstructorsWithBranch(bool? activeInstructors = true)
         {
@@ -542,7 +541,7 @@ namespace ExSystemProject.Repository
             }
 
             return instructors;
->>>>>>> d9b930721eb08b0249c6985ba249afaa6e9e0b81
+
         }
 
     }

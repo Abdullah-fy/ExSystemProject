@@ -38,6 +38,8 @@
                     <th>Course name</th>
                     <th>Name</th>
                     <th>Duration</th>
+                    <th>description</th>
+                    <th>poster</th>
                     <th>more</th>
                     @* <th>Active</th> *@
                 </tr>
@@ -49,6 +51,8 @@
                         <td>@course.CrsName</td>
                         <td>@course.CrsName</td>
                         <td>@course.CrsPeriod</td>
+                        <td>@course.description</td>
+                        <td>@course.Poster</td>
                         <td>   <a asp-action="courseDetails" asp-route-CrsId="@course.CrsId" asp-route-UserId="@Model.UserId">more details</a>   </td>
                         @* <td> *@
                         @*     @if (course.isactive) *@

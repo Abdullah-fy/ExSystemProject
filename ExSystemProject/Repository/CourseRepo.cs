@@ -132,7 +132,7 @@ namespace ExSystemProject.Repository
 
         public List<Course> InstructorCourses(int instructorId)
         {
-           return _context.Courses.Where(c => c.InsId == instructorId).ToList();
+           return _context.Courses.Where(c => c.InsId == instructorId).ToList() ?? new List<Course>();
         }
 
     }
