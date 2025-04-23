@@ -31,15 +31,15 @@ namespace ExSystemProject.Controllers
             // Apply filters
             if (branchId.HasValue && trackId.HasValue)
             {
-                instructors = _unitOfWork.instructorRepo.GetInstructorsByTrackWithBranch(trackId.Value, activeOnly);
+                instructors = _unitOfWork.adminInstructorRepo.GetInstructorsByTrackWithBranch(trackId.Value, activeOnly);
             }
             else if (branchId.HasValue)
             {
-                instructors = _unitOfWork.instructorRepo.GetInstructorsByBranchWithBranch(branchId.Value, activeOnly);
+                instructors = _unitOfWork.adminInstructorRepo.GetInstructorsByBranchWithBranch(branchId.Value, activeOnly);
             }
             else
             {
-                instructors = _unitOfWork.instructorRepo.GetAllInstructorsWithBranch(activeOnly);
+                instructors = _unitOfWork.adminInstructorRepo.GetAllInstructorsWithBranch(activeOnly);
             }
 
             // Apply search filter if provided
@@ -56,7 +56,7 @@ namespace ExSystemProject.Controllers
             var instructorDTOs = _mapper.Map<List<InstructorDTO>>(instructors);
 
             // Get branches for filtering
-            ViewBag.Branches = _unitOfWork.branchRepo.getAll().Select(b => new SelectListItem
+            ViewBag.Branches = _unitOfWork.adminBranchRepo.GetAll().Select(b => new SelectListItem
             {
                 Text = b.BranchName,
                 Value = b.BranchId.ToString()
@@ -65,7 +65,7 @@ namespace ExSystemProject.Controllers
             // Get tracks for the selected branch
             if (branchId.HasValue)
             {
-                ViewBag.Tracks = _unitOfWork.trackRepo.GetTracksByBranchId(branchId.Value).Select(t => new SelectListItem
+                ViewBag.Tracks = _unitOfWork.adminTrackRepo.GetTracksByBranchId(branchId.Value).Select(t => new SelectListItem
                 {
                     Text = t.TrackName,
                     Value = t.TrackId.ToString()
@@ -84,7 +84,7 @@ namespace ExSystemProject.Controllers
         // GET: AdminInstructor/Details/5
         public IActionResult Details(int id)
         {
-            var instructor = _unitOfWork.instructorRepo.GetInstructorByIdWithBranch(id);
+            var instructor = _unitOfWork.adminInstructorRepo.GetInstructorByIdWithBranch(id);
 
             if (instructor == null)
             {
@@ -92,7 +92,7 @@ namespace ExSystemProject.Controllers
             }
 
             // Get instructor courses
-            var courses = _unitOfWork.instructorRepo.GetInstructorCourses(id);
+            var courses = _unitOfWork.adminInstructorRepo.GetInstructorCourses(id);
 
             // Map instructor to DTO
             var instructorDTO = _mapper.Map<InstructorDTO>(instructor);
@@ -130,7 +130,7 @@ namespace ExSystemProject.Controllers
                 }
 
                 // Create instructor
-                _unitOfWork.instructorRepo.CreateInstructor(
+                _unitOfWork.adminInstructorRepo.CreateInstructor(
                     instructorDTO.Username,
                     instructorDTO.Email,
                     instructorDTO.Gender,
@@ -151,11 +151,10 @@ namespace ExSystemProject.Controllers
             }
         }
 
-
         // GET: AdminInstructor/Edit/5
         public IActionResult Edit(int id)
         {
-            var instructor = _unitOfWork.instructorRepo.GetInstructorByIdWithBranch(id);
+            var instructor = _unitOfWork.adminInstructorRepo.GetInstructorByIdWithBranch(id);
 
             if (instructor == null)
             {
@@ -188,7 +187,7 @@ namespace ExSystemProject.Controllers
                     Console.WriteLine($"IsActive value being used: {isActive}");
 
                     // Use stored procedure to update instructor
-                    _unitOfWork.instructorRepo.UpdateInstructor(
+                    _unitOfWork.adminInstructorRepo.UpdateInstructor(
                         instructorDTO.InsId,
                         instructorDTO.Username,
                         instructorDTO.Email,
@@ -223,11 +222,10 @@ namespace ExSystemProject.Controllers
             return View(instructorDTO);
         }
 
-
         // GET: AdminInstructor/Delete/5
         public IActionResult Delete(int id)
         {
-            var instructor = _unitOfWork.instructorRepo.GetInstructorByIdWithBranch(id);
+            var instructor = _unitOfWork.adminInstructorRepo.GetInstructorByIdWithBranch(id);
 
             if (instructor == null)
             {
@@ -245,7 +243,7 @@ namespace ExSystemProject.Controllers
         {
             try
             {
-                _unitOfWork.instructorRepo.DeleteInstructor(id);
+                _unitOfWork.adminInstructorRepo.DeleteInstructor(id);
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
@@ -258,7 +256,7 @@ namespace ExSystemProject.Controllers
         // GET: AdminInstructor/Courses/5
         public IActionResult Courses(int id)
         {
-            var instructor = _unitOfWork.instructorRepo.GetInstructorByIdWithBranch(id);
+            var instructor = _unitOfWork.adminInstructorRepo.GetInstructorByIdWithBranch(id);
 
             if (instructor == null)
             {
@@ -266,7 +264,7 @@ namespace ExSystemProject.Controllers
             }
 
             // Get instructor courses with student details
-            var coursesData = _unitOfWork.instructorRepo.GetInstructorCoursesWithStudentCount(id);
+            var coursesData = _unitOfWork.adminInstructorRepo.GetInstructorCoursesWithStudentCount(id);
 
             // Pass instructor data to view
             var instructorDTO = _mapper.Map<InstructorDTO>(instructor);
@@ -281,7 +279,7 @@ namespace ExSystemProject.Controllers
         private void PopulateDropDowns(int? branchId = null)
         {
             // Get all branches
-            ViewBag.Branches = _unitOfWork.branchRepo.getAll().Select(b => new SelectListItem
+            ViewBag.Branches = _unitOfWork.adminBranchRepo.GetAll().Select(b => new SelectListItem
             {
                 Text = b.BranchName,
                 Value = b.BranchId.ToString()
@@ -290,7 +288,7 @@ namespace ExSystemProject.Controllers
             // Get tracks for selected branch
             if (branchId.HasValue)
             {
-                ViewBag.Tracks = _unitOfWork.trackRepo.GetTracksByBranchId(branchId.Value).Select(t => new SelectListItem
+                ViewBag.Tracks = _unitOfWork.adminTrackRepo.GetTracksByBranchId(branchId.Value).Select(t => new SelectListItem
                 {
                     Text = t.TrackName,
                     Value = t.TrackId.ToString()
@@ -306,7 +304,7 @@ namespace ExSystemProject.Controllers
         [HttpGet]
         public JsonResult GetTracksByBranch(int branchId)
         {
-            var tracks = _unitOfWork.trackRepo.GetTracksByBranchId(branchId)
+            var tracks = _unitOfWork.adminTrackRepo.GetTracksByBranchId(branchId)
                 .Select(t => new { value = t.TrackId.ToString(), text = t.TrackName })
                 .ToList();
 

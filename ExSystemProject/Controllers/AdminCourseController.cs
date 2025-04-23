@@ -4,6 +4,7 @@ using ExSystemProject.Models;
 using ExSystemProject.UnitOfWorks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System;
 using System.Collections.Generic;
 
 namespace ExSystemProject.Controllers
@@ -23,7 +24,7 @@ namespace ExSystemProject.Controllers
         public IActionResult Index()
         {
             // Pass null to get both active and inactive courses
-            var courses = _unitOfWork.courseRepo.GetAllCourses(null);
+            var courses = _unitOfWork.adminCourseRepo.GetAllCourses(null);
             var courseDTOs = _mapper.Map<List<CourseDTO>>(courses);
             return View(courseDTOs);
         }
@@ -32,15 +33,15 @@ namespace ExSystemProject.Controllers
         public IActionResult Details(int id)
         {
             // Using the enhanced repository method to get course by id
-            var course = _unitOfWork.courseRepo.GetCourseById(id);
+            var course = _unitOfWork.adminCourseRepo.GetCourseById(id);
             if (course == null)
                 return NotFound();
 
             var courseDTO = _mapper.Map<CourseDTO>(course);
 
             // Get additional course information
-            var topics = _unitOfWork.courseRepo.GetCourseTopics(id);
-            var exams = _unitOfWork.courseRepo.GetExamsByCourseId(id);
+            var topics = _unitOfWork.adminCourseRepo.GetCourseTopics(id);
+            var exams = _unitOfWork.adminCourseRepo.GetExamsByCourseId(id);
 
             ViewBag.Topics = topics;
             ViewBag.Exams = exams;
@@ -52,7 +53,7 @@ namespace ExSystemProject.Controllers
         public IActionResult Create()
         {
             // Get instructors for dropdown
-            var instructors = _unitOfWork.instructorRepo.getAll();
+            var instructors = _unitOfWork.adminInstructorRepo.GetAllInstructorsWithBranch(true);
             ViewBag.Instructors = new SelectList(instructors, "InsId", "User.Username");
             return View();
         }
@@ -67,7 +68,7 @@ namespace ExSystemProject.Controllers
                 var course = _mapper.Map<Course>(courseDTO);
 
                 // Using the enhanced repository method to create a course
-                _unitOfWork.courseRepo.CreateCourse(course);
+                _unitOfWork.adminCourseRepo.CreateCourse(course);
 
                 TempData["Success"] = true;
                 TempData["Message"] = $"Course '{courseDTO.CrsName}' has been created successfully.";
@@ -75,23 +76,22 @@ namespace ExSystemProject.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var instructors = _unitOfWork.instructorRepo.getAll();
+            var instructors = _unitOfWork.adminInstructorRepo.GetAllInstructorsWithBranch(true);
             ViewBag.Instructors = new SelectList(instructors, "InsId", "User.Username");
             return View(courseDTO);
         }
-
 
         // GET: AdminCourse/Edit/5
         public IActionResult Edit(int id)
         {
             // Using the enhanced repository method to get course by id
-            var course = _unitOfWork.courseRepo.GetCourseById(id);
+            var course = _unitOfWork.adminCourseRepo.GetCourseById(id);
             if (course == null)
                 return NotFound();
 
             var courseDTO = _mapper.Map<CourseDTO>(course);
 
-            var instructors = _unitOfWork.instructorRepo.getAll();
+            var instructors = _unitOfWork.adminInstructorRepo.GetAllInstructorsWithBranch(true);
             ViewBag.Instructors = new SelectList(instructors, "InsId", "User.Username", course.InsId);
 
             return View(courseDTO);
@@ -109,7 +109,7 @@ namespace ExSystemProject.Controllers
                 try
                 {
                     // Get current course to compare isactive state
-                    var currentCourse = _unitOfWork.courseRepo.GetCourseById(id);
+                    var currentCourse = _unitOfWork.adminCourseRepo.GetCourseById(id);
                     var wasActive = currentCourse?.Isactive ?? true;
 
                     // Log for debugging
@@ -126,7 +126,7 @@ namespace ExSystemProject.Controllers
                     var course = _mapper.Map<Course>(courseDTO);
 
                     // Using the enhanced repository method to update a course
-                    _unitOfWork.courseRepo.UpdateCourse(course);
+                    _unitOfWork.adminCourseRepo.UpdateCourse(course);
 
                     TempData["Success"] = true;
 
@@ -154,19 +154,17 @@ namespace ExSystemProject.Controllers
                 }
             }
 
-            var instructors = _unitOfWork.instructorRepo.getAll();
+            var instructors = _unitOfWork.adminInstructorRepo.GetAllInstructorsWithBranch(true);
             ViewBag.Instructors = new SelectList(instructors, "InsId", "User.Username", courseDTO.InsId);
 
             return View(courseDTO);
         }
 
-
-
         // GET: AdminCourse/Delete/5
         public IActionResult Delete(int id)
         {
             // Using the enhanced repository method to get course by id
-            var course = _unitOfWork.courseRepo.GetCourseById(id);
+            var course = _unitOfWork.adminCourseRepo.GetCourseById(id);
             if (course == null)
                 return NotFound();
 
@@ -174,56 +172,37 @@ namespace ExSystemProject.Controllers
             return View(courseDTO);
         }
 
-        //// POST: AdminCourse/Delete/5
-        //[HttpPost, ActionName("DeleteTopic")]
-        //[ValidateAntiForgeryToken]
-        //public IActionResult DeleteTopicConfirmed(int id)
-        //{
-        //    try
-        //    {
-        //        // Get the topic to determine the course ID for redirect
-        //        var topic = _unitOfWork.topicRepo.GetTopicById(id);
-        //        if (topic == null)
-        //            return NotFound();
-
-        //        int courseId = topic.CrsId ?? 0;
-
-        //        // Delete the topic using stored procedure
-        //        _unitOfWork.topicRepo.DeleteTopic(id);
-
-        //        TempData["Success"] = true;
-        //        TempData["Message"] = "Topic deleted successfully.";
-
-        //        return RedirectToAction(nameof(Topics), new { id = courseId });
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        // Log the error
-        //        System.Diagnostics.Debug.WriteLine($"Error deleting topic: {ex.Message}");
-
-        //        // Use TempData to display error message
-        //        TempData["Error"] = true;
-        //        TempData["Message"] = $"Error deleting topic: {ex.Message}";
-
-        //        // Get the topic again to determine course ID
-        //        var topic = _unitOfWork.topicRepo.GetTopicById(id);
-        //        int courseId = topic?.CrsId ?? 0;
-
-        //        return RedirectToAction(nameof(Topics), new { id = courseId });
-        //    }
-        //}
+        // POST: AdminCourse/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public IActionResult DeleteConfirmed(int id)
+        {
+            try
+            {
+                _unitOfWork.adminCourseRepo.DeleteCourse(id);
+                TempData["Success"] = true;
+                TempData["Message"] = "Course has been deleted successfully.";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = true;
+                TempData["Message"] = $"Error deleting course: {ex.Message}";
+                return RedirectToAction(nameof(Index));
+            }
+        }
 
         // GET: AdminCourse/Topics/5
         public IActionResult Topics(int id)
         {
-            var course = _unitOfWork.courseRepo.GetCourseById(id);
+            var course = _unitOfWork.adminCourseRepo.GetCourseById(id);
             if (course == null)
                 return NotFound();
 
             var courseDTO = _mapper.Map<CourseDTO>(course);
 
             // Get topics for this course
-            var topics = _unitOfWork.topicRepo.GetTopicsByCourseId(id, null); // Get all topics (active and inactive)
+            var topics = _unitOfWork.adminTopicRepo.GetTopicsByCourseId(id, null); // Get all topics (active and inactive)
 
             ViewBag.Course = courseDTO;
             ViewBag.Topics = topics;
@@ -234,7 +213,7 @@ namespace ExSystemProject.Controllers
         // GET: AdminCourse/AddTopic/5
         public IActionResult AddTopic(int id)
         {
-            var course = _unitOfWork.courseRepo.GetCourseById(id);
+            var course = _unitOfWork.adminCourseRepo.GetCourseById(id);
             if (course == null)
                 return NotFound();
 
@@ -253,12 +232,12 @@ namespace ExSystemProject.Controllers
             {
                 try
                 {
-                    var course = _unitOfWork.courseRepo.GetCourseById(topicDTO.CrsId ?? 0);
+                    var course = _unitOfWork.adminCourseRepo.GetCourseById(topicDTO.CrsId ?? 0);
                     if (course == null)
                         return NotFound();
 
                     // Create the topic
-                    _unitOfWork.topicRepo.CreateTopic(
+                    _unitOfWork.adminTopicRepo.CreateTopic(
                         topicDTO.TopicName ?? string.Empty,
                         topicDTO.Description ?? string.Empty,
                         topicDTO.CrsId ?? 0
@@ -275,15 +254,16 @@ namespace ExSystemProject.Controllers
                 }
             }
 
-            var courseDTO = _mapper.Map<CourseDTO>(_unitOfWork.courseRepo.GetCourseById(topicDTO.CrsId ?? 0));
+            var courseDTO = _mapper.Map<CourseDTO>(_unitOfWork.adminCourseRepo.GetCourseById(topicDTO.CrsId ?? 0));
             ViewBag.Course = courseDTO;
 
             return View(topicDTO);
         }
+
         // GET: AdminCourse/EditTopic/5
         public IActionResult EditTopic(int id)
         {
-            var topic = _unitOfWork.topicRepo.GetTopicById(id);
+            var topic = _unitOfWork.adminTopicRepo.GetTopicById(id);
             if (topic == null)
                 return NotFound();
 
@@ -298,7 +278,7 @@ namespace ExSystemProject.Controllers
             };
 
             // Get course info for the view header
-            var course = _unitOfWork.courseRepo.GetCourseById(topic.CrsId ?? 0);
+            var course = _unitOfWork.adminCourseRepo.GetCourseById(topic.CrsId ?? 0);
             ViewBag.Course = _mapper.Map<CourseDTO>(course);
 
             return View(topicDTO);
@@ -317,7 +297,7 @@ namespace ExSystemProject.Controllers
                 try
                 {
                     // Update the topic
-                    _unitOfWork.topicRepo.UpdateTopic(
+                    _unitOfWork.adminTopicRepo.UpdateTopic(
                         topicDTO.TopicId ?? 0,
                         topicDTO.TopicName ?? string.Empty,
                         topicDTO.Description ?? string.Empty,
@@ -337,7 +317,7 @@ namespace ExSystemProject.Controllers
             }
 
             // If we got this far, something failed; redisplay form
-            var course = _unitOfWork.courseRepo.GetCourseById(topicDTO.CrsId ?? 0);
+            var course = _unitOfWork.adminCourseRepo.GetCourseById(topicDTO.CrsId ?? 0);
             ViewBag.Course = _mapper.Map<CourseDTO>(course);
 
             return View(topicDTO);
@@ -346,7 +326,7 @@ namespace ExSystemProject.Controllers
         // GET: AdminCourse/DeleteTopic/5
         public IActionResult DeleteTopic(int id)
         {
-            var topic = _unitOfWork.topicRepo.GetTopicById(id);
+            var topic = _unitOfWork.adminTopicRepo.GetTopicById(id);
             if (topic == null)
                 return NotFound();
 
@@ -361,7 +341,7 @@ namespace ExSystemProject.Controllers
             };
 
             // Get course info for the view header
-            var course = _unitOfWork.courseRepo.GetCourseById(topic.CrsId ?? 0);
+            var course = _unitOfWork.adminCourseRepo.GetCourseById(topic.CrsId ?? 0);
             ViewBag.Course = _mapper.Map<CourseDTO>(course);
 
             return View(topicDTO);
@@ -372,7 +352,7 @@ namespace ExSystemProject.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult DeleteTopicConfirmed(int id)
         {
-            var topic = _unitOfWork.topicRepo.GetTopicById(id);
+            var topic = _unitOfWork.adminTopicRepo.GetTopicById(id);
             if (topic == null)
                 return NotFound();
 
@@ -380,7 +360,7 @@ namespace ExSystemProject.Controllers
 
             try
             {
-                _unitOfWork.topicRepo.DeleteTopic(id);
+                _unitOfWork.adminTopicRepo.DeleteTopic(id);
 
                 TempData["Success"] = true;
                 TempData["Message"] = "Topic deleted successfully.";
@@ -401,7 +381,7 @@ namespace ExSystemProject.Controllers
             try
             {
                 // Get the topic
-                var topic = _unitOfWork.topicRepo.GetTopicById(id);
+                var topic = _unitOfWork.adminTopicRepo.GetTopicById(id);
                 if (topic == null)
                     return Json(new { success = false, message = "Topic not found" });
 
@@ -410,7 +390,7 @@ namespace ExSystemProject.Controllers
                 bool newStatus = !currentStatus;
 
                 // Update the topic using stored procedure
-                _unitOfWork.topicRepo.UpdateTopic(
+                _unitOfWork.adminTopicRepo.UpdateTopic(
                     topic.TopicId,
                     topic.TopicName ?? string.Empty,
                     topic.Descrtption ?? string.Empty,
@@ -432,8 +412,5 @@ namespace ExSystemProject.Controllers
                 return Json(new { success = false, message = ex.Message });
             }
         }
-
-
-
     }
 }

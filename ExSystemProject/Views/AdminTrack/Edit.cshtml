@@ -1,6 +1,6 @@
 ﻿@model ExSystemProject.Models.Track
 @{
-    ViewData["Title"] = "Create Track";
+    ViewData["Title"] = "Edit Track";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
@@ -9,7 +9,10 @@
         <div class="col-md-8">
             <!-- Title with Underline -->
             <div class="d-flex align-items-center pb-2 mb-4 border-bottom border-3 border-primary">
-                <h2 class="mb-0"><i class="bi bi-diagram-3-fill me-2 text-primary"></i> Create New Track</h2>
+                <h3 class="mb-0">
+                    <i class="bi bi-pencil-square me-2 text-primary"></i>
+                    Update Track <span class="text-primary fw-bold">@Model.TrackName</span>
+                </h3>
             </div>
 
             <!-- Form in a Card with Shadow -->
@@ -18,7 +21,8 @@
                     <h5 class="mb-0 text-primary">Track Information</h5>
                 </div>
                 <div class="card-body p-4">
-                    <form asp-action="Create">
+                    <form asp-action="Edit" asp-controller="AdminTrack">
+                        <input type="hidden" asp-for="TrackId" />
                         <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
                         <div class="mb-4">
@@ -58,30 +62,43 @@
                                     <option value="0">-- Select Branch --</option>
                                     @foreach (var item in ViewBag.Branches)
                                     {
-                                        <option value="@item.BranchId">@item.BranchName</option>
+                                        if (item.BranchId == Model.BranchId)
+                                        {
+                                            <option value="@item.BranchId" selected>@item.BranchName</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@item.BranchId">@item.BranchName</option>
+                                        }
                                     }
                                 </select>
                             </div>
                             <small class="form-text text-muted">Select the branch this track belongs to</small>
                         </div>
 
+                        <div class="mb-4">
+                            <label asp-for="IsActive" class="form-label">Status</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-toggle-on"></i></span>
+                                <select class="form-select" asp-for="IsActive">
+                                    <option value="true">Active</option>
+                                    <option value="false">Inactive</option>
+                                </select>
+                            </div>
+                            <small class="form-text text-muted">
+                                <i class="bi bi-info-circle"></i> Setting a track to inactive will affect student assignments.
+                            </small>
+                        </div>
+
                         <div class="d-grid gap-2 d-md-flex justify-content-md-between mt-4">
-                            <a asp-action="Index" asp-controller="Branch" class="btn btn-outline-secondary">
-                                <i class="bi bi-arrow-left"></i> Back to Branches
+                            <a asp-action="Index" asp-controller="AdminTrack" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-lg"></i> Cancel
                             </a>
                             <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-save"></i> Create Track
+                                <i class="bi bi-save"></i> Update Track
                             </button>
                         </div>
                     </form>
-
-                    @if (ViewBag.SuccessMessage != null)
-                    {
-                        <div class="alert alert-success alert-dismissible fade show mt-4" role="alert">
-                            <i class="bi bi-check-circle-fill me-2"></i> @ViewBag.SuccessMessage
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                    }
                 </div>
             </div>
         </div>

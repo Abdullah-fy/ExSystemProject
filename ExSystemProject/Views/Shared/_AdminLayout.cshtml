@@ -259,13 +259,13 @@
 
             <div class="nav-heading">System Setup</div>
             <li class="nav-item">
-                <a class="nav-link @(ViewContext.RouteData.Values["controller"].ToString() == "Branch" ? "active" : "")" href="/Branch">
+                <a class="nav-link @(ViewContext.RouteData.Values["controller"].ToString() == "AdminBranch" ? "active" : "")" href="/AdminBranch">
                     <i class="bi bi-building"></i>
                     <span>Branches</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link @(ViewContext.RouteData.Values["controller"].ToString() == "Track" ? "active" : "")" href="/Track">
+                <a class="nav-link @(ViewContext.RouteData.Values["controller"].ToString() == "AdminTrack" ? "active" : "")" href="/AdminTrack">
                     <i class="bi bi-diagram-3"></i>
                     <span>Tracks</span>
                 </a>
@@ -295,6 +295,7 @@
             </li>
         </ul>
     </div>
+
 
     <div class="admin-content">
         <div class="admin-topbar">

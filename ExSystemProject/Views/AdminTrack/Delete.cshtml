@@ -1,6 +1,6 @@
-﻿@model ExSystemProject.Models.Branch
+﻿@model ExSystemProject.Models.Track
 @{
-    ViewData["Title"] = "Delete Branch";
+    ViewData["Title"] = "Delete Track";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
@@ -14,31 +14,35 @@
                 <div class="card-body p-4">
                     <div class="alert alert-danger">
                         <h5 class="alert-heading"><i class="bi bi-exclamation-circle-fill me-2"></i>Warning!</h5>
-                        <p>Are you sure you want to delete this branch?</p>
+                        <p>Are you sure you want to delete this track?</p>
                         <hr>
-                        <p class="mb-0">This action will <strong>permanently delete</strong> this branch and all its associated tracks. This operation cannot be undone.</p>
+                        <p class="mb-0">This action will <strong>permanently delete</strong> this track and its associated data. This operation cannot be undone.</p>
                     </div>
 
                     <div class="mt-4">
-                        <h5 class="text-danger">Branch Details</h5>
+                        <h5 class="text-danger">Track Details</h5>
                         <div class="table-responsive">
                             <table class="table table-bordered">
                                 <tr>
-                                    <th style="width: 30%">Branch ID</th>
+                                    <th style="width: 30%">Track ID</th>
                                     <td>@ViewBag.id</td>
                                 </tr>
                                 <tr>
-                                    <th>Branch Name</th>
-                                    <td>@(Model?.BranchName ?? "Not available")</td>
+                                    <th>Track Name</th>
+                                    <td>@(Model?.TrackName ?? "Not available")</td>
                                 </tr>
                                 <tr>
-                                    <th>Location</th>
-                                    <td>@(Model?.Location ?? "Not available")</td>
+                                    <th>Duration</th>
+                                    <td>@(Model?.TrackDuration ?? 0) Months</td>
+                                </tr>
+                                <tr>
+                                    <th>Intake</th>
+                                    <td>@(Model?.TrackIntake ?? 0)</td>
                                 </tr>
                                 <tr>
                                     <th>Status</th>
                                     <td>
-                                        @if (Model?.Isactive == true)
+                                        @if (Model?.IsActive == true)
                                         {
                                             <span class="badge bg-success">Active</span>
                                         }
@@ -48,19 +52,15 @@
                                         }
                                     </td>
                                 </tr>
-                                <tr>
-                                    <th>Number of Tracks</th>
-                                    <td>@(Model?.Tracks?.Count ?? 0)</td>
-                                </tr>
                             </table>
                         </div>
                     </div>
 
                     <div class="d-flex justify-content-between mt-4">
-                        <a asp-action="Index" class="btn btn-outline-secondary">
+                        <a asp-action="Index" asp-controller="AdminTrack" class="btn btn-outline-secondary">
                             <i class="bi bi-arrow-left"></i> Cancel and Return
                         </a>
-                        <a asp-action="ConfirmDelete" asp-route-id="@ViewBag.id" class="btn btn-danger">
+                        <a asp-action="ConfirmDelete" asp-controller="AdminTrack" asp-route-id="@ViewBag.id" class="btn btn-danger">
                             <i class="bi bi-trash"></i> Confirm Delete
                         </a>
                     </div>

@@ -30,25 +30,25 @@ namespace ExSystemProject.Controllers
             if (branchId.HasValue)
             {
                 // Get students for a specific branch using stored procedure
-                students = _unitOfWork.studentRepo.GetStudentsByBranchId(branchId.Value, activeOnly);
+                students = _unitOfWork.adminStudentRepo.GetStudentsByBranchId(branchId.Value, activeOnly);
                 ViewBag.BranchId = branchId;
-                ViewBag.BranchName = _unitOfWork.branchRepo.getById(branchId.Value)?.BranchName;
+                ViewBag.BranchName = _unitOfWork.adminBranchRepo.GetBranchById(branchId.Value)?.BranchName;
             }
             else if (trackId.HasValue)
             {
                 // Get students for a specific track using stored procedure
-                students = _unitOfWork.studentRepo.GetStudentsByTrackId(trackId.Value, activeOnly);
+                students = _unitOfWork.adminStudentRepo.GetStudentsByTrackId(trackId.Value, activeOnly);
                 ViewBag.TrackId = trackId;
-                ViewBag.TrackName = _unitOfWork.trackRepo.getById(trackId.Value)?.TrackName;
+                ViewBag.TrackName = _unitOfWork.adminTrackRepo.GetTrackById(trackId.Value)?.TrackName;
             }
             else
             {
                 // Get all students using stored procedure
-                students = _unitOfWork.studentRepo.GetAllStudents(activeOnly);
+                students = _unitOfWork.adminStudentRepo.GetAllStudents(activeOnly);
             }
 
-            var branches = _unitOfWork.branchRepo.getAll();
-            var tracks = _unitOfWork.trackRepo.getAll();
+            var branches = _unitOfWork.adminBranchRepo.GetAll();
+            var tracks = _unitOfWork.adminTrackRepo.GetAllActive();
 
             ViewBag.Branches = new SelectList(branches, "BranchId", "BranchName", branchId);
             ViewBag.Tracks = new SelectList(tracks, "TrackId", "TrackName", trackId);
@@ -61,7 +61,7 @@ namespace ExSystemProject.Controllers
         // GET: AdminStudent/Details/5
         public IActionResult Details(int id)
         {
-            var student = _unitOfWork.studentRepo.GetStudentById(id);
+            var student = _unitOfWork.adminStudentRepo.GetStudentById(id);
             if (student == null)
                 return NotFound();
 
@@ -80,20 +80,20 @@ namespace ExSystemProject.Controllers
             return View(studentDTO);
         }
 
-
         // GET: AdminStudent/Create
         public IActionResult Create()
         {
             // Get all branches
-            var branches = _unitOfWork.branchRepo.getAll();
+            var branches = _unitOfWork.adminBranchRepo.GetAll();
             ViewBag.Branches = new SelectList(branches, "BranchId", "BranchName");
 
             // When a branch is selected, we'll use JavaScript to populate tracks for that branch
-            var tracks = _unitOfWork.trackRepo.getAll();
+            var tracks = _unitOfWork.adminTrackRepo.GetAllActive();
             ViewBag.Tracks = new SelectList(tracks, "TrackId", "TrackName");
 
             return View();
         }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Create(StudentDTO studentDTO)
@@ -106,7 +106,7 @@ namespace ExSystemProject.Controllers
                     Console.WriteLine($"Creating student: {studentDTO.Username}, Email: {studentDTO.Email}, TrackId: {studentDTO.TrackId}");
 
                     // Use the CreateStudentWithStoredProcedure method instead
-                    _unitOfWork.studentRepo.CreateStudentWithStoredProcedure(
+                    _unitOfWork.adminStudentRepo.CreateStudentWithStoredProcedure(
                         studentDTO.Username,
                         studentDTO.Email,
                         studentDTO.Gender,
@@ -123,62 +123,57 @@ namespace ExSystemProject.Controllers
             }
 
             // If we get here, there was an error - reload the form with the same data
-            var branches = _unitOfWork.branchRepo.getAll();
+            var branches = _unitOfWork.adminBranchRepo.GetAll();
             ViewBag.Branches = new SelectList(branches, "BranchId", "BranchName");
             return View(studentDTO);
         }
 
-
-
-
         private void PopulateFormDropdowns(int? branchId = null, int? trackId = null)
         {
-            var branches = _unitOfWork.branchRepo.getAll();
+            var branches = _unitOfWork.adminBranchRepo.GetAll();
             ViewBag.Branches = new SelectList(branches, "BranchId", "BranchName", branchId);
 
             List<Track> tracks = new List<Track>();
             if (branchId.HasValue)
             {
-                tracks = _unitOfWork.branchRepo.GetTracksByBranchId(branchId.Value);
+                tracks = _unitOfWork.adminBranchRepo.GetTracksByBranchId(branchId.Value);
             }
             else
             {
-                tracks = _unitOfWork.trackRepo.getAll();
+                tracks = _unitOfWork.adminTrackRepo.GetAllActive();
             }
 
             ViewBag.Tracks = new SelectList(tracks, "TrackId", "TrackName", trackId);
         }
 
-
-
-
         // GET: AdminStudent/Edit/5
         public IActionResult Edit(int id)
         {
-            var student = _unitOfWork.studentRepo.GetStudentByIdWithBranch(id);
+            var student = _unitOfWork.adminStudentRepo.GetStudentByIdWithBranch(id);
             if (student == null)
                 return NotFound();
 
             var studentDTO = _mapper.Map<StudentDTO>(student);
 
             // Get all branches for dropdown
-            var branches = _unitOfWork.branchRepo.getAll();
+            var branches = _unitOfWork.adminBranchRepo.GetAll();
             ViewBag.Branches = branches;
 
             // Get tracks for the student's branch (if any)
             List<Track> tracks;
             if (student.Track?.BranchId > 0)
             {
-                tracks = _unitOfWork.branchRepo.GetTracksByBranchId(student.Track.BranchId.Value);
+                tracks = _unitOfWork.adminBranchRepo.GetTracksByBranchId(student.Track.BranchId.Value);
             }
             else
             {
-                tracks = _unitOfWork.trackRepo.getAll();
+                tracks = _unitOfWork.adminTrackRepo.GetAllActive();
             }
             ViewBag.Tracks = new SelectList(tracks, "TrackId", "TrackName", student.TrackId);
 
             return View(studentDTO);
         }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Edit(int id, StudentDTO studentDTO, int? BranchId, string IsactiveHidden)
@@ -201,7 +196,7 @@ namespace ExSystemProject.Controllers
                     // Verify that the track belongs to the selected branch if a branch was selected
                     if (BranchId.HasValue && studentDTO.TrackId.HasValue)
                     {
-                        var track = _unitOfWork.trackRepo.getById(studentDTO.TrackId.Value);
+                        var track = _unitOfWork.adminTrackRepo.GetTrackById(studentDTO.TrackId.Value);
                         if (track == null)
                         {
                             ModelState.AddModelError("TrackId", "Selected track not found");
@@ -224,7 +219,7 @@ namespace ExSystemProject.Controllers
                     System.Diagnostics.Debug.WriteLine($"IsActive value being used: {isActive}");
 
                     // Update student using stored procedure
-                    _unitOfWork.studentRepo.UpdateStudent(
+                    _unitOfWork.adminStudentRepo.UpdateStudent(
                         studentDTO.StudentId,
                         studentDTO.Username,
                         studentDTO.Email,
@@ -262,24 +257,22 @@ namespace ExSystemProject.Controllers
 
         private void PrepareEditViewBags(int? branchId, StudentDTO studentDTO)
         {
-            var allBranches = _unitOfWork.branchRepo.getAll();
+            var allBranches = _unitOfWork.adminBranchRepo.GetAll();
             ViewBag.Branches = allBranches;
 
             var allTracks = branchId.HasValue
-                ? _unitOfWork.branchRepo.GetTracksByBranchId(branchId.Value)
+                ? _unitOfWork.adminBranchRepo.GetTracksByBranchId(branchId.Value)
                 : studentDTO.BranchId.HasValue
-                    ? _unitOfWork.branchRepo.GetTracksByBranchId(studentDTO.BranchId.Value)
-                    : _unitOfWork.trackRepo.getAll();
+                    ? _unitOfWork.adminBranchRepo.GetTracksByBranchId(studentDTO.BranchId.Value)
+                    : _unitOfWork.adminTrackRepo.GetAllActive();
 
             ViewBag.Tracks = new SelectList(allTracks, "TrackId", "TrackName", studentDTO.TrackId);
         }
 
-
-
         // GET: AdminStudent/Delete/5
         public IActionResult Delete(int id)
         {
-            var student = _unitOfWork.studentRepo.GetStudentById(id);
+            var student = _unitOfWork.adminStudentRepo.GetStudentById(id);
             if (student == null)
                 return NotFound();
 
@@ -290,12 +283,12 @@ namespace ExSystemProject.Controllers
         // POST: AdminStudent/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public IActionResult DeleteConfirmed(int id)  // Changed method name to DeleteConfirmed
+        public IActionResult DeleteConfirmed(int id)
         {
             try
             {
                 // Delete student using stored procedure (logical delete)
-                _unitOfWork.studentRepo.DeleteStudent(id);
+                _unitOfWork.adminStudentRepo.DeleteStudent(id);
 
                 TempData["SuccessMessage"] = "Student deactivated successfully!";
                 return RedirectToAction(nameof(Index));
@@ -307,16 +300,14 @@ namespace ExSystemProject.Controllers
             }
         }
 
-
-
         // GET: AdminStudent/AssignExam
         public IActionResult AssignExam(int id)
         {
-            var student = _unitOfWork.studentRepo.GetStudentById(id);
+            var student = _unitOfWork.adminStudentRepo.GetStudentById(id);
             if (student == null)
                 return NotFound();
 
-            var allExams = _unitOfWork.examRepo.GetAllExams();
+            var allExams = _unitOfWork.adminExamRepo.GetAllExams();
             var availableExams = allExams.Where(e => e.Isactive == true).ToList();
 
             ViewBag.Exams = new SelectList(availableExams, "ExamId", "ExamName");
@@ -335,7 +326,7 @@ namespace ExSystemProject.Controllers
             try
             {
                 // Assign exam to student using stored procedure
-                _unitOfWork.studentRepo.AssignExamToStudent(examId, studentId);
+                _unitOfWork.adminStudentRepo.AssignExamToStudent(examId, studentId);
 
                 TempData["SuccessMessage"] = "Exam assigned successfully!";
                 return RedirectToAction(nameof(Details), new { id = studentId });
@@ -344,12 +335,12 @@ namespace ExSystemProject.Controllers
             {
                 TempData["ErrorMessage"] = $"Error assigning exam: {ex.Message}";
 
-                var allExams = _unitOfWork.examRepo.GetAllExams();
+                var allExams = _unitOfWork.adminExamRepo.GetAllExams();
                 var availableExams = allExams.Where(e => e.Isactive == true).ToList();
 
                 ViewBag.Exams = new SelectList(availableExams, "ExamId", "ExamName", examId);
 
-                var student = _unitOfWork.studentRepo.GetStudentById(studentId);
+                var student = _unitOfWork.adminStudentRepo.GetStudentById(studentId);
                 ViewBag.StudentId = studentId;
                 ViewBag.StudentName = student.User?.Username;
 
@@ -364,7 +355,7 @@ namespace ExSystemProject.Controllers
             {
                 System.Diagnostics.Debug.WriteLine($"GetTracksByBranch called with branchId: {branchId}");
 
-                var tracks = _unitOfWork.branchRepo.GetTracksByBranchId(branchId)
+                var tracks = _unitOfWork.adminBranchRepo.GetTracksByBranchId(branchId)
                     .Where(t => t.IsActive == true) // Only get active tracks
                     .Select(t => new { trackId = t.TrackId, trackName = t.TrackName })
                     .ToList();
@@ -378,15 +369,5 @@ namespace ExSystemProject.Controllers
                 return Json(new List<object>());
             }
         }
-
-
-
-
-
-
-
     }
-
 }
-
-

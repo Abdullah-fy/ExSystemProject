@@ -29,14 +29,14 @@ namespace ExSystemProject.Controllers
             if (examId.HasValue)
             {
                 // Get questions for a specific exam
-                questions = _unitOfWork.examRepo.GetQuestionsByExamId(examId.Value);
+                questions = _unitOfWork.adminExamRepo.GetQuestionsByExamId(examId.Value);
                 ViewBag.ExamId = examId;
-                ViewBag.ExamName = _unitOfWork.examRepo.GetExamById(examId.Value)?.ExamName;
+                ViewBag.ExamName = _unitOfWork.adminExamRepo.GetExamById(examId.Value)?.ExamName;
             }
             else
             {
                 // Get all questions
-                questions = _unitOfWork.questionRepo.GetAllQuestions();
+                questions = _unitOfWork.adminQuestionRepo.GetAllQuestions();
             }
 
             var questionDTOs = _mapper.Map<List<QuestionBankDTO>>(questions);
@@ -51,7 +51,7 @@ namespace ExSystemProject.Controllers
                 return NotFound();
 
             // Get choices for this question
-            var choices = _unitOfWork.choicesRepo.GetChoicesByQuestionId(id);
+            var choices = _unitOfWork.adminChoicesRepo.GetChoicesByQuestionId(id);
             question.Choices = choices;
 
             var questionDTO = _mapper.Map<QuestionBankDTO>(question);
@@ -61,7 +61,7 @@ namespace ExSystemProject.Controllers
         // GET: AdminQuestionBank/Create
         public IActionResult Create(int? examId = null)
         {
-            var exams = _unitOfWork.examRepo.GetAllExams();
+            var exams = _unitOfWork.adminExamRepo.GetAllExams();
             ViewBag.Exams = new SelectList(exams, "ExamId", "ExamName", examId);
             ViewBag.ExamId = examId;
 
@@ -126,7 +126,7 @@ namespace ExSystemProject.Controllers
                     if (!hasCorrectChoice)
                     {
                         ModelState.AddModelError("", "You must select one correct answer for the MCQ question.");
-                        var exams = _unitOfWork.examRepo.GetAllExams();
+                        var exams = _unitOfWork.adminExamRepo.GetAllExams();
                         ViewBag.Exams = new SelectList(exams, "ExamId", "ExamName", questionDTO.ExamId);
                         ViewBag.ExamId = questionDTO.ExamId;
                         return View(questionDTO);
@@ -135,7 +135,7 @@ namespace ExSystemProject.Controllers
                     if (choices.Count < 2)
                     {
                         ModelState.AddModelError("", "MCQ questions must have at least 2 choices.");
-                        var exams = _unitOfWork.examRepo.GetAllExams();
+                        var exams = _unitOfWork.adminExamRepo.GetAllExams();
                         ViewBag.Exams = new SelectList(exams, "ExamId", "ExamName", questionDTO.ExamId);
                         ViewBag.ExamId = questionDTO.ExamId;
                         return View(questionDTO);
@@ -150,7 +150,7 @@ namespace ExSystemProject.Controllers
                         });
                     }
 
-                    questionId = _unitOfWork.questionRepo.InsertQuestionMCQ(question, choices);
+                    questionId = _unitOfWork.adminQuestionRepo.InsertQuestionMCQ(question, choices);
 
                     if (questionId > 0)
                     {
@@ -174,14 +174,12 @@ namespace ExSystemProject.Controllers
                 ModelState.AddModelError("", $"Error creating MCQ question: {ex.Message}");
             }
 
-            var examsList = _unitOfWork.examRepo.GetAllExams();
+            var examsList = _unitOfWork.adminExamRepo.GetAllExams();
             ViewBag.Exams = new SelectList(examsList, "ExamId", "ExamName", questionDTO.ExamId);
             ViewBag.ExamId = questionDTO.ExamId;
 
             return View(questionDTO);
         }
-
-
 
         // GET: AdminQuestionBank/Edit/5
         public IActionResult Edit(int id)
@@ -191,12 +189,12 @@ namespace ExSystemProject.Controllers
                 return NotFound();
 
             // Get choices for this question
-            var choices = _unitOfWork.choicesRepo.GetChoicesByQuestionId(id);
+            var choices = _unitOfWork.adminChoicesRepo.GetChoicesByQuestionId(id);
             question.Choices = choices;
 
             var questionDTO = _mapper.Map<QuestionBankDTO>(question);
 
-            var exams = _unitOfWork.examRepo.GetAllExams();
+            var exams = _unitOfWork.adminExamRepo.GetAllExams();
             ViewBag.Exams = new SelectList(exams, "ExamId", "ExamName", question.ExamId);
 
             return View(questionDTO);
@@ -256,7 +254,7 @@ namespace ExSystemProject.Controllers
                         if (!hasCorrectChoice)
                         {
                             ModelState.AddModelError("", "You must select one correct answer.");
-                            var availableExams = _unitOfWork.examRepo.GetAllExams();
+                            var availableExams = _unitOfWork.adminExamRepo.GetAllExams();
                             ViewBag.Exams = new SelectList(availableExams, "ExamId", "ExamName", questionDTO.ExamId);
                             return View(questionDTO);
                         }
@@ -309,7 +307,7 @@ namespace ExSystemProject.Controllers
                     }
 
                     // Update question and its choices
-                    _unitOfWork.questionRepo.UpdateQuestionAndChoices(question, choices);
+                    _unitOfWork.adminQuestionRepo.UpdateQuestionAndChoices(question, choices);
 
                     TempData["Success"] = true;
                     TempData["Message"] = "Question updated successfully";
@@ -326,7 +324,7 @@ namespace ExSystemProject.Controllers
             }
 
             // Use a different variable name for exams list to avoid name conflict
-            var examOptions = _unitOfWork.examRepo.GetAllExams();
+            var examOptions = _unitOfWork.adminExamRepo.GetAllExams();
             ViewBag.Exams = new SelectList(examOptions, "ExamId", "ExamName", questionDTO.ExamId);
             return View(questionDTO);
         }
@@ -339,7 +337,7 @@ namespace ExSystemProject.Controllers
                 return NotFound();
 
             // Get choices for this question
-            var choices = _unitOfWork.choicesRepo.GetChoicesByQuestionId(id);
+            var choices = _unitOfWork.adminChoicesRepo.GetChoicesByQuestionId(id);
             question.Choices = choices;
 
             var questionDTO = _mapper.Map<QuestionBankDTO>(question);
@@ -357,7 +355,7 @@ namespace ExSystemProject.Controllers
                 int? examId = question?.ExamId;
 
                 // Delete question
-                _unitOfWork.questionRepo.DeleteQuestion(id);
+                _unitOfWork.adminQuestionRepo.DeleteQuestion(id);
 
                 TempData["Success"] = true;
                 TempData["Message"] = "Question deleted successfully";
@@ -385,7 +383,7 @@ namespace ExSystemProject.Controllers
                 return NotFound();
 
             // Get exams for dropdown (excluding the one the question is already in)
-            var exams = _unitOfWork.examRepo.GetAllExams()
+            var exams = _unitOfWork.adminExamRepo.GetAllExams()
                 .Where(e => e.ExamId != question.ExamId)
                 .ToList();
 
@@ -403,7 +401,7 @@ namespace ExSystemProject.Controllers
             try
             {
                 // Add question to exam
-                _unitOfWork.examRepo.AddQuestionToExam(examId, id);
+                _unitOfWork.adminExamRepo.AddQuestionToExam(examId, id);
 
                 TempData["Success"] = true;
                 TempData["Message"] = "Question successfully added to exam";
@@ -427,7 +425,7 @@ namespace ExSystemProject.Controllers
             try
             {
                 // Remove question from exam
-                _unitOfWork.examRepo.RemoveQuestionFromExam(examId, id);
+                _unitOfWork.adminExamRepo.RemoveQuestionFromExam(examId, id);
 
                 TempData["Success"] = true;
                 TempData["Message"] = "Question removed from exam successfully";
@@ -441,13 +439,13 @@ namespace ExSystemProject.Controllers
 
                 return RedirectToAction(nameof(Index), new { examId = examId });
             }
-
         }
+
         // New action specifically for True/False questions
         [HttpGet]
         public IActionResult CreateTrueFalse()
         {
-            var examsList = _unitOfWork.examRepo.GetAllExams();
+            var examsList = _unitOfWork.adminExamRepo.GetAllExams();
             ViewBag.Exams = new SelectList(examsList, "ExamId", "ExamName");
             return View();
         }
@@ -474,7 +472,7 @@ namespace ExSystemProject.Controllers
                 string correctAnswerValue = tfCorrectAnswer?.ToLower() == "true" ? "1" : "0";
 
                 // Insert TF question
-                int questionId = _unitOfWork.questionRepo.InsertQuestionTF(question, correctAnswerValue);
+                int questionId = _unitOfWork.adminQuestionRepo.InsertQuestionTF(question, correctAnswerValue);
 
                 if (questionId > 0)
                 {
@@ -493,7 +491,7 @@ namespace ExSystemProject.Controllers
                 ModelState.AddModelError("", $"Error creating True/False question: {ex.Message}");
             }
 
-            var examsList = _unitOfWork.examRepo.GetAllExams();
+            var examsList = _unitOfWork.adminExamRepo.GetAllExams();
             ViewBag.Exams = new SelectList(examsList, "ExamId", "ExamName", examId);
 
             // Keep the submitted values

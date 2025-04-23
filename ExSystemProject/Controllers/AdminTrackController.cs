@@ -4,16 +4,16 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ExSystemProject.Controllers
 {
-    public class TrackController : Controller
+    public class AdminTrackController : Controller
     {
         UnitOfWork unit;
-        public TrackController(UnitOfWork _unit)
+        public AdminTrackController(UnitOfWork _unit)
         {
             this.unit = _unit;
         }
         public IActionResult Index(int page = 1)
         {
-            var tracks = unit.trackRepo.GetAllWithBranch();
+            var tracks = unit.adminTrackRepo.GetAllWithBranch();
             int pageSize = 6;
 
             var Branches = tracks.Skip((page - 1) * pageSize).Take(pageSize).ToList();
@@ -26,25 +26,26 @@ namespace ExSystemProject.Controllers
         [HttpGet]
         public IActionResult Create()
         {
-            List<Branch> branches = unit.branchRepo.getAll();
+            List<Branch> branches = unit.adminBranchRepo.GetAll();
             ViewBag.Branches = branches;
             return View();
         }
+
         [HttpPost]
         public IActionResult Create(Track track)
         {
             if (ModelState.IsValid)
             {
-                if(track.BranchId == 0)
+                if (track.BranchId == 0)
                 {
-                    ViewBag.Branches = unit.branchRepo.getAll();
+                    ViewBag.Branches = unit.adminBranchRepo.GetAll();
                     return View();
                 }
-                unit.trackRepo.add(track);
+                unit.adminTrackRepo.CreateTrack(track);
                 unit.save();
                 return RedirectToAction("Index", "Branch");
             }
-            ViewBag.Branches = unit.branchRepo.getAll();
+            ViewBag.Branches = unit.adminBranchRepo.GetAll();
             return View();
         }
 
@@ -59,20 +60,19 @@ namespace ExSystemProject.Controllers
         public IActionResult ConfirmDelete(int id)
         {
             if (id == null) return BadRequest();
-            unit.trackRepo.delete(id);
+            unit.adminTrackRepo.DeleteTrack(id);
             unit.save();
-            return RedirectToAction("Details", "Branch", new {id = ViewBag.BranchId});
+            return RedirectToAction("Details", "Branch", new { id = ViewBag.BranchId });
         }
-
 
         [HttpGet]
         public IActionResult Edit(int id)
         {
             if (id == null) return BadRequest();
-            Track track = unit.trackRepo.getById(id);
+            Track track = unit.adminTrackRepo.GetTrackById(id);
             if (track == null) return NotFound();
 
-            ViewBag.Branches = unit.branchRepo.getAll();
+            ViewBag.Branches = unit.adminBranchRepo.GetAll();
 
             return View(track);
         }
@@ -80,17 +80,14 @@ namespace ExSystemProject.Controllers
         [HttpPost]
         public IActionResult Edit(Track track)
         {
-
             if (ModelState.IsValid)
             {
-                unit.trackRepo.update(track);
+                unit.adminTrackRepo.UpdateTrack(track);
                 unit.save();
                 return RedirectToAction("Index", "Branch");
             }
 
             return View(track);
         }
-
-
     }
 }

@@ -13,7 +13,7 @@
             <h2 class="mb-0">Branch Details</h2>
         </div>
         <div>
-            <a asp-action="Edit" asp-route-id="@Model.BranchId" class="btn btn-info">
+            <a asp-action="Edit" asp-controller="AdminBranch" asp-route-id="@Model.BranchId" class="btn btn-info">
                 <i class="bi bi-pencil"></i> Edit Branch
             </a>
         </div>
@@ -63,10 +63,10 @@
             <h3><i class="bi bi-diagram-3 me-2"></i> Tracks</h3>
         </div>
         <div>
-            <a asp-action="Create" asp-controller="Track" asp-route-branchId="@Model.BranchId" class="btn btn-primary me-2">
+            <a asp-action="Create" asp-controller="AdminTrack" asp-route-branchId="@Model.BranchId" class="btn btn-primary me-2">
                 <i class="bi bi-plus-circle"></i> Add New Track
             </a>
-            <a asp-action="CreateTrack" asp-route-branchId="@Model.BranchId" class="btn btn-outline-success">
+            <a asp-action="CreateTrack" asp-controller="AdminBranch" asp-route-branchId="@Model.BranchId" class="btn btn-outline-success">
                 <i class="bi bi-person-plus"></i> Assign Manager
             </a>
         </div>
@@ -117,10 +117,10 @@
                                     </td>
                                     <td>
                                         <div class="btn-group" role="group">
-                                            <a class="btn btn-sm btn-info" asp-action="edit" asp-controller="Track" asp-route-id=@track.TrackId>
+                                            <a class="btn btn-sm btn-info" asp-action="Edit" asp-controller="AdminTrack" asp-route-id=@track.TrackId>
                                                 <i class="bi bi-pencil"></i> Edit
                                             </a>
-                                            <a class="btn btn-sm btn-danger" asp-action="delete" asp-controller="Track" asp-route-id=@track.TrackId>
+                                            <a class="btn btn-sm btn-danger" asp-action="Delete" asp-controller="AdminTrack" asp-route-id=@track.TrackId>
                                                 <i class="bi bi-trash"></i> Delete
                                             </a>
                                         </div>
@@ -135,7 +135,7 @@
                                     <div class="d-flex flex-column align-items-center">
                                         <i class="bi bi-diagram-3 text-muted" style="font-size: 3rem;"></i>
                                         <p class="mt-2 mb-0">No tracks found for this branch.</p>
-                                        <a asp-action="Create" asp-controller="Track" asp-route-branchId="@Model.BranchId" class="btn btn-sm btn-primary mt-2">
+                                        <a asp-action="Create" asp-controller="AdminTrack" asp-route-branchId="@Model.BranchId" class="btn btn-sm btn-primary mt-2">
                                             <i class="bi bi-plus-circle"></i> Add your first track
                                         </a>
                                     </div>
@@ -150,7 +150,7 @@
 
     <!-- Back Button -->
     <div class="mt-4">
-        <a asp-action="Index" class="btn btn-outline-secondary">
+        <a asp-action="Index" asp-controller="AdminBranch" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left"></i> Back to Branches
         </a>
     </div>

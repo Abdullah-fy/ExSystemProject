@@ -28,14 +28,14 @@ namespace ExSystemProject.Controllers
             if (courseId.HasValue)
             {
                 // Get exams for a specific course
-                exams = _unitOfWork.courseRepo.GetExamsByCourseId(courseId.Value);
+                exams = _unitOfWork.adminCourseRepo.GetExamsByCourseId(courseId.Value);
                 ViewBag.CourseId = courseId;
-                ViewBag.CourseName = _unitOfWork.courseRepo.GetCourseById(courseId.Value)?.CrsName;
+                ViewBag.CourseName = _unitOfWork.adminCourseRepo.GetCourseById(courseId.Value)?.CrsName;
             }
             else
             {
                 // Get all exams
-                exams = _unitOfWork.examRepo.GetAllExams();
+                exams = _unitOfWork.adminExamRepo.GetAllExams();
             }
 
             var examDTOs = _mapper.Map<List<ExamDTO>>(exams);
@@ -45,12 +45,12 @@ namespace ExSystemProject.Controllers
         // GET: AdminExam/Details/5
         public IActionResult Details(int id)
         {
-            var exam = _unitOfWork.examRepo.GetExamById(id);
+            var exam = _unitOfWork.adminExamRepo.GetExamById(id);
             if (exam == null)
                 return NotFound();
 
             // Get questions for this exam
-            var questions = _unitOfWork.examRepo.GetQuestionsByExamId(id);
+            var questions = _unitOfWork.adminExamRepo.GetQuestionsByExamId(id);
 
             var examDTO = _mapper.Map<ExamDTO>(exam);
             examDTO.Questions = _mapper.Map<List<QuestionBankDTO>>(questions);
@@ -61,8 +61,8 @@ namespace ExSystemProject.Controllers
         // GET: AdminExam/Create
         public IActionResult Create()
         {
-            var courses = _unitOfWork.courseRepo.getAll();
-            var instructors = _unitOfWork.instructorRepo.getAll();
+            var courses = _unitOfWork.adminCourseRepo.GetAllCourses(true); // Get only active courses
+            var instructors = _unitOfWork.adminInstructorRepo.GetAllInstructorsWithBranch(true); // Get only active instructors
 
             ViewBag.Courses = new SelectList(courses, "CrsId", "CrsName");
             ViewBag.Instructors = new SelectList(instructors, "InsId", "User.Username");
@@ -80,13 +80,13 @@ namespace ExSystemProject.Controllers
                 var exam = _mapper.Map<Exam>(examDTO);
 
                 // Create blank exam
-                int examId = _unitOfWork.examRepo.CreateBlankExam(exam);
+                int examId = _unitOfWork.adminExamRepo.CreateBlankExam(exam);
 
                 return RedirectToAction(nameof(Details), new { id = examId });
             }
 
-            var courses = _unitOfWork.courseRepo.getAll();
-            var instructors = _unitOfWork.instructorRepo.getAll();
+            var courses = _unitOfWork.adminCourseRepo.GetAllCourses(true);
+            var instructors = _unitOfWork.adminInstructorRepo.GetAllInstructorsWithBranch(true);
 
             ViewBag.Courses = new SelectList(courses, "CrsId", "CrsName", examDTO.CrsId);
             ViewBag.Instructors = new SelectList(instructors, "InsId", "User.Username", examDTO.InsId);
@@ -97,14 +97,14 @@ namespace ExSystemProject.Controllers
         // GET: AdminExam/Edit/5
         public IActionResult Edit(int id)
         {
-            var exam = _unitOfWork.examRepo.GetExamById(id);
+            var exam = _unitOfWork.adminExamRepo.GetExamById(id);
             if (exam == null)
                 return NotFound();
 
             var examDTO = _mapper.Map<ExamDTO>(exam);
 
-            var courses = _unitOfWork.courseRepo.getAll();
-            var instructors = _unitOfWork.instructorRepo.getAll();
+            var courses = _unitOfWork.adminCourseRepo.GetAllCourses(true);
+            var instructors = _unitOfWork.adminInstructorRepo.GetAllInstructorsWithBranch(true);
 
             ViewBag.Courses = new SelectList(courses, "CrsId", "CrsName", exam.CrsId);
             ViewBag.Instructors = new SelectList(instructors, "InsId", "User.Username", exam.InsId);
@@ -125,13 +125,13 @@ namespace ExSystemProject.Controllers
                 var exam = _mapper.Map<Exam>(examDTO);
 
                 // Use the new stored procedure for updating
-                _unitOfWork.examRepo.UpdateExam(exam);
+                _unitOfWork.adminExamRepo.UpdateExam(exam);
 
                 return RedirectToAction(nameof(Details), new { id = id });
             }
 
-            var courses = _unitOfWork.courseRepo.getAll();
-            var instructors = _unitOfWork.instructorRepo.getAll();
+            var courses = _unitOfWork.adminCourseRepo.GetAllCourses(true);
+            var instructors = _unitOfWork.adminInstructorRepo.GetAllInstructorsWithBranch(true);
 
             ViewBag.Courses = new SelectList(courses, "CrsId", "CrsName", examDTO.CrsId);
             ViewBag.Instructors = new SelectList(instructors, "InsId", "User.Username", examDTO.InsId);
@@ -142,7 +142,7 @@ namespace ExSystemProject.Controllers
         // GET: AdminExam/Delete/5
         public IActionResult Delete(int id)
         {
-            var exam = _unitOfWork.examRepo.GetExamById(id);
+            var exam = _unitOfWork.adminExamRepo.GetExamById(id);
             if (exam == null)
                 return NotFound();
 
@@ -155,11 +155,11 @@ namespace ExSystemProject.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(int id)
         {
-            var exam = _unitOfWork.examRepo.GetExamById(id);
+            var exam = _unitOfWork.adminExamRepo.GetExamById(id);
             int? courseId = exam?.CrsId;
 
             // Delete exam
-            _unitOfWork.examRepo.DeleteExam(id);
+            _unitOfWork.adminExamRepo.DeleteExam(id);
 
             if (courseId.HasValue)
                 return RedirectToAction(nameof(Index), new { courseId = courseId });
@@ -170,8 +170,8 @@ namespace ExSystemProject.Controllers
         // GET: AdminExam/GenerateRandomExam
         public IActionResult GenerateRandomExam()
         {
-            var courses = _unitOfWork.courseRepo.getAll();
-            var instructors = _unitOfWork.instructorRepo.getAll();
+            var courses = _unitOfWork.adminCourseRepo.GetAllCourses(true);
+            var instructors = _unitOfWork.adminInstructorRepo.GetAllInstructorsWithBranch(true);
 
             ViewBag.Courses = new SelectList(courses, "CrsId", "CrsName");
             ViewBag.Instructors = new SelectList(instructors, "InsId", "User.Username");
@@ -195,7 +195,7 @@ namespace ExSystemProject.Controllers
                 try
                 {
                     // Generate random exam using the counts from the form
-                    int examId = _unitOfWork.examRepo.GenerateRandomExam(
+                    int examId = _unitOfWork.adminExamRepo.GenerateRandomExam(
                         examDTO.ExamName,
                         examDTO.CrsId.Value,
                         examDTO.InsId.Value,
@@ -214,8 +214,8 @@ namespace ExSystemProject.Controllers
                 }
             }
 
-            var courses = _unitOfWork.courseRepo.getAll();
-            var instructors = _unitOfWork.instructorRepo.getAll();
+            var courses = _unitOfWork.adminCourseRepo.GetAllCourses(true);
+            var instructors = _unitOfWork.adminInstructorRepo.GetAllInstructorsWithBranch(true);
 
             ViewBag.Courses = new SelectList(courses, "CrsId", "CrsName", examDTO.CrsId);
             ViewBag.Instructors = new SelectList(instructors, "InsId", "User.Username", examDTO.InsId);

@@ -79,12 +79,14 @@ namespace ExSystemProject.MappinConfig
                 .ForPath(dest => dest.User.Gender, opt => opt.MapFrom(src => src.Gender));
 
             // Exam mappings - preserving existing mapping
+            // Exam mappings - update to handle null values safely
             CreateMap<Exam, ExamDTO>()
                 .ForMember(dest => dest.CourseName,
                     opt => opt.MapFrom(src => src.Crs != null ? src.Crs.CrsName : null))
                 .ForMember(dest => dest.InstructorName,
                     opt => opt.MapFrom(src => src.Ins != null && src.Ins.User != null ?
                         src.Ins.User.Username : null));
+
 
             CreateMap<ExamDTO, Exam>();
 
