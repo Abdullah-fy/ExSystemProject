@@ -18,12 +18,13 @@ namespace ExSystemProject.Repository
 
         // Call stored procedure to create a course
 
+        // Call stored procedure to create a course
         public void CreateCourse(Course course)
         {
             var crsNameParam = new SqlParameter("@crs_name", course.CrsName);
             var crsPeriodParam = new SqlParameter("@crs_period", course.CrsPeriod ?? (object)DBNull.Value);
             var insIdParam = new SqlParameter("@ins_id", course.InsId ?? (object)DBNull.Value);
-            var descriptionParam = new SqlParameter("@description", string.IsNullOrEmpty(course.Description) ? (object)DBNull.Value : course.Description);
+            var descriptionParam = new SqlParameter("@description", string.IsNullOrEmpty(course.description) ? (object)DBNull.Value : course.description);
             var posterParam = new SqlParameter("@poster", string.IsNullOrEmpty(course.Poster) ? (object)DBNull.Value : course.Poster);
 
             _context.Database.ExecuteSqlRaw(
@@ -49,13 +50,14 @@ namespace ExSystemProject.Repository
             var crsPeriodParam = new SqlParameter("@crs_period", course.CrsPeriod ?? (object)DBNull.Value);
             var insIdParam = new SqlParameter("@ins_id", course.InsId ?? (object)DBNull.Value);
             var isActiveParam = new SqlParameter("@isactive", course.Isactive.Value);
-            var descriptionParam = new SqlParameter("@description", string.IsNullOrEmpty(course.Description) ? (object)DBNull.Value : course.Description);
+            var descriptionParam = new SqlParameter("@description", string.IsNullOrEmpty(course.description) ? (object)DBNull.Value : course.description);
             var posterParam = new SqlParameter("@poster", string.IsNullOrEmpty(course.Poster) ? (object)DBNull.Value : course.Poster);
 
             _context.Database.ExecuteSqlRaw(
                 "EXEC sp_UpdateCourse @crs_id, @crs_name, @crs_period, @ins_id, @isactive, @poster, @description",
                 crsIdParam, crsNameParam, crsPeriodParam, insIdParam, isActiveParam, posterParam, descriptionParam);
         }
+
 
         // Call stored procedure to delete a course
         public void DeleteCourse(int courseId)
