@@ -168,8 +168,37 @@ namespace ExSystemProject.Repository
         }
 
 
+        public List<Exam> ExamByInstructorId(int instructorId)
+        {
+            return _context.Exams.Where(c => c.InsId == instructorId).ToList();
+        }
 
+        public void GenerateAndAssignExam(int SelectedCourseId, int MCQCount, int TFCount,int InsId,
+                DateTime StartTime, DateTime EndTime)
+        {
 
+            _context.Database.ExecuteSqlRaw("EXEC sp_GenerateAndAssignExam @Crs_Id ,@MCQ_Count, @TF_Count , @Ins_Id ,@StartTime ,@EndTime",
+               new SqlParameter("@Crs_Id", SelectedCourseId),
+               new SqlParameter("@MCQ_Count", MCQCount),
+               new SqlParameter("@TF_Count", TFCount),
+               new SqlParameter("@Ins_Id", InsId),
+               new SqlParameter("@StartTime", StartTime),
+               new SqlParameter("@EndTime", EndTime));
+        }
+
+        public void GenerateAndAssignExamForStudent(int SelectedCourseId, int MCQCount, int TFCount, int InsId,
+    int StudentId, DateTime StartTime, DateTime EndTime)
+        {
+            _context.Database.ExecuteSqlRaw(
+                "EXEC sp_GenerateAndAssignExamForStudent @Crs_Id, @MCQ_Count, @TF_Count, @Ins_Id, @StudentId, @StartTime, @EndTime",
+                new SqlParameter("@Crs_Id", SelectedCourseId),
+                new SqlParameter("@MCQ_Count", MCQCount),
+                new SqlParameter("@TF_Count", TFCount),
+                new SqlParameter("@Ins_Id", InsId),
+                new SqlParameter("@StudentId", StudentId),
+                new SqlParameter("@StartTime", StartTime),
+                new SqlParameter("@EndTime", EndTime));
+        }
 
     }
 }

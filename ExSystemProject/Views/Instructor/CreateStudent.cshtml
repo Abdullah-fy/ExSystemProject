@@ -1,0 +1,38 @@
+﻿@model StudentViewModel
+
+<form asp-action="CreateStudent" method="post" enctype="multipart/form-data">
+    <div>
+        <label>Username</label>
+        <input asp-for="@Model.username" class="form-control" />
+        <span asp-validation-for="@Model.username"></span>
+    </div>
+    <div>
+        <label>Email</label>
+        <input asp-for="@Model.Email" class="form-control" />
+        <span asp-validation-for="@Model.Email"></span>
+    </div>
+    <div>
+        <label>Password</label>
+        <input asp-for="@Model.password" type="password" class="form-control" />
+        <span asp-validation-for="@Model.password"></span>
+    </div>
+    <div>
+        <label>Gender</label>
+        <select asp-for="Gender" class="form-control">
+            <option value="M">Male</option>
+            <option value="F">Female</option>
+        </select>
+    </div>
+    <div>
+        <label>Track</label>
+        <select asp-for="TrackId" asp-items="Model.tracks" class="form-control">
+                <option value="-1">-- Select Track --</option>
+        </select>
+    </div>
+    <div>
+        <label>Image URL</label>
+        <input asp-for="Image" class="form-control" />
+    </div>
+
+    <button type="submit">Create</button>
+</form>

@@ -1,0 +1,38 @@
+﻿@model IEnumerable<StudentExam>
+
+@{
+    ViewData["Title"] = "Course Details";
+}
+
+<h2>Course Exam Results</h2>
+
+@if (Model != null && Model.Any())
+{
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Exam ID</th>
+                <th>Score</th>
+                <th>Status</th>
+                <th>Exam Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var exam in Model)
+            {
+                <tr>
+                    <td>@exam.ExamId</td>
+                    <td>@exam.Score</td>
+                    <td>@exam.PassFail</td>
+                    <td>@exam.ExaminationDate</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <div class="alert alert-info">
+        No exam results found for this course.
+    </div>
+}

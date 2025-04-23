@@ -1,0 +1,78 @@
+﻿@model Student
+
+@{
+    var courses = ViewBag.courses as List<Course>;
+}
+
+<div class="card mb-4 p-3 shadow-sm border rounded">
+    <h4 class="mb-3">Student Information</h4>
+    <div class="row">
+        <div class="col-md-2">
+            @if (!string.IsNullOrEmpty(Model.User.Img))
+            {
+                <img src="@Model.User.Img" alt="Student Image" class="img-thumbnail" width="100" height="100" />
+            }
+            else
+            {
+                <span class="text-muted">No Image</span>
+            }
+        </div>
+        <div class="col-md-10">
+            <table class="table table-borderless">
+                <tr><th>Id</th><td>@Model.UserId</td></tr>
+                <tr><th>Username</th><td>@Model.User.Username</td></tr>
+                <tr><th>Email</th><td>@Model.User.Email</td></tr>
+                <tr><th>Track</th><td>@Model.Track.TrackName</td></tr>
+            </table>
+        </div>
+    </div>
+</div>
+
+@if (courses != null && courses.Any())
+{
+    <div class="card p-3 shadow-sm border rounded">
+        <h4 class="mb-3">Courses Assigned</h4>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Course name</th>
+                    <th>Name</th>
+                    <th>Duration</th>
+                    <th>description</th>
+                    <th>poster</th>
+                    <th>more</th>
+                    @* <th>Active</th> *@
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var course in courses)
+                {
+                    <tr>
+                        <td>@course.CrsName</td>
+                        <td>@course.CrsName</td>
+                        <td>@course.CrsPeriod</td>
+                        <td>@course.description</td>
+                        <td>@course.Poster</td>
+                        <td>   <a asp-action="courseDetails" asp-route-CrsId="@course.CrsId" asp-route-UserId="@Model.UserId">more details</a>   </td>
+                        @* <td> *@
+                        @*     @if (course.isactive) *@
+                        @*     { *@
+                        @*         <span class="text-success">Active</span> *@
+                        @*     } *@
+                        @*     else *@
+                        @*     { *@
+                        @*         <span class="text-danger">Inactive</span> *@
+                        @*     } *@
+                        @* </td> *@
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+else
+{
+    <div class="alert alert-info mt-3">
+        No courses found for this student under the current instructor.
+    </div>
+}

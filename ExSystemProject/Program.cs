@@ -20,6 +20,7 @@ namespace ExSystemProject
             builder.Services.AddAutoMapper(cfg => {
                 cfg.AddProfile<MappingProfile>();
             });
+            builder.Services.AddAutoMapper(typeof(MmappingProfile));
 
             builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(s =>
             {

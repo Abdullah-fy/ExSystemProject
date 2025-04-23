@@ -1,0 +1,46 @@
+﻿@model MStudentDTO
+
+<form class="form" method="post" asp-action="Edit" asp-controller="Instructor" onsubmit="return true;">
+	@Html.AntiForgeryToken()
+	<div>
+		<input type="hidden" asp-for="@Model.id" />
+		<input type="hidden" asp-for="@Model.UserId" />
+	</div>
+	<div>
+		<label>username</label>
+		<input asp-for="@Model.Username" class="form form-controller" />
+		<span asp-validation-for="@Model.Username"></span>
+	</div>
+	<div>
+		<label>Enrollment Date</label>
+		<input asp-for="@Model.EnrollmentDate" class="form form-controller" />
+		<span asp-validation-for="@Model.EnrollmentDate"></span>
+	</div>
+	<div>
+		<label>Isactive</label>
+		<input asp-for="@Model.Isactive" class="form form-controller"  />
+		<span asp-validation-for="@Model.Isactive"></span>
+	</div><div>
+		<label>Email</label>
+		<input asp-for="@Model.Email" class="form form-controller" />
+		<span asp-validation-for="@Model.Email"></span>
+	</div><div>
+		<label>Gender</label>
+		<input asp-for="@Model.Gender" class="form form-controller" />
+		<span asp-validation-for="@Model.Gender"></span>
+	</div><div>
+		<label>Image</label>
+		<input asp-for="@Model.Image" class="form form-controller" />
+		<span asp-validation-for="@Model.Image"></span>
+	</div><div>
+		<label>TrackName</label>
+		<input asp-for="@Model.TrackName" class="form form-controller" />
+		<span asp-validation-for="@Model.TrackName"></span>
+	</div>
+
+	<input type="submit" class="btn btn-primary" />
+</form>
+
+@section Scripts {
+	<partial name="_ValidationScriptsPartial" />
+}

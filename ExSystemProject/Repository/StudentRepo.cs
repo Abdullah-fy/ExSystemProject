@@ -1,3 +1,9 @@
+﻿using ExSystemProject.Models;
+using ExSystemProject.ViewModels;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Identity.Client;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
 ﻿using ExSystemProject.DTOS;
 using ExSystemProject.Models;
 using Microsoft.EntityFrameworkCore;
@@ -5,16 +11,42 @@ using Microsoft.Data.SqlClient;
 using System.Data;
 using System;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace ExSystemProject.Repository
 {
     public class StudentRepo : GenaricRepo<Student>
     {
-        private readonly ExSystemTestContext _context;
 
-        public StudentRepo(ExSystemTestContext context) : base(context)
+        ExSystemTestContext _context;
+
+        public StudentRepo(ExSystemTestContext context ) : base(context)
         {
-            _context = context;
+            this._context = context;
+         }
+        public Student getByUserId(int userId)
+        {
+            var result = _context.Students.FirstOrDefault(i => i.UserId == userId && i.Isactive == true);
+            return result;
+        }
+
+
+        public void AddNewStudent(StudentViewModel model)
+        {
+            _context.Database.ExecuteSqlRaw(
+            "EXEC sp_CreateStudent @p0, @p1, @p2, @p3, @p4, @p5",
+            model.username, model.Email, model.Gender, model.password, model.TrackId, model.Image);
+        }
+
+        public List<Student> GetStudentByInstructorAndCourse(int instructorId, int courseId)
+        {
+            var students = _context.Students
+                .FromSqlRaw("EXEC GetStudentsByCourseAndInstructor @CourseId, @InstructorId",
+                    new SqlParameter("@CourseId", courseId),
+                    new SqlParameter("@InstructorId", instructorId))
+                .ToList();
+            return students;
         }
 
         public List<Student> GetAllStudents(bool? activeStudents = null)
@@ -456,5 +488,129 @@ namespace ExSystemProject.Repository
                 throw; // Rethrow to allow caller to handle
             }
         }
+
+
+
+        public Student GetStudentByIdBETA(int studentId)
+        {
+            Student student = null;
+
+            using (var command = _context.Database.GetDbConnection().CreateCommand())
+            {
+                command.CommandText = "sp_GetStudentById";
+                command.CommandType = CommandType.StoredProcedure;
+                command.Parameters.Add(new SqlParameter("@student_id", SqlDbType.Int) { Value = studentId });
+
+                try
+                {
+                    _context.Database.OpenConnection();
+
+                    using (var reader = command.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            student = new Student
+                            {
+                                StudentId = reader.GetInt32(reader.GetOrdinal("StudentId")),
+                                TrackId = reader.IsDBNull(reader.GetOrdinal("track_id")) ? null : (int?)reader.GetInt32(reader.GetOrdinal("track_id")),
+                                UserId = reader.GetInt32(reader.GetOrdinal("userId")),
+                                Isactive = reader.GetBoolean(reader.GetOrdinal("isactive")),
+                                User = new User
+                                {
+                                    Username = reader.GetString(reader.GetOrdinal("username")),
+                                    Email = reader.GetString(reader.GetOrdinal("email")),
+                                    Gender = reader.GetString(reader.GetOrdinal("gender")),
+                                    Img = reader.IsDBNull(reader.GetOrdinal("img")) ? null : reader.GetString(reader.GetOrdinal("img"))
+                                },
+                                Track = reader.IsDBNull(reader.GetOrdinal("track_name")) ? null : new Track
+                                {
+                                    TrackName = reader.GetString(reader.GetOrdinal("track_name"))
+                                }
+                            };
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error retrieving student by ID: {ex.Message}");
+                    throw;
+                }
+            }
+
+            return student;
+        }
+
+
+        public Student Getstd(int userid)
+        {
+            var stdd = _context.Students.FirstOrDefault(s => s.UserId == userid);
+            return stdd; 
+        }
+
+
+        // repo to insert into student-course 
+
+        public bool Enrollment(int userid , int crsid)
+        {
+            var student = _context.Students.FirstOrDefault(s => s.UserId == userid);
+          //  var course = _context.Courses.FirstOrDefault(c => c.CrsId == crsid);
+
+            var exists = _context.StudentCourses.Any(s => s.StudentId == student.StudentId && s.CrsId == crsid);
+
+            if (!exists) {
+
+                var stdcrs = new StudentCourse()
+                {
+                    CrsId = crsid,
+                    StudentId = student.StudentId
+                };
+
+                _context.StudentCourses.Add(stdcrs);
+                _context.SaveChanges();
+                return true; 
+
+            }
+            else
+            {
+                return false;
+            }
+
+
+
+
+
+        }
+
+        public bool ISEnroll(int userid , int crsid)
+        {
+            var student = _context.Students.FirstOrDefault(s => s.UserId == userid);
+           bool dd =  _context.StudentCourses.Any(s => s.StudentId == student.StudentId && s.CrsId == crsid);
+
+            if (!dd)
+            {
+                return true; 
+            }
+            return false; 
+        }
+
+
+
+        public IEnumerable<Student> GetStudentByCourseId(int courseId)
+        {
+            return _context.Students
+                .Join(_context.StudentCourses,
+                    s => s.StudentId,
+                    sc => sc.StudentId,
+                    (s, sc) => new { Student = s, StudentCourse = sc })
+                .Where(x => x.StudentCourse.CrsId == courseId
+                    && x.Student.Isactive == true
+                    && x.StudentCourse.Isactive == true)
+                .Select(x => x.Student)
+                .ToList();
+        }
     }
+
+   
+
+
 }

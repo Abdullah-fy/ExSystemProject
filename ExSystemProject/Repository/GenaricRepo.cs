@@ -34,7 +34,13 @@ namespace ExSystemProject.Repository
                 var prop = typeof(TEntity).GetProperty("Isactive");
                 if (prop != null)
                 {
-                    prop.SetValue(x, 0);
+                    prop.SetValue(x, false);
+                    _context.Set<TEntity>().Update(x);
+                }
+                var prop2 = typeof(TEntity).GetProperty("is_active");
+                if (prop2 != null)
+                {
+                    prop2.SetValue(x, false);
                     _context.Set<TEntity>().Update(x);
                 }
             }
