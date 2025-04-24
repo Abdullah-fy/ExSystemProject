@@ -1,16 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace ExSystemProject.Models;
 
 public partial class Course
 {
+    [Display(Name = "Course ID")]
     public int CrsId { get; set; }
+    [Display(Name = "Course Name")]
 
     public string CrsName { get; set; } = null!;
-
+    [Display(Name = "Num Of Days")]
     public int? CrsPeriod { get; set; }
-
     public int? InsId { get; set; }
 
     public string? description { get; set; }

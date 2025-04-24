@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace ExSystemProject.Models;
 
 public partial class StudentCourse
 {
+    [Display(Name = "Course Name")]
     public int CrsId { get; set; }
-
+    [Display(Name ="Student Name")]
     public int StudentId { get; set; }
 
     public int? Grade { get; set; }

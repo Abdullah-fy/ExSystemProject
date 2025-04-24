@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace ExSystemProject.Models;
 
@@ -12,7 +13,7 @@ public partial class Exam
     public DateTime? StartTime { get; set; }
 
     public DateTime? EndTime { get; set; }
-
+    [Display(Name = "course Name")]
     public int? CrsId { get; set; }
 
     public int? InsId { get; set; }

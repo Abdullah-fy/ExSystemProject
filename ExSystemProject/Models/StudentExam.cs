@@ -11,7 +11,7 @@ public partial class StudentExam
 
     public int StudentId { get; set; }
 
-    public int Score { get; set; }
+    public int? Score { get; set; }
 
     public bool? Isactive { get; set; }
 

@@ -1,0 +1,65 @@
+﻿@model InstructorProfileViewModel
+
+@{
+    ViewData["Title"] = "Instructor Profile";
+}
+
+<div class="container mt-5">
+    <h2 class="mb-4">Instructor Profile</h2>
+
+    <div class="card mb-4">
+        <div class="row g-0">
+            <div class="col-md-4 text-center p-4">
+                @if (!string.IsNullOrEmpty(Model.image))
+                {
+                    <img src="@Model.image" class="img-fluid rounded-circle" style="max-width: 200px;" alt="Instructor Image" />
+                }
+                else
+                {
+                    <div class="text-muted">No profile image</div>
+                }
+            </div>
+            <div class="col-md-8">
+                <div class="card-body">
+                    <h4 class="card-title">@Model.userName</h4>
+                    <p class="card-text"><strong>Email:</strong> @Model.email</p>
+                    <p class="card-text"><strong>Salary:</strong> @Model.salary.ToString("C")</p>
+                    <p class="card-text"><strong>Track:</strong> @Model.Tracks?.TrackName ?? "N/A"</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="text-end mb-3">
+        <a asp-action="EditProfile" class="btn btn-outline-primary">Edit Profile</a>
+    </div>
+
+    <h4 class="mb-3">Courses Taught</h4>
+    @if (Model.courses.Any())
+    {
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Course ID</th>
+                        <th>Course Name</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var course in Model.courses)
+                    {
+                        <tr>
+                            <td>@course.CrsId</td>
+                            <td>@course.CrsName</td>
+                            <td>@course.Description</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">No courses assigned yet.</div>
+    }
+</div>

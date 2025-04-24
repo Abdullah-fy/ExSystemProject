@@ -1,30 +1,69 @@
 ﻿@model ExamCreationViewModel
 
-<form asp-action="GenerateExamForTrack" method="post">
-    <div>
-        <label>Course:</label>
-        <select asp-for="SelectedCourseId" asp-items="@(new SelectList(Model.InstructorCourses, "CrsId", "CrsName"))"></select>
-    </div>
+<div class="container mt-4">
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <h4 class="card-title mb-3">Generate Exam for Track</h4>
 
-    <div>
-        <label asp-for="MCQCount"></label>
-        <input asp-for="MCQCount" type="number" />
-    </div>
+            <form asp-action="GenerateExamForTrack" method="post">
+                <div class="mb-3">
+                    <label asp-for="SelectedCourseId" class="form-label">Course</label>
+                    <select asp-for="SelectedCourseId" asp-items="@(new SelectList(Model.InstructorCourses, "CrsId", "CrsName"))" class="form-select"></select>
+                </div>
 
-    <div>
-        <label asp-for="TFCount"></label>
-        <input asp-for="TFCount" type="number" />
-    </div>
+                <div class="mb-3">
+                    <label asp-for="MCQCount" class="form-label"></label>
+                    <input asp-for="MCQCount" type="number" class="form-control" />
+                </div>
 
-    <div>
-        <label asp-for="StartTime"></label>
-        <input asp-for="StartTime" type="datetime-local" />
-    </div>
+                <div class="mb-3">
+                    <label asp-for="TFCount" class="form-label"></label>
+                    <input asp-for="TFCount" type="number" class="form-control" />
+                </div>
 
-    <div>
-        <label asp-for="EndTime"></label>
-        <input asp-for="EndTime" type="datetime-local" />
-    </div>
+                <div class="mb-3">
+                    <label asp-for="StartTime" class="form-label"></label>
+                    <input asp-for="StartTime" type="datetime-local" class="form-control" />
+                </div>
 
-    <button type="submit">Generate Exam</button>
-</form>
+                <div class="mb-3">
+                    <label asp-for="EndTime" class="form-label"></label>
+                    <input asp-for="EndTime" type="datetime-local" class="form-control" />
+                </div>
+
+                <button type="submit" class="btn btn-primary">Generate Exam</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@* @model ExamCreationViewModel *@
+
+@* <form asp-action="GenerateExamForTrack" method="post"> *@
+@*     <div> *@
+@*         <label>Course:</label> *@
+@*         <select asp-for="SelectedCourseId" asp-items="@(new SelectList(Model.InstructorCourses, "CrsId", "CrsName"))"></select> *@
+@*     </div> *@
+
+@*     <div> *@
+@*         <label asp-for="MCQCount"></label> *@
+@*         <input asp-for="MCQCount" type="number" /> *@
+@*     </div> *@
+
+@*     <div> *@
+@*         <label asp-for="TFCount"></label> *@
+@*         <input asp-for="TFCount" type="number" /> *@
+@*     </div> *@
+
+@*     <div> *@
+@*         <label asp-for="StartTime"></label> *@
+@*         <input asp-for="StartTime" type="datetime-local" /> *@
+@*     </div> *@
+
+@*     <div> *@
+@*         <label asp-for="EndTime"></label> *@
+@*         <input asp-for="EndTime" type="datetime-local" /> *@
+@*     </div> *@
+
+@*     <button type="submit">Generate Exam</button> *@
+@* </form> *@

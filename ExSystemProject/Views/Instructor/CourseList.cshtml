@@ -1,60 +1,59 @@
 ﻿@model IEnumerable<ExSystemProject.Models.Course>
 
 @{
-    ViewData["Title"] = "CourseList";
+    ViewData["Title"] = "Course List";
 }
 
-<h1>CourseList</h1>
+<div class="container mt-4">
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <h4 class="card-title mb-3">Available Courses</h4>
 
-<p>
-    @* <a asp-action="Create">Create New</a> *@
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.CrsId)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.CrsName)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.CrsPeriod)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.InsId)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Isactive)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.CrsId)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.CrsName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.CrsPeriod)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.InsId)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Isactive)
-            </td>
-            <td>
-                @* @Html.ActionLink("Edit", "Edit", new { /* id=item.PrimaryKey */ }) | *@
-                @* @Html.ActionLink("Details", "Details", new { /* id=item.PrimaryKey */ }) | *@
-                @* @Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ }) *@
-                    <a asp-route-crsId="@item.CrsId" asp-action="CourseStudentDetails"> More </a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+            @* Optional: Create button if needed *@
+            @* <a asp-action="Create" class="btn btn-primary mb-3">Create New Course</a> *@
+
+            <div class="table-responsive">
+                <table class="table table-striped table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>@Html.DisplayNameFor(model => model.First().CrsId)</th>
+                            <th>@Html.DisplayNameFor(model => model.First().CrsName)</th>
+                            <th>@Html.DisplayNameFor(model => model.First().CrsPeriod)</th>
+                           @*<th>@Html.DisplayNameFor(model => model.First().InsId)</th>
+                            <th>@Html.DisplayNameFor(model => model.First().Isactive)</th>*@ 
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@item.CrsId</td>
+                                <td>@item.CrsName</td>
+                                <td>@item.CrsPeriod</td>
+                                @* <td>@item.InsId</td> *@
+                                @*<td>*@
+                                    @* @if (item?.Isactive) *@
+                                    @* { *@
+                                    @*     <span class="badge bg-success">Active</span> *@
+                                    @* } *@
+                                    @* else *@
+                                    @* { *@
+                                    @*     <span class="badge bg-danger">Inactive</span> *@
+                                    @* } *@
+                                @*</td>*@ 
+                                <td>
+                                    <a asp-action="CourseStudentDetails" asp-route-crsId="@item.CrsId" class="btn btn-sm btn-outline-primary">
+                                        More
+                                    </a>
+                                    @* Additional actions can be added here *@
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+

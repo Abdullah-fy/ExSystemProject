@@ -4,12 +4,14 @@ using ExSystemProject.DTOS;
 using ExSystemProject.Models;
 using ExSystemProject.UnitOfWorks;
 using ExSystemProject.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.OutputCaching;
 
 namespace ExSystemProject.Controllers
 {
+    [Authorize(Roles = "instructor")]
     public class InstructorController : Controller
     {
         private UnitOfWork unit;
@@ -175,7 +177,7 @@ namespace ExSystemProject.Controllers
             return View(st);
         }
         
-              public IActionResult studentCourses(int userId)
+        public IActionResult studentCourses(int userId)
             {
                 
                 var student = unit.studentRepo.getByUserId(userId);
@@ -369,6 +371,106 @@ namespace ExSystemProject.Controllers
                 ModelState.AddModelError("", "An error occurred while generating the exam: " + ex.Message);
                 return View(model);
             }
+        }
+
+        [HttpGet]
+        public IActionResult ShowAllStudentTookTheExam(int examId)
+        {
+            if (examId <= 0)
+            {
+                return BadRequest("Invalid Exam ID");
+            }
+
+            var studentExams = unit.studentExamRepo.getActiveById(examId);
+            if (studentExams == null)
+            {
+                studentExams = new List<StudentExam>();
+            }
+
+            return View(studentExams);
+        }
+
+
+        [HttpGet]
+        public IActionResult profile()
+        {
+            var userClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            var userId = int.Parse(userClaim.Value);
+            var user = unit.userRepo.getById(userId);
+            var instructor = unit.instructorRepo.getByUserId(userId);
+            var courses = instructor?.Courses.ToList() ?? new List<Course>();
+
+            var insProfile = new InstructorProfileViewModel
+            {
+                userName = user.Username,
+                email = user.Email,
+                image = user.Img,
+                salary =  instructor?.Salary ?? 0,
+                trackId = instructor.TrackId ?? 0,
+                Tracks = instructor.Track,
+                courses = courses,
+            };
+
+            return View(insProfile);
+        }
+        [HttpGet]
+        public IActionResult EditProfile()
+        {
+            var userClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            var userId = int.Parse(userClaim.Value);
+            var user = unit.userRepo.getById(userId);
+            var instructor = unit.instructorRepo.getByUserId(userId);
+
+            var viewModel = new InstructorProfileViewModel
+            {
+                userName = user.Username,
+                email = user.Email,
+                image = user.Img,
+                salary = instructor?.Salary ?? 0,
+                trackId = instructor?.TrackId ?? 0,
+                Tracks = instructor?.Track
+            };
+
+            return View(viewModel);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult EditProfile(InstructorProfileViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var userClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            var userId = int.Parse(userClaim.Value);
+            var user = unit.userRepo.getById(userId);
+            var instructor = unit.instructorRepo.getByUserId(userId);
+
+            if (user == null || instructor == null)
+                return NotFound();
+
+            user.Username = model.userName;
+            user.Email = model.email;
+
+            if (model.imageFile != null)
+            {
+                 var fileName = $"{Guid.NewGuid()}_{model.imageFile.FileName}";
+                var path = Path.Combine("wwwroot/images", fileName);
+                using var stream = new FileStream(path, FileMode.Create);
+                model.imageFile.CopyTo(stream);
+                user.Img = "/images/" + fileName;
+            }
+
+            instructor.Salary = model.salary;
+            instructor.TrackId = model.trackId;
+
+            unit.userRepo.update(user);
+            unit.instructorRepo.update(instructor);
+            unit.save();
+
+            return RedirectToAction("Profile");
         }
 
     }
