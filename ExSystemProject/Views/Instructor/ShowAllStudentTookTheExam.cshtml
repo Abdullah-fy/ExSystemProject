@@ -45,13 +45,17 @@
                                         @* } *@
                                     @* </td> *@
                                     <td>
-                                        @if (item.PassFail == "true" || item.PassFail == "True")
+                                        @if (string.Equals(item.PassFail, "true", StringComparison.OrdinalIgnoreCase))
                                         {
-                                            <span class="badge bg-primary">Passed</span>
+                                            <span class="badge bg-success">Passed</span>
+                                        }
+                                        else if (string.Equals(item.PassFail, "false", StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            <span class="badge bg-danger">Failed</span>
                                         }
                                         else
                                         {
-                                            <span class="badge bg-warning text-dark">Failed</span>
+                                            <span class="badge bg-secondary">Unknown</span>
                                         }
                                     </td>
                                     @* <td> *@

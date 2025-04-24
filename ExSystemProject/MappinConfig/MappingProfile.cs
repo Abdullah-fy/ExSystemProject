@@ -16,13 +16,19 @@ namespace ExSystemProject.MappinConfig
             CreateMap<DateOnly?, DateTime?>().ConvertUsing((src, dest) => src.HasValue ? src.Value.ToDateTime(TimeOnly.MinValue) : null);
             CreateMap<DateTime?, DateOnly?>().ConvertUsing((src, dest) => src.HasValue ? DateOnly.FromDateTime(src.Value) : null);
 
-            // Course mappings - preserving existing mapping
+            // Course mappings - explicit mapping for description property
+            
             CreateMap<Course, CourseDTO>()
                 .ForMember(dest => dest.InstructorName,
                     opt => opt.MapFrom(src => src.Ins != null && src.Ins.User != null ?
-                        src.Ins.User.Username : null));
+                        src.Ins.User.Username : null))
+                .ForMember(dest => dest.Description,
+                    opt => opt.MapFrom(src => src.description));
 
-            CreateMap<CourseDTO, Course>();
+            CreateMap<CourseDTO, Course>()
+                .ForMember(dest => dest.description,
+                    opt => opt.MapFrom(src => src.Description));
+
 
             // Question and Choice mappings - preserving existing mapping
             CreateMap<Question, QuestionBankDTO>()
