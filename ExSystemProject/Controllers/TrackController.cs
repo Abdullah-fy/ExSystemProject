@@ -1,19 +1,25 @@
 ﻿using ExSystemProject.Models;
 using ExSystemProject.UnitOfWorks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Claims;
 
 namespace ExSystemProject.Controllers
 {
-    public class TrackController : Controller
+    [Authorize(Roles = "superadmin")]
+    public class TrackController : SuperAdminBaseController
     {
-        UnitOfWork unit;
-        public TrackController(UnitOfWork _unit)
-        {
-            this.unit = _unit;
-        }
+        public TrackController(UnitOfWork unitOfWork) : base(unitOfWork) { }
+
         public IActionResult Index(int page = 1)
         {
-            var tracks = unit.trackRepo.GetAllWithBranch();
+            // Get current user ID using the base controller method
+            var userId = GetCurrentUserId();
+
+            var tracks = _unitOfWork.trackRepo.GetAllWithBranch();
             int pageSize = 6;
 
             var Branches = tracks.Skip((page - 1) * pageSize).Take(pageSize).ToList();
@@ -26,31 +32,41 @@ namespace ExSystemProject.Controllers
         [HttpGet]
         public IActionResult Create()
         {
-            List<Branch> branches = unit.branchRepo.getAll();
+            // Get current user ID using the base controller method
+            var userId = GetCurrentUserId();
+
+            List<Branch> branches = _unitOfWork.branchRepo.getAll();
             ViewBag.Branches = branches;
             return View();
         }
+
         [HttpPost]
         public IActionResult Create(Track track)
         {
+            // Get current user ID using the base controller method
+            var userId = GetCurrentUserId();
+
             if (ModelState.IsValid)
             {
-                if(track.BranchId == 0)
+                if (track.BranchId == 0)
                 {
-                    ViewBag.Branches = unit.branchRepo.getAll();
+                    ViewBag.Branches = _unitOfWork.branchRepo.getAll();
                     return View();
                 }
-                unit.trackRepo.add(track);
-                unit.save();
+                _unitOfWork.trackRepo.add(track);
+                _unitOfWork.save();
                 return RedirectToAction("Index", "Branch");
             }
-            ViewBag.Branches = unit.branchRepo.getAll();
+            ViewBag.Branches = _unitOfWork.branchRepo.getAll();
             return View();
         }
 
         [HttpGet]
         public IActionResult Delete(int id)
         {
+            // Get current user ID using the base controller method
+            var userId = GetCurrentUserId();
+
             if (id == null) return BadRequest();
             ViewBag.id = id;
             return View();
@@ -58,21 +74,26 @@ namespace ExSystemProject.Controllers
 
         public IActionResult ConfirmDelete(int id)
         {
-            if (id == null) return BadRequest();
-            unit.trackRepo.delete(id);
-            unit.save();
-            return RedirectToAction("Details", "Branch", new {id = ViewBag.BranchId});
-        }
+            // Get current user ID using the base controller method
+            var userId = GetCurrentUserId();
 
+            if (id == null) return BadRequest();
+            _unitOfWork.trackRepo.delete(id);
+            _unitOfWork.save();
+            return RedirectToAction("Details", "Branch", new { id = ViewBag.BranchId });
+        }
 
         [HttpGet]
         public IActionResult Edit(int id)
         {
+            // Get current user ID using the base controller method
+            var userId = GetCurrentUserId();
+
             if (id == null) return BadRequest();
-            Track track = unit.trackRepo.getById(id);
+            Track track = _unitOfWork.trackRepo.getById(id);
             if (track == null) return NotFound();
 
-            ViewBag.Branches = unit.branchRepo.getAll();
+            ViewBag.Branches = _unitOfWork.branchRepo.getAll();
 
             return View(track);
         }
@@ -80,17 +101,17 @@ namespace ExSystemProject.Controllers
         [HttpPost]
         public IActionResult Edit(Track track)
         {
+            // Get current user ID using the base controller method
+            var userId = GetCurrentUserId();
 
             if (ModelState.IsValid)
             {
-                unit.trackRepo.update(track);
-                unit.save();
+                _unitOfWork.trackRepo.update(track);
+                _unitOfWork.save();
                 return RedirectToAction("Index", "Branch");
             }
 
             return View(track);
         }
-
-
     }
 }

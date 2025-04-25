@@ -1,144 +1,127 @@
-﻿@model List<ExSystemProject.DTOS.InstructorDTO>
+﻿@model IEnumerable<ExSystemProject.DTOS.InstructorDTO>
 @{
-    ViewData["Title"] = "Instructors";
+    ViewData["Title"] = "Instructor Management";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<div class="container-fluid">
-    <h2>Instructors Management</h2>
-
+<div class="container-fluid px-4">
     <div class="card mb-4">
-        <div class="card-header">
-            <i class="bi bi-filter me-1"></i>
-            Filters
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-people-fill me-2"></i>Instructor Management</h5>
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="bi bi-plus-lg"></i> Add New Instructor
+            </a>
         </div>
+        
         <div class="card-body">
-            <form id="filterForm" method="get" class="row g-3">
-                <div class="col-md-3">
-                    <label for="branchId" class="form-label">Branch</label>
-                    <select id="branchId" name="branchId" class="form-select" onchange="this.form.submit()">
-                        <option value="">All Branches</option>
-                        @foreach (var branch in ViewBag.Branches)
-                        {
-                            if (ViewBag.SelectedBranch != null && ViewBag.SelectedBranch.ToString() == branch.Value)
-                            {
-                                <option value="@branch.Value" selected>@branch.Text</option>
-                            }
-                            else
-                            {
-                                <option value="@branch.Value">@branch.Text</option>
-                            }
-                        }
-                    </select>
+            @if (TempData["GeneratedPassword"] != null)
+            {
+                <div class="alert alert-info alert-dismissible fade show" role="alert">
+                    <h5 class="alert-heading">Instructor Created Successfully</h5>
+                    <p>Please securely share the following temporary password with the instructor:</p>
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" id="passwordDisplay" value="@TempData["GeneratedPassword"]" readonly>
+                        <button class="btn btn-outline-secondary copy-btn" type="button" onclick="copyPassword()">
+                            <i class="bi bi-clipboard"></i> Copy
+                        </button>
+                    </div>
+                    <p class="mb-0">The instructor will be required to change this password on first login.</p>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
-                <div class="col-md-3">
-                    <label for="trackId" class="form-label">Track</label>
-                    <select id="trackId" name="trackId" class="form-select" onchange="this.form.submit()">
-                        <option value="">All Tracks</option>
-                        @if (ViewBag.Tracks != null)
-                        {
-                            foreach (var track in ViewBag.Tracks)
-                            {
-                                if (ViewBag.SelectedTrack != null && ViewBag.SelectedTrack.ToString() == track.Value)
+            }
+            
+            <div class="row mb-4">
+                <div class="col-12">
+                    <form asp-action="Index" method="get" class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Branch</label>
+                            <select name="branchId" class="form-select" id="branchFilter" onchange="loadTracksByBranch()">
+                                <option value="">-- All Branches --</option>
+                                @foreach (var branch in ViewBag.Branches)
                                 {
-                                    <option value="@track.Value" selected>@track.Text</option>
+                                    @if (ViewBag.SelectedBranch != null && int.Parse(branch.Value) == ViewBag.SelectedBranch)
+                                    {
+                                        <option value="@branch.Value" selected>@branch.Text</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@branch.Value">@branch.Text</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <label class="form-label">Track</label>
+                            <select name="trackId" class="form-select" id="trackFilter">
+                                <option value="">-- All Tracks --</option>
+                                @if (ViewBag.Tracks != null)
+                                {
+                                    foreach (var track in ViewBag.Tracks)
+                                    {
+                                        @if (ViewBag.SelectedTrack != null && int.Parse(track.Value) == ViewBag.SelectedTrack)
+                                        {
+                                            <option value="@track.Value" selected>@track.Text</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@track.Value">@track.Text</option>
+                                        }
+                                    }
+                                }
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <label class="form-label">Status</label>
+                            <select name="activeOnly" class="form-select">
+                                @if (ViewBag.ActiveOnly == true)
+                                {
+                                    <option value="true" selected="selected">Active Only</option>
                                 }
                                 else
                                 {
-                                    <option value="@track.Value">@track.Text</option>
+                                    <option value="true">Active Only</option>
                                 }
-                            }
-                        }
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label for="searchString" class="form-label">Search</label>
-                    <div class="input-group">
-                        <input type="text" id="searchString" name="searchString" class="form-control" value="@ViewBag.SearchString" placeholder="Name, Email, Track...">
-                        <button class="btn btn-outline-secondary" type="submit">
-                            <i class="bi bi-search"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <label for="activeOnly" class="form-label">Status</label>
-                    <select id="activeOnly" name="activeOnly" class="form-select" onchange="this.form.submit()">
-                        @if (ViewBag.ActiveOnly == null || (bool)ViewBag.ActiveOnly)
-                        {
-                            <option value="true" selected>Active Only</option>
-                        }
-                        else
-                        {
-                            <option value="true">Active Only</option>
-                        }
 
-                        @if (ViewBag.ActiveOnly != null && !(bool)ViewBag.ActiveOnly)
-                        {
-                            <option value="false" selected>Inactive Only</option>
-                        }
-                        else
-                        {
-                            <option value="false">Inactive Only</option>
-                        }
+                                @if (ViewBag.ActiveOnly == false)
+                                {
+                                    <option value="false" selected="selected">Inactive Only</option>
+                                }
+                                else
+                                {
+                                    <option value="false">Inactive Only</option>
+                                }
 
-                        @if (ViewBag.ActiveOnly == null)
-                        {
-                            <option value="" selected>All</option>
-                        }
-                        else
-                        {
-                            <option value="">All</option>
-                        }
-                    </select>
+                                @if (ViewBag.ActiveOnly == null)
+                                {
+                                    <option value="" selected="selected">All</option>
+                                }
+                                else
+                                {
+                                    <option value="">All</option>
+                                }
+
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <label class="form-label">Search</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" name="searchString" value="@ViewBag.SearchString" placeholder="Search name, email...">
+                                <button class="btn btn-primary" type="submit">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
                 </div>
-            </form>
-        </div>
-    </div>
-
-    @if (ViewBag.SelectedBranch != null || ViewBag.SelectedTrack != null || !string.IsNullOrEmpty(ViewBag.SearchString))
-    {
-        <div class="alert alert-info mb-3">
-            @if (ViewBag.SelectedBranch != null)
-            {
-                <div>
-                    <i class="bi bi-filter"></i> Filtered by Branch
-                    <a asp-action="Index" class="float-end">Clear Filter</a>
-                </div>
-            }
-
-            @if (ViewBag.SelectedTrack != null)
-            {
-                <div>
-                    <i class="bi bi-filter"></i> Filtered by Track
-                    <a asp-action="Index" class="float-end">Clear Filter</a>
-                </div>
-            }
-
-            @if (!string.IsNullOrEmpty(ViewBag.SearchString))
-            {
-                <div>
-                    <i class="bi bi-search"></i> Search: "@ViewBag.SearchString"
-                    <a asp-action="Index" class="float-end">Clear Filter</a>
-                </div>
-            }
-        </div>
-    }
-
-    <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <div>
-                <i class="bi bi-table me-1"></i>
-                Instructors List
             </div>
-            <a href="@Url.Action("Create", "AdminInstructor")" class="btn btn-success">
-                <i class="bi bi-plus"></i> Add New Instructor
-            </a>
-        </div>
-        <div class="card-body">
+
             @if (TempData["SuccessMessage"] != null)
             {
                 <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
+                    <i class="bi bi-check-circle me-2"></i> @TempData["SuccessMessage"]
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             }
@@ -146,22 +129,24 @@
             @if (TempData["ErrorMessage"] != null)
             {
                 <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["ErrorMessage"]
+                    <i class="bi bi-exclamation-triangle me-2"></i> @TempData["ErrorMessage"]
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             }
 
-            @if (Model != null && Model.Any())
+            @if (Model.Any())
             {
                 <div class="table-responsive">
-                    <table id="instructorsTable" class="table table-striped table-hover">
+                    <table class="table table-striped table-hover">
                         <thead>
                             <tr>
+                                <th>ID</th>
                                 <th>Name</th>
                                 <th>Email</th>
                                 <th>Gender</th>
-                                <th>Track</th>
                                 <th>Branch</th>
+                                <th>Track</th>
+                                <th>Salary</th>
                                 <th>Status</th>
                                 <th>Actions</th>
                             </tr>
@@ -170,11 +155,13 @@
                             @foreach (var instructor in Model)
                             {
                                 <tr>
+                                    <td>@instructor.InsId</td>
                                     <td>@instructor.Username</td>
                                     <td>@instructor.Email</td>
                                     <td>@(instructor.Gender == "M" ? "Male" : "Female")</td>
-                                    <td>@instructor.TrackName</td>
-                                    <td>@instructor.BranchName</td>
+                                    <td>@(string.IsNullOrEmpty(instructor.BranchName) ? "Not Assigned" : instructor.BranchName)</td>
+                                    <td>@(string.IsNullOrEmpty(instructor.TrackName) ? "Not Assigned" : instructor.TrackName)</td>
+                                    <td>@instructor.Salary?.ToString("C")</td>
                                     <td>
                                         @if (instructor.Isactive == true)
                                         {
@@ -186,18 +173,18 @@
                                         }
                                     </td>
                                     <td>
-                                        <div class="btn-group">
-                                            <a href="@Url.Action("Details", "AdminInstructor", new { id = instructor.InsId })" class="btn btn-info btn-sm">
-                                                <i class="bi bi-info-circle"></i>
-                                            </a>
-                                            <a href="@Url.Action("Edit", "AdminInstructor", new { id = instructor.InsId })" class="btn btn-warning btn-sm">
+                                        <div class="btn-group" role="group">
+                                            <a asp-action="Edit" asp-route-id="@instructor.InsId" class="btn btn-sm btn-outline-primary">
                                                 <i class="bi bi-pencil"></i>
                                             </a>
-                                            <a href="@Url.Action("Courses", "AdminInstructor", new { id = instructor.InsId })" class="btn btn-primary btn-sm">
-                                                <i class="bi bi-book"></i>
+                                            <a asp-action="Details" asp-route-id="@instructor.InsId" class="btn btn-sm btn-outline-info">
+                                                <i class="bi bi-info-circle"></i>
                                             </a>
-                                            <a href="@Url.Action("Delete", "AdminInstructor", new { id = instructor.InsId })" class="btn btn-danger btn-sm">
+                                            <a asp-action="Delete" asp-route-id="@instructor.InsId" class="btn btn-sm btn-outline-danger">
                                                 <i class="bi bi-trash"></i>
+                                            </a>
+                                            <a asp-action="Courses" asp-route-id="@instructor.InsId" class="btn btn-sm btn-outline-secondary">
+                                                <i class="bi bi-journal-text"></i>
                                             </a>
                                         </div>
                                     </td>
@@ -210,8 +197,8 @@
             else
             {
                 <div class="alert alert-info">
-                    <h5 class="alert-heading">No instructors found</h5>
-                    <p>There are no instructors matching your filter criteria. Try adjusting your filters or <a href="@Url.Action("Create", "AdminInstructor")">add a new instructor</a>.</p>
+                    <h5 class="alert-heading">No instructors found!</h5>
+                    <p>There are no instructors matching your criteria. Click the "Add New Instructor" button to create one.</p>
                 </div>
             }
         </div>
@@ -220,49 +207,72 @@
 
 @section Scripts {
     <script>
-        $(document).ready(function() {
-            // Initialize DataTable with modified options
-            if ($('#instructorsTable tbody tr').length > 0) {
-                $('#instructorsTable').DataTable({
-                    responsive: true,
-                    // Disable searching since we have custom search
-                    searching: false,
-                    // Let server handle pagination
-                    paging: true
-                });
-            }
-
-            // Branch change handler to update tracks dropdown
-            $('#branchId').change(function() {
-                var branchId = $(this).val();
-                if (branchId) {
-                    $.getJSON('@Url.Action("GetTracksByBranch", "AdminInstructor")', { branchId: branchId }, function(data) {
-                        var trackSelect = $('#trackId');
-                        trackSelect.empty();
-                        trackSelect.append($('<option>').val('').text('All Tracks'));
-                        $.each(data, function(index, item) {
-                            trackSelect.append(
-                                $('<option>').val(item.value).text(item.text)
-                            );
+        function loadTracksByBranch() {
+            var branchId = document.getElementById('branchFilter').value;
+            var trackDropdown = document.getElementById('trackFilter');
+            
+            // Clear current options
+            trackDropdown.innerHTML = '<option value="">-- All Tracks --</option>';
+            
+            if (branchId) {
+                // Show loading indicator
+                trackDropdown.disabled = true;
+                
+                fetch(`/AdminInstructor/GetTracksByBranch?branchId=${branchId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        data.forEach(track => {
+                            let option = document.createElement('option');
+                            option.value = track.value;
+                            option.textContent = track.text;
+                            trackDropdown.appendChild(option);
                         });
-                        // Submit form after populating tracks
-                        $('#filterForm').submit();
+                        
+                        trackDropdown.disabled = false;
+                        
+                        // Auto-submit the form
+                        document.querySelector('form').submit();
+                    })
+                    .catch(error => {
+                        console.error('Error loading tracks:', error);
+                        trackDropdown.disabled = false;
                     });
-                } else {
-                    $('#trackId').empty().append($('<option>').val('').text('All Tracks'));
-                    // Submit the form immediately
-                    $('#filterForm').submit();
-                }
-                return false; // Prevent double submission
-            });
+            } else {
+                // Auto-submit the form
+                document.querySelector('form').submit();
+            }
+        }
+        
+        function copyPassword() {
+            var passwordField = document.getElementById("passwordDisplay");
+            passwordField.select();
+            document.execCommand("copy");
+            
+            var copyBtn = document.querySelector(".copy-btn");
+            var originalHtml = copyBtn.innerHTML;
+            copyBtn.innerHTML = '<i class="bi bi-check-circle"></i> Copied!';
+            
+            setTimeout(function() {
+                copyBtn.innerHTML = originalHtml;
+            }, 2000);
+        }
+        
+        $(document).ready(function() {
+            @if (TempData["SuccessMessage"] != null && TempData["GeneratedPassword"] == null)
+            {
+                <text>
+                    var tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = "@TempData["SuccessMessage"]";
+                    var decodedMessage = tempDiv.textContent;
 
-            // Handle Enter key in search box
-            $('#searchString').keypress(function(e) {
-                if(e.which === 13) { // Enter key
-                    e.preventDefault();
-                    $('#filterForm').submit();
-                }
-            });
+                    Swal.fire({
+                        title: "Success!",
+                        text: decodedMessage,
+                        icon: "success",
+                        confirmButtonColor: "#0d6efd"
+                    });
+                </text>
+            }
         });
     </script>
 }

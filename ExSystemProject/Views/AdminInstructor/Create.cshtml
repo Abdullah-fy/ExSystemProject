@@ -27,11 +27,6 @@
                     }
 
                     <form method="post">
-                        <!-- Hidden fields for required model properties -->
-                        <input type="hidden" name="TrackName" value="Selected Track" />
-                        <input type="hidden" name="BranchName" value="Selected Branch" />
-                        <input type="hidden" name="ImageUrl" value="default.jpg" />
-
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <!-- Username field -->
@@ -39,7 +34,7 @@
                                     <label for="Username" class="form-label">Username <span class="text-danger">*</span></label>
                                     <div class="input-group">
                                         <span class="input-group-text"><i class="bi bi-person"></i></span>
-                                        <input type="text" id="Username" name="Username" class="form-control" placeholder="Enter username" required />
+                                        <input type="text" id="Username" name="Username" class="form-control" placeholder="Enter username" value="" required />
                                     </div>
                                 </div>
                             </div>
@@ -49,7 +44,7 @@
                                     <label for="Email" class="form-label">Email <span class="text-danger">*</span></label>
                                     <div class="input-group">
                                         <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-                                        <input type="email" id="Email" name="Email" class="form-control" placeholder="example@domain.com" required />
+                                        <input type="email" id="Email" name="Email" class="form-control" placeholder="example@domain.com" value="" required />
                                     </div>
                                 </div>
                             </div>
@@ -76,13 +71,13 @@
                                     <label for="Salary" class="form-label">Salary <span class="text-danger">*</span></label>
                                     <div class="input-group">
                                         <span class="input-group-text"><i class="bi bi-cash"></i></span>
-                                        <input type="number" id="Salary" name="Salary" class="form-control" step="0.01" min="0" placeholder="Enter salary amount" required />
+                                        <input type="number" id="Salary" name="Salary" class="form-control" step="0.01" min="0" placeholder="Enter salary amount" value="" required />
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="row mb-4">
+                        <div class="row mb-3">
                             <div class="col-md-6">
                                 <!-- Branch field -->
                                 <div class="form-group mb-3">
@@ -113,6 +108,23 @@
                             </div>
                         </div>
 
+                        <!-- Password field -->
+                        <div class="row mb-4">
+                            <div class="col-md-12">
+                                <div class="form-group mb-3">
+                                    <label for="Password" class="form-label">Password <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                                        <input type="password" id="Password" name="Password" class="form-control" placeholder="Enter password" required />
+                                        <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                    </div>
+                                    <div class="form-text">Password must be at least 6 characters long.</div>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Submit buttons -->
                         <div class="d-grid gap-2 d-md-flex justify-content-md-between mt-4">
                             <a asp-action="Index" class="btn btn-outline-secondary">
@@ -132,86 +144,82 @@
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        $(document).ready(function() {
-            // When branch changes, load tracks
-            $('#BranchId').change(function() {
-                var branchId = $(this).val();
-                var branchText = $(this).find("option:selected").text();
-                var trackDropdown = $('#TrackId');
+        document.addEventListener('DOMContentLoaded', function() {
+            // Password toggle visibility
+            const togglePassword = document.getElementById('togglePassword');
+            const passwordInput = document.getElementById('Password');
 
-                // Update hidden field
-                $('input[name="BranchName"]').val(branchText);
+            togglePassword.addEventListener('click', function() {
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
+                this.querySelector('i').className = type === 'password' ? 'bi bi-eye' : 'bi bi-eye-slash';
+            });
 
-                trackDropdown.empty();
+            // Branch-Track dependency
+            document.getElementById('BranchId').addEventListener('change', function() {
+                const branchId = this.value;
+                const trackDropdown = document.getElementById('TrackId');
+
+                trackDropdown.innerHTML = '<option value="">-- Loading Tracks... --</option>';
+                trackDropdown.disabled = true;
 
                 if (!branchId) {
-                    trackDropdown.append('<option value="">-- First Select Branch --</option>');
+                    trackDropdown.innerHTML = '<option value="">-- First Select Branch --</option>';
+                    trackDropdown.disabled = false;
                     return;
                 }
 
-                // Show loading state with elegant spinner
-                trackDropdown.append('<option value="">-- Loading Tracks... --</option>');
-                trackDropdown.prop('disabled', true);
-
-                // Fetch tracks from server
-                $.ajax({
-                    url: '/AdminInstructor/GetTracksByBranch',
-                    type: 'GET',
-                    data: { branchId: branchId },
-                    dataType: 'json',
-                    success: function(data) {
-                        trackDropdown.empty();
-                        trackDropdown.append('<option value="">-- Select Track --</option>');
+                fetch('/AdminInstructor/GetTracksByBranch?branchId=' + branchId)
+                    .then(response => response.json())
+                    .then(data => {
+                        trackDropdown.innerHTML = '<option value="">-- Select Track --</option>';
 
                         if (data && data.length > 0) {
-                            $.each(data, function(i, track) {
-                                trackDropdown.append(
-                                    $('<option></option>')
-                                        .val(track.value || track.trackId)
-                                        .text(track.text || track.trackName)
-                                );
+                            data.forEach(track => {
+                                const option = document.createElement('option');
+                                option.value = track.value;
+                                option.textContent = track.text;
+                                trackDropdown.appendChild(option);
                             });
                         } else {
-                            trackDropdown.append('<option value="">-- No tracks available --</option>');
+                            trackDropdown.innerHTML = '<option value="">-- No tracks available --</option>';
                         }
 
-                        trackDropdown.prop('disabled', false);
-                    },
-                    error: function(xhr, status, error) {
+                        trackDropdown.disabled = false;
+                    })
+                    .catch(error => {
                         console.error('Error loading tracks:', error);
-                        trackDropdown.empty();
-                        trackDropdown.append('<option value="">-- Error loading tracks --</option>');
-                        trackDropdown.prop('disabled', false);
-
-                        // Show error notification using SweetAlert
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Failed to load tracks',
-                            text: 'Please try refreshing the page or selecting a different branch',
-                            confirmButtonColor: '#a41e22'
-                        });
-                    }
-                });
+                        trackDropdown.innerHTML = '<option value="">-- Error loading tracks --</option>';
+                        trackDropdown.disabled = false;
+                    });
             });
 
-            // When track changes, update hidden field
-            $('#TrackId').change(function() {
-                var trackText = $(this).find("option:selected").text();
-                $('input[name="TrackName"]').val(trackText);
-            });
+            // Form submission validation
+            document.querySelector('form').addEventListener('submit', function(e) {
+                const username = document.getElementById('Username').value;
+                const email = document.getElementById('Email').value;
+                const gender = document.getElementById('Gender').value;
+                const salary = document.getElementById('Salary').value;
+                const trackId = document.getElementById('TrackId').value;
+                const password = document.getElementById('Password').value;
 
-            // Form submission with loading indicator
-            $('form').submit(function() {
-                // Check if the form is valid before showing the loader
-                if (this.checkValidity()) {
+                if (!username || !email || !gender || !salary || !trackId || !password) {
+                    e.preventDefault();
                     Swal.fire({
-                        title: 'Creating instructor...',
-                        html: 'Please wait while we process your request',
-                        allowOutsideClick: false,
-                        didOpen: () => {
-                            Swal.showLoading();
-                        },
-                        showConfirmButton: false
+                        icon: 'error',
+                        title: 'Validation Error',
+                        text: 'Please fill in all required fields',
+                        confirmButtonColor: '#a41e22'
+                    });
+                }
+
+                if (password.length < 6) {
+                    e.preventDefault();
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Password Too Short',
+                        text: 'Password must be at least 6 characters long',
+                        confirmButtonColor: '#a41e22'
                     });
                 }
             });

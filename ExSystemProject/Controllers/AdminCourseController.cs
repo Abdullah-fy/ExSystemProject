@@ -2,26 +2,30 @@
 using ExSystemProject.DTOS;
 using ExSystemProject.Models;
 using ExSystemProject.UnitOfWorks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System;
 using System.Collections.Generic;
+using System.Security.Claims;
 
 namespace ExSystemProject.Controllers
 {
-    public class AdminCourseController : Controller
+    [Authorize(Roles = "superadmin")]
+    public class AdminCourseController : SuperAdminBaseController
     {
-        private readonly UnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public AdminCourseController(UnitOfWork unitOfWork, IMapper mapper)
+        public AdminCourseController(UnitOfWork unitOfWork, IMapper mapper) : base(unitOfWork)
         {
-            _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
 
         // GET: AdminCourse
         public IActionResult Index()
         {
+            var userId = GetCurrentUserId();
+
             // Pass null to get both active and inactive courses
             var courses = _unitOfWork.courseRepo.GetAllCourses(null);
             var courseDTOs = _mapper.Map<List<CourseDTO>>(courses);
@@ -31,6 +35,8 @@ namespace ExSystemProject.Controllers
         // GET: AdminCourse/Details/5
         public IActionResult Details(int id)
         {
+            var userId = GetCurrentUserId();
+
             // Using the enhanced repository method to get course by id
             var course = _unitOfWork.courseRepo.GetCourseById(id);
             if (course == null)
@@ -51,6 +57,8 @@ namespace ExSystemProject.Controllers
         // GET: AdminCourse/Create
         public IActionResult Create()
         {
+            var userId = GetCurrentUserId();
+
             // Get instructors for dropdown
             var instructors = _unitOfWork.instructorRepo.getAll();
             ViewBag.Instructors = new SelectList(instructors, "InsId", "User.Username");
@@ -62,6 +70,8 @@ namespace ExSystemProject.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Create(CourseDTO courseDTO)
         {
+            var userId = GetCurrentUserId();
+
             if (ModelState.IsValid)
             {
                 var course = _mapper.Map<Course>(courseDTO);
@@ -80,10 +90,11 @@ namespace ExSystemProject.Controllers
             return View(courseDTO);
         }
 
-
         // GET: AdminCourse/Edit/5
         public IActionResult Edit(int id)
         {
+            var userId = GetCurrentUserId();
+
             // Using the enhanced repository method to get course by id
             var course = _unitOfWork.courseRepo.GetCourseById(id);
             if (course == null)
@@ -101,6 +112,8 @@ namespace ExSystemProject.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Edit(int id, CourseDTO courseDTO)
         {
+            var userId = GetCurrentUserId();
+
             if (id != courseDTO.CrsId)
                 return NotFound();
 
@@ -160,11 +173,11 @@ namespace ExSystemProject.Controllers
             return View(courseDTO);
         }
 
-
-
         // GET: AdminCourse/Delete/5
         public IActionResult Delete(int id)
         {
+            var userId = GetCurrentUserId();
+
             // Using the enhanced repository method to get course by id
             var course = _unitOfWork.courseRepo.GetCourseById(id);
             if (course == null)
@@ -179,6 +192,8 @@ namespace ExSystemProject.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(int id)
         {
+            var userId = GetCurrentUserId();
+
             try
             {
                 // Get the course to check if it exists
@@ -210,10 +225,11 @@ namespace ExSystemProject.Controllers
             }
         }
 
-
         // GET: AdminCourse/Topics/5
         public IActionResult Topics(int id)
         {
+            var userId = GetCurrentUserId();
+
             var course = _unitOfWork.courseRepo.GetCourseById(id);
             if (course == null)
                 return NotFound();
@@ -232,6 +248,8 @@ namespace ExSystemProject.Controllers
         // GET: AdminCourse/AddTopic/5
         public IActionResult AddTopic(int id)
         {
+            var userId = GetCurrentUserId();
+
             var course = _unitOfWork.courseRepo.GetCourseById(id);
             if (course == null)
                 return NotFound();
@@ -247,6 +265,8 @@ namespace ExSystemProject.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult AddTopic(TopicDTO topicDTO)
         {
+            var userId = GetCurrentUserId();
+
             if (ModelState.IsValid)
             {
                 try
@@ -278,9 +298,12 @@ namespace ExSystemProject.Controllers
 
             return View(topicDTO);
         }
+
         // GET: AdminCourse/EditTopic/5
         public IActionResult EditTopic(int id)
         {
+            var userId = GetCurrentUserId();
+
             var topic = _unitOfWork.topicRepo.GetTopicById(id);
             if (topic == null)
                 return NotFound();
@@ -307,6 +330,8 @@ namespace ExSystemProject.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult EditTopic(int id, TopicDTO topicDTO)
         {
+            var userId = GetCurrentUserId();
+
             if (id != topicDTO.TopicId)
                 return NotFound();
 
@@ -344,6 +369,8 @@ namespace ExSystemProject.Controllers
         // GET: AdminCourse/DeleteTopic/5
         public IActionResult DeleteTopic(int id)
         {
+            var userId = GetCurrentUserId();
+
             var topic = _unitOfWork.topicRepo.GetTopicById(id);
             if (topic == null)
                 return NotFound();
@@ -370,6 +397,8 @@ namespace ExSystemProject.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult DeleteTopicConfirmed(int id)
         {
+            var userId = GetCurrentUserId();
+
             var topic = _unitOfWork.topicRepo.GetTopicById(id);
             if (topic == null)
                 return NotFound();
@@ -396,6 +425,8 @@ namespace ExSystemProject.Controllers
         [HttpPost]
         public IActionResult ToggleTopicStatus(int id)
         {
+            var userId = GetCurrentUserId();
+
             try
             {
                 // Get the topic
@@ -430,8 +461,5 @@ namespace ExSystemProject.Controllers
                 return Json(new { success = false, message = ex.Message });
             }
         }
-
-
-
     }
 }
