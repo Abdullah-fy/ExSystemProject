@@ -1,0 +1,109 @@
+﻿@model ExSystemProject.DTOS.ManagerDTO
+@{
+    ViewData["Title"] = "Deactivate Manager";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container mt-4">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-action="Index">Branch Managers</a></li>
+            <li class="breadcrumb-item"><a asp-action="Details" asp-route-id="@Model.AssignmentId">Details</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Deactivate</li>
+        </ol>
+    </nav>
+
+    <div class="card shadow border-danger">
+        <div class="card-header bg-danger text-white">
+            <h5 class="mb-0"><i class="bi bi-exclamation-triangle-fill me-2"></i> Deactivate Branch Manager</h5>
+        </div>
+        <div class="card-body p-4">
+            <div class="alert alert-warning mb-4">
+                <h6 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i> Warning</h6>
+                <p class="mb-0">Deactivating this branch manager will set both their user account and branch assignment to inactive. They will no longer be able to log in or manage the assigned branch.</p>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h6 class="mb-0">Manager Information</h6>
+                        </div>
+                        <div class="card-body">
+                            <dl class="row">
+                                <dt class="col-sm-3">Username</dt>
+                                <dd class="col-sm-9">@Model.Username</dd>
+
+                                <dt class="col-sm-3">Email</dt>
+                                <dd class="col-sm-9">@Model.Email</dd>
+
+                                <dt class="col-sm-3">Gender</dt>
+                                <dd class="col-sm-9">@(Model.Gender == "M" ? "Male" : "Female")</dd>
+
+                                <dt class="col-sm-3">Branch</dt>
+                                <dd class="col-sm-9">
+                                    @if (!string.IsNullOrEmpty(Model.BranchName))
+                                    {
+                                        <span class="badge bg-info">@Model.BranchName</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Not Assigned</span>
+                                    }
+                                </dd>
+
+                                <dt class="col-sm-3">Status</dt>
+                                <dd class="col-sm-9">
+                                    @if (Model.Isactive == true)
+                                    {
+                                        <span class="badge bg-success">Active</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">Inactive</span>
+                                    }
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <form asp-action="Delete" method="post" id="deleteForm">
+                <input type="hidden" name="id" value="@Model.AssignmentId" />
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <a asp-action="Details" asp-route-id="@Model.AssignmentId" class="btn btn-outline-secondary me-2">
+                        <i class="bi bi-x-circle"></i> Cancel
+                    </a>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash"></i> Confirm Deactivation
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.getElementById('deleteForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "This will deactivate the branch manager's account and assignment.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Yes, deactivate',
+                cancelButtonText: 'No, cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    this.submit();
+                }
+            });
+        });
+    </script>
+}

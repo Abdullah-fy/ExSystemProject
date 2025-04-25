@@ -1,0 +1,115 @@
+﻿@model ExSystemProject.DTOS.ManagerDTO
+@{
+    ViewData["Title"] = "Manager Details";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid px-4">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-action="Index">Branch Managers</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Details</li>
+        </ol>
+    </nav>
+
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-person-badge-fill me-2"></i>Branch Manager Details</h5>
+            <div>
+                <a asp-action="Edit" asp-route-id="@Model.AssignmentId" class="btn btn-primary">
+                    <i class="bi bi-pencil"></i> Edit
+                </a>
+                <a asp-action="Index" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to List
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="text-center mb-4">
+                        @if (!string.IsNullOrEmpty(Model.Img))
+                        {
+                            <img src="~/uploads/users/@Model.Img" alt="@Model.Username" class="img-fluid rounded-circle profile-img" style="width: 150px; height: 150px; object-fit: cover;" />
+                        }
+                        else
+                        {
+                            <div class="profile-placeholder rounded-circle bg-secondary d-flex align-items-center justify-content-center mx-auto" style="width: 150px; height: 150px;">
+                                <i class="bi bi-person-fill text-white" style="font-size: 4rem;"></i>
+                            </div>
+                        }
+                        <h4 class="mt-3">@Model.Username</h4>
+                        <span class="badge @(Model.Isactive == true ? "bg-success" : "bg-danger")">
+                            @(Model.Isactive == true ? "Active" : "Inactive")
+                        </span>
+                    </div>
+                </div>
+                <div class="col-md-8">
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h6 class="mb-0">Personal Information</h6>
+                        </div>
+                        <div class="card-body">
+                            <dl class="row">
+                                <dt class="col-sm-3">User ID</dt>
+                                <dd class="col-sm-9">@Model.UserId</dd>
+
+                                <dt class="col-sm-3">Email</dt>
+                                <dd class="col-sm-9"><a href="mailto:@Model.Email">@Model.Email</a></dd>
+
+                                <dt class="col-sm-3">Gender</dt>
+                                <dd class="col-sm-9">@(Model.Gender == "M" ? "Male" : "Female")</dd>
+                            </dl>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="mb-0">Assignment Information</h6>
+                        </div>
+                        <div class="card-body">
+                            <dl class="row">
+                                <dt class="col-sm-3">Assignment ID</dt>
+                                <dd class="col-sm-9">@Model.AssignmentId</dd>
+
+                                <dt class="col-sm-3">Branch</dt>
+                                <dd class="col-sm-9">
+                                    @if (!string.IsNullOrEmpty(Model.BranchName))
+                                    {
+                                        <span class="badge bg-info">@Model.BranchName</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Not Assigned</span>
+                                    }
+                                </dd>
+
+                                <dt class="col-sm-3">Status</dt>
+                                <dd class="col-sm-9">
+                                    @if (Model.Isactive == true)
+                                    {
+                                        <span class="badge bg-success">Active</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">Inactive</span>
+                                    }
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer">
+            <div class="d-flex justify-content-end">
+                <a asp-action="Delete" asp-route-id="@Model.AssignmentId" class="btn btn-danger me-2">
+                    <i class="bi bi-trash"></i> Deactivate
+                </a>
+                <a asp-action="Edit" asp-route-id="@Model.AssignmentId" class="btn btn-primary">
+                    <i class="bi bi-pencil"></i> Edit
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

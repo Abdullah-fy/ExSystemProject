@@ -256,6 +256,12 @@
                     <span>Instructors</span>
                 </a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link @(ViewContext.RouteData.Values["controller"].ToString() == "AdminManager" ? "active" : "")" href="/AdminManager">
+                    <i class="bi bi-person-badge-fill"></i>
+                    <span>Branch Managers</span>
+                </a>
+            </li>
 
             <div class="nav-heading">System Setup</div>
             <li class="nav-item">

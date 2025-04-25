@@ -68,6 +68,20 @@ namespace ExSystemProject.MappinConfig
                 .ForMember(dest => dest.ExaminationDate,
                     opt => opt.MapFrom(src => src.ExaminationDate));
 
+            
+            CreateMap<UserAssignment, ManagerDTO>()
+                .ForMember(dest => dest.AssignmentId, opt => opt.MapFrom(src => src.AssignmentId))
+                .ForMember(dest => dest.BranchId, opt => opt.MapFrom(src => src.BranchId))
+                .ForMember(dest => dest.BranchName, opt => opt.MapFrom(src => src.Branch.BranchName))
+                .ForMember(dest => dest.Isactive, opt => opt.MapFrom(src => src.Isactive))
+                .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId))
+                .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.User.Username))
+                .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.User.Email))
+                .ForMember(dest => dest.Gender, opt => opt.MapFrom(src => src.User.Gender))
+                .ForMember(dest => dest.Img, opt => opt.MapFrom(src => src.User.Img));
+
+
+
             // Instructor mappings
             CreateMap<Instructor, InstructorDTO>()
     .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.User.Username))
