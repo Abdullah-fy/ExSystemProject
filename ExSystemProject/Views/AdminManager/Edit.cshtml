@@ -1,0 +1,147 @@
+﻿@model ExSystemProject.DTOS.ManagerDTO
+@{
+    ViewData["Title"] = "Edit Branch Manager";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container mt-4">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-action="Index">Branch Managers</a></li>
+            <li class="breadcrumb-item"><a asp-action="Details" asp-route-id="@Model.AssignmentId">Details</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Edit</li>
+        </ol>
+    </nav>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="d-flex align-items-center pb-2 mb-4 border-bottom border-3 border-primary">
+                <h2 class="mb-0"><i class="bi bi-pencil-square me-2 text-primary"></i> Edit Branch Manager</h2>
+            </div>
+
+            <div class="card shadow">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 text-primary">Manager Information</h5>
+                </div>
+                <div class="card-body p-4">
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="alert alert-danger mb-3">
+                            <h6 class="alert-heading">Please fix the following errors:</h6>
+                            <div asp-validation-summary="All" class="text-danger"></div>
+                        </div>
+                    }
+
+                    <form method="post">
+                        <input type="hidden" asp-for="AssignmentId" />
+                        <input type="hidden" asp-for="UserId" />
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="BranchId" class="form-label">Branch <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-building"></i></span>
+                                        <select asp-for="BranchId" class="form-select" asp-items="ViewBag.Branches" required>
+                                            <option value="">-- Select Branch --</option>
+                                        </select>
+                                    </div>
+                                    <span asp-validation-for="BranchId" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <!-- Username field -->
+                                <div class="form-group mb-3">
+                                    <label asp-for="Username" class="form-label">Username <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                        <input type="text" asp-for="Username" class="form-control" required />
+                                    </div>
+                                    <span asp-validation-for="Username" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <!-- Email field -->
+                                <div class="form-group mb-3">
+                                    <label asp-for="Email" class="form-label">Email <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                                        <input type="email" asp-for="Email" class="form-control" required />
+                                    </div>
+                                    <span asp-validation-for="Email" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <!-- Gender field -->
+                                <div class="form-group mb-3">
+                                    <label asp-for="Gender" class="form-label">Gender <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-gender-ambiguous"></i></span>
+                                        <select asp-for="Gender" class="form-select" required>
+                                            <option value="">-- Select Gender --</option>
+                                            <option value="M">Male</option>
+                                            <option value="F">Female</option>
+                                        </select>
+                                    </div>
+                                    <span asp-validation-for="Gender" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Active Status with toggle switch -->
+                        <div class="mb-4">
+                            <label class="form-label d-block">Status</label>
+                            <div class="form-check form-switch">
+                                @{
+                                    bool isActive = Model.Isactive ?? true;
+                                }
+                                <input id="IsactiveCheckbox" class="form-check-input" type="checkbox" name="Isactive" value="true"
+                                @(isActive ? "checked" : "") />
+                                <input type="hidden" name="Isactive" value="false" />
+                                <label class="form-check-label" for="IsactiveCheckbox">
+                                    <span id="activeStatusBadge" class="badge @(isActive ? "bg-success" : "bg-danger")">
+                                        @(isActive ? "Active" : "Inactive")
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-between mt-4">
+                            <a asp-action="Details" asp-route-id="@Model.AssignmentId" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i> Back to Details
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save"></i> Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        $(document).ready(function() {
+            $('form').submit(function() {
+                if (this.checkValidity()) {
+                    Swal.fire({
+                        title: 'Updating...',
+                        html: 'Please wait while we update the branch manager information',
+                        allowOutsideClick: false,
+                        showConfirmButton: false,
+                        willOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+}

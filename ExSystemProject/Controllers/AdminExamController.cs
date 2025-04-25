@@ -2,27 +2,30 @@
 using ExSystemProject.DTOS;
 using ExSystemProject.Models;
 using ExSystemProject.UnitOfWorks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System;
 using System.Collections.Generic;
+using System.Security.Claims;
 
 namespace ExSystemProject.Controllers
 {
-    public class AdminExamController : Controller
+    [Authorize(Roles = "superadmin")]
+    public class AdminExamController : SuperAdminBaseController
     {
-        private readonly UnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public AdminExamController(UnitOfWork unitOfWork, IMapper mapper)
+        public AdminExamController(UnitOfWork unitOfWork, IMapper mapper) : base(unitOfWork)
         {
-            _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
 
         // GET: AdminExam
         public IActionResult Index(int? courseId = null)
         {
+            var userId = GetCurrentUserId();
+
             List<Exam> exams;
 
             if (courseId.HasValue)
@@ -45,6 +48,8 @@ namespace ExSystemProject.Controllers
         // GET: AdminExam/Details/5
         public IActionResult Details(int id)
         {
+            var userId = GetCurrentUserId();
+
             var exam = _unitOfWork.examRepo.GetExamById(id);
             if (exam == null)
                 return NotFound();
@@ -61,6 +66,8 @@ namespace ExSystemProject.Controllers
         // GET: AdminExam/Create
         public IActionResult Create()
         {
+            var userId = GetCurrentUserId();
+
             var courses = _unitOfWork.courseRepo.getAll();
             var instructors = _unitOfWork.instructorRepo.getAll();
 
@@ -75,6 +82,8 @@ namespace ExSystemProject.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Create(ExamDTO examDTO)
         {
+            var userId = GetCurrentUserId();
+
             if (ModelState.IsValid)
             {
                 var exam = _mapper.Map<Exam>(examDTO);
@@ -97,6 +106,8 @@ namespace ExSystemProject.Controllers
         // GET: AdminExam/Edit/5
         public IActionResult Edit(int id)
         {
+            var userId = GetCurrentUserId();
+
             var exam = _unitOfWork.examRepo.GetExamById(id);
             if (exam == null)
                 return NotFound();
@@ -117,6 +128,8 @@ namespace ExSystemProject.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Edit(int id, ExamDTO examDTO)
         {
+            var userId = GetCurrentUserId();
+
             if (id != examDTO.ExamId)
                 return NotFound();
 
@@ -142,6 +155,8 @@ namespace ExSystemProject.Controllers
         // GET: AdminExam/Delete/5
         public IActionResult Delete(int id)
         {
+            var userId = GetCurrentUserId();
+
             var exam = _unitOfWork.examRepo.GetExamById(id);
             if (exam == null)
                 return NotFound();
@@ -155,6 +170,8 @@ namespace ExSystemProject.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(int id)
         {
+            var userId = GetCurrentUserId();
+
             var exam = _unitOfWork.examRepo.GetExamById(id);
             int? courseId = exam?.CrsId;
 
@@ -170,6 +187,8 @@ namespace ExSystemProject.Controllers
         // GET: AdminExam/GenerateRandomExam
         public IActionResult GenerateRandomExam()
         {
+            var userId = GetCurrentUserId();
+
             var courses = _unitOfWork.courseRepo.getAll();
             var instructors = _unitOfWork.instructorRepo.getAll();
 
@@ -190,6 +209,8 @@ namespace ExSystemProject.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult GenerateRandomExam(ExamDTO examDTO, int mcqCount = 5, int tfCount = 5)
         {
+            var userId = GetCurrentUserId();
+
             if (ModelState.IsValid)
             {
                 try

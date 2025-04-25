@@ -1,0 +1,193 @@
+﻿@model ExSystemProject.DTOS.ManagerDTO
+@{
+    ViewData["Title"] = "Create Branch Manager";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <!-- Title with Underline -->
+            <div class="d-flex align-items-center pb-2 mb-4 border-bottom border-3 border-primary">
+                <h2 class="mb-0"><i class="bi bi-person-plus-fill me-2 text-primary"></i> Create New Branch Manager</h2>
+            </div>
+
+            <!-- Form Card with Shadow -->
+            <div class="card shadow">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 text-primary">Manager Information</h5>
+                </div>
+                <div class="card-body p-4">
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="alert alert-danger mb-3">
+                            <h6 class="alert-heading">Please fix the following errors:</h6>
+                            <div asp-validation-summary="All" class="text-danger"></div>
+                        </div>
+                    }
+
+                    <form method="post" id="createManagerForm">
+                        @Html.AntiForgeryToken()
+
+                        <!-- Hidden fields for generated properties -->
+                        <input type="hidden" name="BranchName" id="hiddenBranchName" value="" />
+
+                        <!-- Branch Input -->
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <div class="form-group mb-3">
+                                    <label asp-for="BranchId" class="form-label">Branch <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-building"></i></span>
+                                        <select asp-for="BranchId" id="BranchId" class="form-select" asp-items="ViewBag.Branches" required>
+                                            <option value="">-- Select Branch --</option>
+                                        </select>
+                                    </div>
+                                    <span asp-validation-for="BranchId" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <!-- Username field -->
+                                <div class="form-group mb-3">
+                                    <label asp-for="Username" class="form-label">Username <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                        <input type="text" asp-for="Username" class="form-control" placeholder="Enter username" value="" required />
+                                    </div>
+                                    <span asp-validation-for="Username" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <!-- Email field -->
+                                <div class="form-group mb-3">
+                                    <label asp-for="Email" class="form-label">Email <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                                        <input type="email" asp-for="Email" class="form-control" placeholder="example@domain.com" value="" required />
+                                    </div>
+                                    <span asp-validation-for="Email" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <!-- Gender field -->
+                                <div class="form-group mb-3">
+                                    <label asp-for="Gender" class="form-label">Gender <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-gender-ambiguous"></i></span>
+                                        <select asp-for="Gender" class="form-select" required>
+                                            <option value="">-- Select Gender --</option>
+                                            <option value="M">Male</option>
+                                            <option value="F">Female</option>
+                                        </select>
+                                    </div>
+                                    <span asp-validation-for="Gender" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <!-- Password field -->
+                                <div class="form-group mb-3">
+                                    <label for="Password" class="form-label">Password <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                                        <input type="password" id="Password" name="Password" class="form-control" placeholder="Enter password" required />
+                                        <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                    </div>
+                                    <div class="form-text">Password must be at least 6 characters long.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Active Status - Fixed for nullable bool -->
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" name="Isactive" value="true" checked>
+                                    <input type="hidden" name="Isactive" value="false" />
+                                    <label class="form-check-label" for="Isactive">Active</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Submit buttons -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-between mt-4">
+                            <a asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i> Back to List
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save"></i> Create Manager
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Password toggle visibility
+            const togglePassword = document.getElementById('togglePassword');
+            const passwordInput = document.getElementById('Password');
+
+            togglePassword.addEventListener('click', function() {
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
+                this.querySelector('i').className = type === 'password' ? 'bi bi-eye' : 'bi bi-eye-slash';
+            });
+
+            // Branch change handler to update hidden branch name
+            const branchSelect = document.getElementById('BranchId');
+            branchSelect.addEventListener('change', function() {
+                const branchName = this.options[this.selectedIndex].text;
+                document.getElementById('hiddenBranchName').value = branchName !== '-- Select Branch --' ? branchName : '';
+            });
+
+            // Form validation
+            document.getElementById('createManagerForm').addEventListener('submit', function(e) {
+                const username = document.getElementById('Username').value.trim();
+                const email = document.getElementById('Email').value.trim();
+                const gender = document.getElementById('Gender').value;
+                const branchId = document.getElementById('BranchId').value;
+                const password = document.getElementById('Password').value;
+
+                // Update the branch name before submission
+                if (branchId) {
+                    const branchName = branchSelect.options[branchSelect.selectedIndex].text;
+                    document.getElementById('hiddenBranchName').value = branchName;
+                }
+
+                if (!username || !email || !gender || !branchId || !password) {
+                    e.preventDefault();
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Required Fields Missing',
+                        text: 'Please fill in all required fields',
+                        confirmButtonColor: '#a41e22'
+                    });
+                    return;
+                }
+
+                if (password.length < 6) {
+                    e.preventDefault();
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Password Too Short',
+                        text: 'Password must be at least 6 characters long',
+                        confirmButtonColor: '#a41e22'
+                    });
+                }
+            });
+        });
+    </script>
+}

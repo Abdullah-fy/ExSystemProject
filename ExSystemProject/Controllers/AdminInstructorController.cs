@@ -2,30 +2,32 @@
 using ExSystemProject.DTOS;
 using ExSystemProject.Models;
 using ExSystemProject.UnitOfWorks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Diagnostics;
+using System.Security.Claims;
 
 namespace ExSystemProject.Controllers
 {
-    public class AdminInstructorController : Controller
+    [Authorize(Roles = "superadmin")]
+    public class AdminInstructorController : SuperAdminBaseController
     {
-        private readonly UnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public AdminInstructorController(UnitOfWork unitOfWork, IMapper mapper)
+        public AdminInstructorController(UnitOfWork unitOfWork, IMapper mapper) : base(unitOfWork)
         {
-            _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
 
         // GET: AdminInstructor
         public IActionResult Index(int? branchId = null, int? trackId = null, string searchString = null, bool? activeOnly = true)
         {
+            var userId = GetCurrentUserId();
+
             List<Instructor> instructors;
 
             // Apply filters
@@ -84,6 +86,8 @@ namespace ExSystemProject.Controllers
         // GET: AdminInstructor/Details/5
         public IActionResult Details(int id)
         {
+            var userId = GetCurrentUserId();
+
             var instructor = _unitOfWork.instructorRepo.GetInstructorByIdWithBranch(id);
 
             if (instructor == null)
@@ -106,21 +110,27 @@ namespace ExSystemProject.Controllers
         // GET: AdminInstructor/Create
         public IActionResult Create()
         {
+            var userId = GetCurrentUserId();
+
             PopulateDropDowns();
             return View();
         }
 
         // POST: AdminInstructor/Create
+
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Create(InstructorDTO instructorDTO)
+        public IActionResult Create(InstructorDTO instructorDTO, string Password)
         {
+            var userId = GetCurrentUserId();
+
             try
             {
                 // Simple validation
                 if (string.IsNullOrEmpty(instructorDTO.Username) ||
                     string.IsNullOrEmpty(instructorDTO.Email) ||
                     string.IsNullOrEmpty(instructorDTO.Gender) ||
+                    string.IsNullOrEmpty(Password) ||
                     !instructorDTO.TrackId.HasValue ||
                     !instructorDTO.Salary.HasValue)
                 {
@@ -129,12 +139,12 @@ namespace ExSystemProject.Controllers
                     return View(instructorDTO);
                 }
 
-                // Create instructor
+                // Create instructor with the provided password
                 _unitOfWork.instructorRepo.CreateInstructor(
                     instructorDTO.Username,
                     instructorDTO.Email,
                     instructorDTO.Gender,
-                    "DefaultPassword123!", // Default password
+                    Password, // Use the password entered by admin
                     instructorDTO.Salary ?? 0,
                     instructorDTO.TrackId ?? 0
                 );
@@ -152,9 +162,13 @@ namespace ExSystemProject.Controllers
         }
 
 
+
+
         // GET: AdminInstructor/Edit/5
         public IActionResult Edit(int id)
         {
+            var userId = GetCurrentUserId();
+
             var instructor = _unitOfWork.instructorRepo.GetInstructorByIdWithBranch(id);
 
             if (instructor == null)
@@ -173,6 +187,8 @@ namespace ExSystemProject.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Edit(int id, InstructorDTO instructorDTO)
         {
+            var userId = GetCurrentUserId();
+
             if (id != instructorDTO.InsId)
             {
                 return NotFound();
@@ -223,10 +239,11 @@ namespace ExSystemProject.Controllers
             return View(instructorDTO);
         }
 
-
         // GET: AdminInstructor/Delete/5
         public IActionResult Delete(int id)
         {
+            var userId = GetCurrentUserId();
+
             var instructor = _unitOfWork.instructorRepo.GetInstructorByIdWithBranch(id);
 
             if (instructor == null)
@@ -243,6 +260,8 @@ namespace ExSystemProject.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(int id)
         {
+            var userId = GetCurrentUserId();
+
             try
             {
                 _unitOfWork.instructorRepo.DeleteInstructor(id);
@@ -258,6 +277,8 @@ namespace ExSystemProject.Controllers
         // GET: AdminInstructor/Courses/5
         public IActionResult Courses(int id)
         {
+            var userId = GetCurrentUserId();
+
             var instructor = _unitOfWork.instructorRepo.GetInstructorByIdWithBranch(id);
 
             if (instructor == null)

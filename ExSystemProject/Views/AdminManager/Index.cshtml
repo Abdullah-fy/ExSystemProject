@@ -1,0 +1,156 @@
+﻿@model IEnumerable<ExSystemProject.DTOS.ManagerDTO>
+@{
+    ViewData["Title"] = "Branch Managers";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid px-4">
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-people-fill me-2"></i>Branch Manager Management</h5>
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="bi bi-plus-lg"></i> Add New Manager
+            </a>
+        </div>
+
+        <div class="card-body">
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="bi bi-check-circle me-2"></i> @TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle me-2"></i> @TempData["ErrorMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            <div class="row mb-4">
+                <div class="col-12">
+                    <form asp-action="Index" method="get" class="row g-3">
+                        <div class="col-md-8">
+                            <div class="input-group">
+                                <input type="text" class="form-control" name="searchString" value="@ViewBag.SearchString" 
+                                       placeholder="Search by name, email or branch...">
+                                <button class="btn btn-primary" type="submit">
+                                    <i class="bi bi-search"></i> Search
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">Status</label>
+                            <select name="activeOnly" class="form-select" id="statusFilter" onchange="this.form.submit()">
+                                @if (ViewBag.ActiveOnly == true)
+                                {
+                                    <option value="true" selected>Active Only</option>
+                                }
+                                else
+                                {
+                                    <option value="true">Active Only</option>
+                                }
+
+                                @if (ViewBag.ActiveOnly == false)
+                                {
+                                    <option value="false" selected>Inactive Only</option>
+                                }
+                                else
+                                {
+                                    <option value="false">Inactive Only</option>
+                                }
+
+                                @if (ViewBag.ActiveOnly == null)
+                                {
+                                    <option value="" selected>All Managers</option>
+                                }
+                                else
+                                {
+                                    <option value="">All Managers</option>
+                                }
+                            </select>
+                        </div>
+
+
+                    </form>
+                </div>
+            </div>
+
+            @if (Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Gender</th>
+                                <th>Branch</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var manager in Model)
+                            {
+                                <tr>
+                                    <td>@manager.AssignmentId</td>
+                                    <td>@manager.Username</td>
+                                    <td>@manager.Email</td>
+                                    <td>@(manager.Gender == "M" ? "Male" : "Female")</td>
+                                    <td>@(string.IsNullOrEmpty(manager.BranchName) ? "Not Assigned" : manager.BranchName)</td>
+                                    <td>
+                                        @if (manager.Isactive == true)
+                                        {
+                                            <span class="badge bg-success">Active</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger">Inactive</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a asp-action="Edit" asp-route-id="@manager.AssignmentId" class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <a asp-action="Details" asp-route-id="@manager.AssignmentId" class="btn btn-sm btn-outline-info">
+                                                <i class="bi bi-info-circle"></i>
+                                            </a>
+                                            <a asp-action="Delete" asp-route-id="@manager.AssignmentId" class="btn btn-sm btn-outline-danger">
+                                                <i class="bi bi-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info">
+                    <h5 class="alert-heading">No branch managers found!</h5>
+                    <p>There are no branch managers matching your criteria. Click the "Add New Manager" button to create one.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Auto-submit form when status filter changes
+            $('#statusFilter').change(function() {
+                $(this).closest('form').submit();
+            });
+        });
+    </script>
+}

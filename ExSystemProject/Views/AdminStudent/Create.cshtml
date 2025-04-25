@@ -4,249 +4,230 @@
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<div class="card shadow">
-    <div class="card-header d-flex justify-content-between align-items-center bg-white py-3">
-        <h5 class="mb-0 text-primary">Create New Student</h5>
-        <a asp-action="Index" class="btn btn-sm btn-outline-secondary">
-            <i class="bi bi-arrow-left"></i> Back to List
-        </a>
-    </div>
-    <div class="card-body p-4">
-        @if (!ViewData.ModelState.IsValid)
-        {
-            <div class="alert alert-danger">
-                <h6 class="alert-heading">Please fix the following errors:</h6>
-                <div asp-validation-summary="All" class="text-danger"></div>
-            </div>
-        }
+<div class="container-fluid px-4">
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-person-plus-fill me-2"></i>Create New Student</h5>
+        </div>
+        <div class="card-body">
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger mb-3">
+                    <h6 class="alert-heading">Please fix the following errors:</h6>
+                    <div asp-validation-summary="All" class="text-danger"></div>
+                </div>
+            }
 
-        <form asp-action="Create" method="post" id="createStudentForm">
-            <!-- Hidden fields to store selected branch and track info -->
-            <input type="hidden" name="BranchId" id="hiddenBranchId" value="@Model?.BranchId" />
-            <input type="hidden" name="BranchName" id="hiddenBranchName" value="@Model?.BranchName" />
-            <input type="hidden" name="TrackName" id="hiddenTrackName" value="@Model?.TrackName" />
+            <form asp-action="Create" method="post" id="createStudentForm">
+                <!-- Hidden fields for TrackName and BranchName -->
+                <input type="hidden" asp-for="TrackName" id="hiddenTrackName" value="" />
+                <input type="hidden" asp-for="BranchName" id="hiddenBranchName" value="" />
 
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <h6 class="border-bottom pb-2 mb-3">User Information</h6>
-
-                    <div class="mb-3">
-                        <label asp-for="Username" class="form-label">Username <span class="text-danger">*</span></label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-person"></i></span>
-                            <input asp-for="Username" class="form-control" placeholder="Enter username" required />
-                        </div>
-                        <span asp-validation-for="Username" class="text-danger"></span>
-                    </div>
-
-                    <div class="mb-3">
-                        <label asp-for="Email" class="form-label">Email <span class="text-danger">*</span></label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-                            <input asp-for="Email" class="form-control" type="email" placeholder="Enter email" required />
-                        </div>
-                        <span asp-validation-for="Email" class="text-danger"></span>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Gender <span class="text-danger">*</span></label>
-                        <div>
-                            <div class="form-check form-check-inline">
-                                <input name="Gender" class="form-check-input" type="radio" value="M" id="genderMale" checked />
-                                <label class="form-check-label" for="genderMale">Male</label>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label asp-for="Username" class="form-label">Username <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                <input asp-for="Username" class="form-control" placeholder="Enter username" required />
                             </div>
-                            <div class="form-check form-check-inline">
-                                <input name="Gender" class="form-check-input" type="radio" value="F" id="genderFemale" />
-                                <label class="form-check-label" for="genderFemale">Female</label>
-                            </div>
+                            <span asp-validation-for="Username" class="text-danger"></span>
                         </div>
-                        <span asp-validation-for="Gender" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label asp-for="Email" class="form-label">Email <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                                <input asp-for="Email" class="form-control" placeholder="example@domain.com" required />
+                            </div>
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
                     </div>
                 </div>
 
-                <div class="col-md-6">
-                    <h6 class="border-bottom pb-2 mb-3">Academic Information</h6>
-
-                    <div class="mb-3">
-                        <label for="BranchSelect" class="form-label">Branch <span class="text-danger">*</span></label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-building"></i></span>
-                            <select id="BranchSelect" class="form-select" required>
-                                <option value="">-- Select Branch --</option>
-                                @foreach (var branch in ViewBag.Branches)
-                                {
-                                    <option value="@branch.Value">@branch.Text</option>
-                                }
-                            </select>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label asp-for="Gender" class="form-label">Gender <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-gender-ambiguous"></i></span>
+                                <select asp-for="Gender" class="form-select" required>
+                                    <option value="">-- Select Gender --</option>
+                                    <option value="M">Male</option>
+                                    <option value="F">Female</option>
+                                </select>
+                            </div>
+                            <span asp-validation-for="Gender" class="text-danger"></span>
                         </div>
-                        <div class="invalid-feedback">Please select a branch</div>
                     </div>
-
-                    <div class="mb-3">
-                        <label for="TrackId" class="form-label">Track <span class="text-danger">*</span></label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-signpost"></i></span>
-                            <select name="TrackId" id="TrackId" class="form-select" required>
-                                <option value="">-- First Select Branch --</option>
-                            </select>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="Password" class="form-label">Password <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                                <input type="password" id="Password" name="Password" class="form-control" placeholder="Enter password" required />
+                                <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                            @if (ViewData["PasswordError"] != null)
+                            {
+                                <span class="text-danger">@ViewData["PasswordError"]</span>
+                            }
                         </div>
-                        <span data-valmsg-for="TrackId" class="text-danger"></span>
                     </div>
                 </div>
-            </div>
 
-            <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
-                <a asp-action="Index" class="btn btn-outline-secondary">
-                    <i class="bi bi-x-lg"></i> Cancel
-                </a>
-                <button type="submit" class="btn btn-primary" id="createStudentBtn">
-                    <i class="bi bi-person-plus"></i> Create Student
-                </button>
-            </div>
-        </form>
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="BranchId" class="form-label">Branch</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-building"></i></span>
+                                <select id="BranchId" name="BranchId" class="form-select">
+                                    <option value="">-- Select Branch --</option>
+                                    @foreach (var branch in ViewBag.Branches)
+                                    {
+                                        <option value="@branch.Value">@branch.Text</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label asp-for="TrackId" class="form-label">Track</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-diagram-3"></i></span>
+                                <select asp-for="TrackId" id="TrackId" class="form-select">
+                                    <option value="">-- First Select Branch --</option>
+                                </select>
+                            </div>
+                            <span asp-validation-for="TrackId" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <a asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Back to List
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save"></i> Create Student
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
-
 @section Scripts {
-    <!-- Direct CDN references for jQuery validation instead of using _ValidationScriptsPartial -->
-    <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jquery-validation-unobtrusive@3.2.13/dist/jquery.validate.unobtrusive.min.js"></script>
-
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        $(document).ready(function() {
-            console.log("Document ready");
+        document.addEventListener('DOMContentLoaded', function() {
+            // Password toggle visibility
+            const togglePassword = document.getElementById('togglePassword');
+            const passwordInput = document.getElementById('Password');
 
-            // Function to load tracks when branch changes
-            $('#BranchSelect').on('change', function() {
-                var selectedBranchId = $(this).val();
-                var selectedBranchText = $(this).find("option:selected").text();
-                console.log("Branch selected:", selectedBranchId, selectedBranchText);
-
-                // Update hidden BranchId and BranchName fields
-                $('#hiddenBranchId').val(selectedBranchId);
-                $('#hiddenBranchName').val(selectedBranchText);
-
-                if (selectedBranchId) {
-                    // Disable track dropdown during loading
-                    $('#TrackId').prop('disabled', true);
-                    $('#TrackId').html('<option value="">-- Loading Tracks... --</option>');
-
-                    // Make AJAX call with correct URL
-                    $.ajax({
-                        url: '/AdminStudent/GetTracksByBranch',
-                        type: 'GET',
-                        data: { branchId: selectedBranchId },
-                        cache: false,
-                        success: function(data) {
-                            console.log("Tracks loaded successfully:", data);
-
-                            // Clear dropdown
-                            $('#TrackId').empty();
-
-                            // Add default option
-                            $('#TrackId').append('<option value="">-- Select Track --</option>');
-
-                            // Add track options
-                            if (data && data.length > 0) {
-                                $.each(data, function(i, track) {
-                                    $('#TrackId').append(
-                                        $('<option></option>')
-                                            .val(track.trackId)
-                                            .text(track.trackName)
-                                    );
-                                });
-                                console.log("Added " + data.length + " tracks to dropdown");
-                            } else {
-                                $('#TrackId').append('<option value="">-- No tracks available --</option>');
-                                console.log("No tracks available for this branch");
-                            }
-
-                            // Re-enable the dropdown
-                            $('#TrackId').prop('disabled', false);
-                        },
-                        error: function(xhr, status, error) {
-                            console.error("AJAX Error:", error);
-                            console.error("Status:", status);
-                            console.error("Response:", xhr.responseText);
-
-                            $('#TrackId').html('<option value="">-- Error loading tracks --</option>');
-                            $('#TrackId').prop('disabled', false);
-                        }
-                    });
-                } else {
-                    // No branch selected
-                    $('#TrackId').html('<option value="">-- First select a branch --</option>');
-                    $('#TrackId').prop('disabled', true);
-
-                    // Clear hidden fields
-                    $('#hiddenBranchName').val('');
-                    $('#hiddenTrackName').val('');
-                }
+            togglePassword.addEventListener('click', function() {
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
+                this.querySelector('i').className = type === 'password' ? 'bi bi-eye' : 'bi bi-eye-slash';
             });
 
-            // Track selection change event
-            $('#TrackId').on('change', function() {
-                var selectedTrackId = $(this).val();
-                var selectedTrackText = $(this).find("option:selected").text();
-                console.log("Track selected:", selectedTrackId, selectedTrackText);
+            // Branch-Track dependency
+            const branchSelect = document.getElementById('BranchId');
+            branchSelect.addEventListener('change', function() {
+                const branchId = this.value;
+                const branchName = this.options[this.selectedIndex].text;
+                const trackDropdown = document.getElementById('TrackId');
 
-                // Update hidden TrackName field
-                $('#hiddenTrackName').val(selectedTrackText);
-            });
+                // Update hidden branch name field
+                document.getElementById('hiddenBranchName').value = branchName;
 
-            // Form validation and submission
-            $('#createStudentForm').on('submit', function(e) {
-                console.log("Form submitting");
-
-                var isValid = true;
-                var branchId = $('#BranchSelect').val();
-                var trackId = $('#TrackId').val();
-
-                // Get selected text values
-                var branchText = $('#BranchSelect option:selected').text();
-                var trackText = $('#TrackId option:selected').text();
-
-                // Update all hidden fields
-                $('#hiddenBranchId').val(branchId);
-                $('#hiddenBranchName').val(branchText);
-                $('#hiddenTrackName').val(trackText);
-
-                console.log("Form data - Branch:", branchId, branchText, "Track:", trackId, trackText);
+                trackDropdown.innerHTML = '<option value="">-- Loading Tracks... --</option>';
+                trackDropdown.disabled = true;
 
                 if (!branchId) {
-                    isValid = false;
-                    $('#BranchSelect').addClass('is-invalid');
-                } else {
-                    $('#BranchSelect').removeClass('is-invalid');
+                    trackDropdown.innerHTML = '<option value="">-- First Select Branch --</option>';
+                    trackDropdown.disabled = false;
+                    return;
                 }
 
-                if (!trackId) {
-                    isValid = false;
-                    $('#TrackId').addClass('is-invalid');
-                } else {
-                    $('#TrackId').removeClass('is-invalid');
-                }
+                fetch('/AdminStudent/GetTracksByBranch?branchId=' + branchId)
+                    .then(response => response.json())
+                    .then(data => {
+                        trackDropdown.innerHTML = '<option value="">-- Select Track --</option>';
 
-                if (!isValid) {
-                    e.preventDefault();
-                    console.log("Form validation failed");
-                    return false;
-                }
+                        if (data && data.length > 0) {
+                            data.forEach(track => {
+                                const option = document.createElement('option');
+                                option.value = track.trackId;
+                                option.textContent = track.trackName;
+                                trackDropdown.appendChild(option);
+                            });
+                        } else {
+                            trackDropdown.innerHTML = '<option value="">-- No tracks available --</option>';
+                        }
 
-                console.log("Form validation passed, submitting with:");
-                console.log("- BranchId:", $('#hiddenBranchId').val());
-                console.log("- BranchName:", $('#hiddenBranchName').val());
-                console.log("- TrackId:", $('#TrackId').val());
-                console.log("- TrackName:", $('#hiddenTrackName').val());
-
-                // The form will submit normally if all validations pass
+                        trackDropdown.disabled = false;
+                    })
+                    .catch(error => {
+                        console.error('Error loading tracks:', error);
+                        trackDropdown.innerHTML = '<option value="">-- Error loading tracks --</option>';
+                        trackDropdown.disabled = false;
+                    });
             });
 
-            // Initial load if a branch is already selected
-            if ($('#BranchSelect').val()) {
-                $('#BranchSelect').trigger('change');
-            }
+            // Track selection change handler
+            const trackSelect = document.getElementById('TrackId');
+            trackSelect.addEventListener('change', function() {
+                const trackName = this.options[this.selectedIndex].text;
+                document.getElementById('hiddenTrackName').value = trackName;
+            });
+
+            // Form submission validation
+            document.getElementById('createStudentForm').addEventListener('submit', function(e) {
+                const username = document.getElementById('Username').value;
+                const email = document.getElementById('Email').value;
+                const gender = document.getElementById('Gender').value;
+                const password = document.getElementById('Password').value;
+                const trackId = document.getElementById('TrackId').value;
+
+                // Update hidden field values before submission
+                if (trackId) {
+                    const trackName = document.getElementById('TrackId').options[document.getElementById('TrackId').selectedIndex].text;
+                    document.getElementById('hiddenTrackName').value = trackName;
+                }
+
+                const branchId = document.getElementById('BranchId').value;
+                if (branchId) {
+                    const branchName = document.getElementById('BranchId').options[document.getElementById('BranchId').selectedIndex].text;
+                    document.getElementById('hiddenBranchName').value = branchName;
+                }
+
+                if (!username || !email || !gender || !password) {
+                    e.preventDefault();
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Required Fields Missing',
+                        text: 'Please fill in all required fields',
+                        confirmButtonColor: '#a41e22'
+                    });
+                } else if (password.length < 6) {
+                    e.preventDefault();
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Password Too Short',
+                        text: 'Password must be at least 6 characters long',
+                        confirmButtonColor: '#a41e22'
+                    });
+                }
+            });
         });
     </script>
 }

@@ -11,8 +11,26 @@
             <i class="bi bi-plus-lg"></i> Add New Student
         </a>
     </div>
-    
+
     <div class="card-body">
+        @if (TempData["GeneratedPassword"] != null)
+        {
+            <div class="alert alert-info alert-dismissible fade show" role="alert">
+                <h5 class="alert-heading">Student Created Successfully</h5>
+                <p>Please securely share the following temporary password with the student:</p>
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" id="passwordDisplay" value="@TempData["GeneratedPassword"]" readonly>
+                    <div class="input-group-append">
+                        <button class="btn btn-outline-secondary copy-btn" type="button" onclick="copyPassword()">
+                            <i class="bi bi-clipboard"></i> Copy
+                        </button>
+                    </div>
+                </div>
+                <p class="mb-0">The student will be required to change this password on first login.</p>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
         <div class="row mb-4">
             <div class="col-md-12">
                 <form asp-action="Index" method="get" class="row g-3">
@@ -59,8 +77,6 @@
                             }
                         </select>
                     </div>
-
-
                 </form>
             </div>
         </div>
@@ -72,7 +88,7 @@
                 <a asp-action="Index" class="float-end">Clear Filter</a>
             </div>
         }
-        
+
         @if (ViewBag.TrackId != null)
         {
             <div class="alert alert-info">
@@ -172,22 +188,36 @@
     <script>
         $(document).ready(function() {
             // Handle success message with SweetAlert if needed
-            @if (TempData["SuccessMessage"] != null)
-            {
-                <text>
-                    // Create a temporary div to decode HTML entities
-                    var tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = "@TempData["SuccessMessage"]";
-                    var decodedMessage = tempDiv.textContent;
+        @if (TempData["SuccessMessage"] != null && TempData["GeneratedPassword"] == null)
+        {
+            <text>
+                        // Create a temporary div to decode HTML entities
+                        var tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = "@TempData["SuccessMessage"]";
+                        var decodedMessage = tempDiv.textContent;
 
-                    Swal.fire({
-                        title: "Success!",
-                        text: decodedMessage,
-                        icon: "success",
-                        confirmButtonColor: "#a41e22"
-                    });
-                </text>
-            }
+                        Swal.fire({
+                            title: "Success!",
+                            text: decodedMessage,
+                            icon: "success",
+                            confirmButtonColor: "#a41e22"
+                        });
+            </text>
+        }
         });
+
+        function copyPassword() {
+            var passwordField = document.getElementById("passwordDisplay");
+            passwordField.select();
+            document.execCommand("copy");
+
+            var copyBtn = document.querySelector(".copy-btn");
+            var originalHtml = copyBtn.innerHTML;
+            copyBtn.innerHTML = '<i class="bi bi-check-circle"></i> Copied!';
+
+            setTimeout(function() {
+                copyBtn.innerHTML = originalHtml;
+            }, 2000);
+        }
     </script>
 }

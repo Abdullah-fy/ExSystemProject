@@ -2,28 +2,31 @@
 using ExSystemProject.DTOS;
 using ExSystemProject.Models;
 using ExSystemProject.UnitOfWorks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 
 namespace ExSystemProject.Controllers
 {
-    public class AdminQuestionBankController : Controller
+    [Authorize(Roles = "superadmin")]
+    public class AdminQuestionBankController : SuperAdminBaseController
     {
-        private readonly UnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public AdminQuestionBankController(UnitOfWork unitOfWork, IMapper mapper)
+        public AdminQuestionBankController(UnitOfWork unitOfWork, IMapper mapper) : base(unitOfWork)
         {
-            _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
 
         // GET: AdminQuestionBank
         public IActionResult Index(int? examId = null)
         {
+            var userId = GetCurrentUserId();
+
             List<Question> questions;
 
             if (examId.HasValue)
@@ -46,6 +49,8 @@ namespace ExSystemProject.Controllers
         // GET: AdminQuestionBank/Details/5
         public IActionResult Details(int id)
         {
+            var userId = GetCurrentUserId();
+
             var question = _unitOfWork.questionRepo.getById(id);
             if (question == null)
                 return NotFound();
@@ -61,6 +66,8 @@ namespace ExSystemProject.Controllers
         // GET: AdminQuestionBank/Create
         public IActionResult Create(int? examId = null)
         {
+            var userId = GetCurrentUserId();
+
             var exams = _unitOfWork.examRepo.GetAllExams();
             ViewBag.Exams = new SelectList(exams, "ExamId", "ExamName", examId);
             ViewBag.ExamId = examId;
@@ -85,6 +92,8 @@ namespace ExSystemProject.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Create(QuestionBankDTO questionDTO)
         {
+            var userId = GetCurrentUserId();
+
             try
             {
                 // Force the question type to be MCQ for this action
@@ -181,11 +190,11 @@ namespace ExSystemProject.Controllers
             return View(questionDTO);
         }
 
-
-
         // GET: AdminQuestionBank/Edit/5
         public IActionResult Edit(int id)
         {
+            var userId = GetCurrentUserId();
+
             var question = _unitOfWork.questionRepo.getById(id);
             if (question == null)
                 return NotFound();
@@ -207,6 +216,8 @@ namespace ExSystemProject.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Edit(int id, QuestionBankDTO questionDTO, string correctAnswer)
         {
+            var userId = GetCurrentUserId();
+
             if (id != questionDTO.QuesId)
                 return NotFound();
 
@@ -334,6 +345,8 @@ namespace ExSystemProject.Controllers
         // GET: AdminQuestionBank/Delete/5
         public IActionResult Delete(int id)
         {
+            var userId = GetCurrentUserId();
+
             var question = _unitOfWork.questionRepo.getById(id);
             if (question == null)
                 return NotFound();
@@ -351,6 +364,8 @@ namespace ExSystemProject.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(int id)
         {
+            var userId = GetCurrentUserId();
+
             try
             {
                 var question = _unitOfWork.questionRepo.getById(id);
@@ -380,6 +395,8 @@ namespace ExSystemProject.Controllers
         // GET: AdminQuestionBank/AddToExam/5
         public IActionResult AddToExam(int id)
         {
+            var userId = GetCurrentUserId();
+
             var question = _unitOfWork.questionRepo.getById(id);
             if (question == null)
                 return NotFound();
@@ -400,6 +417,8 @@ namespace ExSystemProject.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult AddToExam(int id, int examId)
         {
+            var userId = GetCurrentUserId();
+
             try
             {
                 // Add question to exam
@@ -424,6 +443,8 @@ namespace ExSystemProject.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult RemoveFromExam(int id, int examId)
         {
+            var userId = GetCurrentUserId();
+
             try
             {
                 // Remove question from exam
@@ -441,12 +462,14 @@ namespace ExSystemProject.Controllers
 
                 return RedirectToAction(nameof(Index), new { examId = examId });
             }
-
         }
+
         // New action specifically for True/False questions
         [HttpGet]
         public IActionResult CreateTrueFalse()
         {
+            var userId = GetCurrentUserId();
+
             var examsList = _unitOfWork.examRepo.GetAllExams();
             ViewBag.Exams = new SelectList(examsList, "ExamId", "ExamName");
             return View();
@@ -456,6 +479,8 @@ namespace ExSystemProject.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult CreateTrueFalse(string quesText, int quesScore, string tfCorrectAnswer, int? examId)
         {
+            var userId = GetCurrentUserId();
+
             try
             {
                 System.Diagnostics.Debug.WriteLine($"CreateTrueFalse POST: Text={quesText}, Score={quesScore}, Answer={tfCorrectAnswer}, ExamId={examId}");
