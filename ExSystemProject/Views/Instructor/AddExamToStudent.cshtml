@@ -4,41 +4,91 @@
     ViewData["Title"] = "Add Exam for Student";
 }
 
-<h2>Add Exam for Student</h2>
+<div class="container mt-4">
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <h4 class="card-title mb-4">Add Exam for Student</h4>
 
-<form asp-action="AddExamToStudent" method="post">
-    <!-- Hidden Fields -->
-    <input asp-for="SelectedCourseId" type="hidden" />
-    <input asp-for="InstructorId" type="hidden" />
-    <input asp-for="StudentId" type="hidden" />
+            <form asp-action="AddExamToStudent" method="post">
+                <!-- Hidden Fields -->
+                <input asp-for="SelectedCourseId" type="hidden" />
+                <input asp-for="InstructorId" type="hidden" />
+                <input asp-for="StudentId" type="hidden" />
 
-    <div>
-        <label asp-for="MCQCount">Number of MCQ Questions</label>
-        <input asp-for="MCQCount" type="number" min="0" />
-        <span asp-validation-for="MCQCount" class="text-danger"></span>
+                <div class="mb-3">
+                    <label asp-for="MCQCount" class="form-label">Number of MCQ Questions</label>
+                    <input asp-for="MCQCount" type="number" class="form-control" min="0" />
+                    <span asp-validation-for="MCQCount" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="TFCount" class="form-label">Number of True/False Questions</label>
+                    <input asp-for="TFCount" type="number" class="form-control" min="0" />
+                    <span asp-validation-for="TFCount" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="StartTime" class="form-label">Start Time</label>
+                    <input asp-for="StartTime" type="datetime-local" class="form-control" />
+                    <span asp-validation-for="StartTime" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="EndTime" class="form-label">End Time</label>
+                    <input asp-for="EndTime" type="datetime-local" class="form-control" />
+                    <span asp-validation-for="EndTime" class="text-danger"></span>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Generate Exam</button>
+            </form>
+        </div>
     </div>
-
-    <div>
-        <label asp-for="TFCount">Number of True/False Questions</label>
-        <input asp-for="TFCount" type="number" min="0" />
-        <span asp-validation-for="TFCount" class="text-danger"></span>
-    </div>
-
-    <div>
-        <label asp-for="StartTime">Start Time</label>
-        <input asp-for="StartTime" type="datetime-local" />
-        <span asp-validation-for="StartTime" class="text-danger"></span>
-    </div>
-
-    <div>
-        <label asp-for="EndTime">End Time</label>
-        <input asp-for="EndTime" type="datetime-local" />
-        <span asp-validation-for="EndTime" class="text-danger"></span>
-    </div>
-
-    <button type="submit">Generate Exam</button>
-</form>
+</div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
 }
+@* @model AddExamToStudentViewModel *@
+
+@* @{ *@
+@*     ViewData["Title"] = "Add Exam for Student"; *@
+@* } *@
+
+@* <h2>Add Exam for Student</h2> *@
+
+@* <form asp-action="AddExamToStudent" method="post"> *@
+@*     <!-- Hidden Fields --> *@
+@*     <input asp-for="SelectedCourseId" type="hidden" /> *@
+@*     <input asp-for="InstructorId" type="hidden" /> *@
+@*     <input asp-for="StudentId" type="hidden" /> *@
+
+@*     <div> *@
+@*         <label asp-for="MCQCount">Number of MCQ Questions</label> *@
+@*         <input asp-for="MCQCount" type="number" min="0" /> *@
+@*         <span asp-validation-for="MCQCount" class="text-danger"></span> *@
+@*     </div> *@
+
+@*     <div> *@
+@*         <label asp-for="TFCount">Number of True/False Questions</label> *@
+@*         <input asp-for="TFCount" type="number" min="0" /> *@
+@*         <span asp-validation-for="TFCount" class="text-danger"></span> *@
+@*     </div> *@
+
+@*     <div> *@
+@*         <label asp-for="StartTime">Start Time</label> *@
+@*         <input asp-for="StartTime" type="datetime-local" /> *@
+@*         <span asp-validation-for="StartTime" class="text-danger"></span> *@
+@*     </div> *@
+
+@*     <div> *@
+@*         <label asp-for="EndTime">End Time</label> *@
+@*         <input asp-for="EndTime" type="datetime-local" /> *@
+@*         <span asp-validation-for="EndTime" class="text-danger"></span> *@
+@*     </div> *@
+
+@*     <button type="submit">Generate Exam</button> *@
+@* </form> *@
+
+@* @section Scripts { *@
+@*     <partial name="_ValidationScriptsPartial" /> *@
+@* } *@

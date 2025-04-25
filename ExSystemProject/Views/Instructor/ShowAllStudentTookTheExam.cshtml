@@ -1,0 +1,82 @@
+﻿@model IEnumerable<ExSystemProject.Models.StudentExam>
+
+@{
+    ViewData["Title"] = "Students Who Took the Exam";
+}
+
+<div class="container mt-4">
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <h4 class="card-title mb-3">Students Who Took the Exam</h4>
+
+            @if (Model?.Any() == true)
+            {
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                @* <th>@Html.DisplayNameFor(model => model.First().StudentExamId)</th> *@
+                                <th>@Html.DisplayNameFor(model => model.First().ExamId)</th>
+                                <th>@Html.DisplayNameFor(model => model.First().StudentId)</th>
+                                <th>@Html.DisplayNameFor(model => model.First().Score)</th>
+                                @* <th>@Html.DisplayNameFor(model => model.First().Isactive)</th> *@
+                                <th>@Html.DisplayNameFor(model => model.First().PassFail)</th>
+                                @* <th>Actions</th> *@
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    @* <td>@item.StudentExamId</td> *@
+                                    <td>@item.Exam.ExamName</td>
+                                    <td>@item.Student.User.Username</td>
+                                    <td>
+                                        @(item.Score.HasValue ? item.Score.Value.ToString("F1") : "N/A")
+                                    </td>
+                                    @* <td> *@
+                                        @* @if (item.Isactive) *@
+                                        @* { *@
+                                        @*     <span class="badge bg-success">Active</span> *@
+                                        @* } *@
+                                        @* else *@
+                                        @* { *@
+                                        @*     <span class="badge bg-danger">Inactive</span> *@
+                                        @* } *@
+                                    @* </td> *@
+                                    <td>
+                                        @if (string.Equals(item.PassFail, "true", StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            <span class="badge bg-success">Passed</span>
+                                        }
+                                        else if (string.Equals(item.PassFail, "false", StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            <span class="badge bg-danger">Failed</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">Unknown</span>
+                                        }
+                                    </td>
+                                    @* <td> *@
+                                    @*     <div class="btn-group btn-group-sm" role="group"> *@
+                                    @*         <a asp-action="Edit" asp-route-id="@item.StudentExamId" class="btn btn-outline-secondary">Edit</a> *@
+                                    @*         <a asp-action="Details" asp-route-id="@item.StudentExamId" class="btn btn-outline-info">Details</a> *@
+                                    @*         <a asp-action="Delete" asp-route-id="@item.StudentExamId" class="btn btn-outline-danger">Delete</a> *@
+                                    @*     </div> *@
+                                    @* </td> *@
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info" role="alert">
+                    No students have taken this exam.
+                </div>
+            }
+        </div>
+    </div>
+</div>

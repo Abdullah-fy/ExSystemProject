@@ -2,62 +2,144 @@
 
 @{
     ViewData["Title"] = "Students by Course";
+}
+
+<div class="container mt-5">
+    <h2 class="mb-4">Students</h2>
+
+    <form method="get" asp-action="Index" class="mb-4">
+        <div class="row g-3 align-items-center">
+            <div class="col-auto">
+                <label for="courseSelect" class="col-form-label fw-bold">Select Course:</label>
+            </div>
+            <div class="col-auto">
+                <select id="courseSelect" name="id" class="form-select" onchange="this.form.submit()">
+                    <option value="">-- All Courses --</option>
+                    @foreach (var course in Model.courses)
+                    {
+                        <option value="@course.CrsId" selected="@(course.CrsId == Model.selectedCourse ? "selected" : null)">
+                            @course.CrsName
+                        </option>
+                    }
+                </select>
+            </div>
+        </div>
+    </form>
+
+    <p class="text-muted">Total Students: @Model.students.Count()</p>
+
+    @if (Model.students != null && Model.students.Any())
+    {
+        <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Id</th>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Image</th>
+                        <th>Track</th>
+                        <th>Show More</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var student in Model.students)
+                    {
+                        <tr>
+                            <td>@student.UserId</td>
+                            <td>@student.username</td>
+                            <td>@student.email</td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(student.image))
+                                {
+                                    <img src="@student.image" alt="Student Image" class="img-thumbnail" style="width: 50px; height: 50px;" />
+                                }
+                                else
+                                {
+                                    <span class="text-muted">No Image</span>
+                                }
+                            </td>
+                            <td>@student.trackname</td>
+                            <td>
+                                <a class="btn btn-sm btn-primary" asp-action="studentCourses" asp-route-userId="@student.UserId">
+                                    Show More
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-warning mt-3" role="alert">
+            No students found for this course.
+        </div>
+    }
+</div>
+
+
+@* @model StudentFilterViewModelForInstructor *@
+
+@* @{ *@
+@*     ViewData["Title"] = "Students by Course"; *@
  
-}
+@* } *@
 
-<h2>Students</h2>
+@* <h2>Students</h2> *@
 
-<form method="get" asp-action="Index">
-    <label for="courseSelect">Select Course:</label>
-    <select id="courseSelect" name="id" onchange="this.form.submit()">
-        <option value="">-- All Courses --</option>
-        @foreach (var course in Model.courses)
-        {
-            <option value="@course.CrsId" selected="@(course.CrsId == Model.selectedCourse ? "selected" : null)">
-                @course.CrsName
-            </option>
-        }
-    </select>
-</form>
+@* <form method="get" asp-action="Index"> *@
+@*     <label for="courseSelect">Select Course:</label> *@
+@*     <select id="courseSelect" name="id" onchange="this.form.submit()"> *@
+@*         <option value="">-- All Courses --</option> *@
+@*         @foreach (var course in Model.courses) *@
+@*         { *@
+@*             <option value="@course.CrsId" selected="@(course.CrsId == Model.selectedCourse ? "selected" : null)"> *@
+@*                 @course.CrsName *@
+@*             </option> *@
+@*         } *@
+@*     </select> *@
+@* </form> *@
 
-@if (Model.students != null && Model.students.Any())
-{
-    <table class="table">
-        <thead>
-            <tr>
-                    <th>Id</th>
-                    <th>Username</th>
-                    <th>Email</th>
-                    <th>Image</th>
-                    <th>Track</th>
-                <th>Show More</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var student in Model.students)
-            {
-                <tr>
-                    <td>@student.UserId</td>
-                    <td>@student.username</td>
-                    <td>@student.email</td>
-                    <td>
-                        @if (!string.IsNullOrEmpty(student.image))
-                        {
-                            <img src="@student.image" alt="Student Image" width="50" height="50" />
-                        }
-                        else
-                        {
-                            <span>No Image</span>
-                        }
-                    </td>
-                    <td>@student.trackname</td>
-                    <td>  <a asp-action="studentCourses" asp-route-userId="@student.UserId">Show More </a></td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
-else
-{
-    <p>No students found for this course.</p>
-}
+@* @if (Model.students != null && Model.students.Any()) *@
+@* { *@
+@*     <table class="table"> *@
+@*         <thead> *@
+@*             <tr> *@
+@*                     <th>Id</th> *@
+@*                     <th>Username</th> *@
+@*                     <th>Email</th> *@
+@*                     <th>Image</th> *@
+@*                     <th>Track</th> *@
+@*                 <th>Show More</th> *@
+@*             </tr> *@
+@*         </thead> *@
+@*         <tbody> *@
+@*             @foreach (var student in Model.students) *@
+@*             { *@
+@*                 <tr> *@
+@*                     <td>@student.UserId</td> *@
+@*                     <td>@student.username</td> *@
+@*                     <td>@student.email</td> *@
+@*                     <td> *@
+@*                         @if (!string.IsNullOrEmpty(student.image)) *@
+@*                         { *@
+@*                             <img src="@student.image" alt="Student Image" width="50" height="50" /> *@
+@*                         } *@
+@*                         else *@
+@*                         { *@
+@*                             <span>No Image</span> *@
+@*                         } *@
+@*                     </td> *@
+@*                     <td>@student.trackname</td> *@
+@*                     <td>  <a asp-action="studentCourses" asp-route-userId="@student.UserId">Show More </a></td> *@
+@*                 </tr> *@
+@*             } *@
+@*         </tbody> *@
+@*     </table> *@
+@* } *@
+@* else *@
+@* { *@
+@*     <p>No students found for this course.</p> *@
+@* } *@

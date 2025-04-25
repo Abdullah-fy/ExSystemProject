@@ -1,86 +1,68 @@
 ﻿@model IEnumerable<ExSystemProject.Models.Exam>
 
 @{
-    ViewData["Title"] = "ExamPage";
+    ViewData["Title"] = "Exam Page";
 }
 
-<h1>ExamPage</h1>
+<div class="container mt-4">
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <h4 class="card-title mb-3">Exam Management</h4>
 
-<p>
-    <a asp-action="GenerateExamForTrack">Generate Exam For Track</a>
-</p>
-<p>
-    <a asp-action="GenerateExamForStudent">Generate Exam For Specific Students</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.ExamId)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ExamName)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.StartTime)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.EndTime)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.CrsId)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.InsId)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Isactive)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.TotalMarks)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.PassedGrade)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.ExamId)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ExamName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.StartTime)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.EndTime)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.CrsId)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.InsId)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Isactive)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.TotalMarks)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.PassedGrade)
-            </td>
-            <td>
-                @Html.ActionLink("Edit", "Edit", new { /* id=item.PrimaryKey */ }) |
-                @Html.ActionLink("Details", "Details", new { /* id=item.PrimaryKey */ }) |
-                @Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ })
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+            <div class="mb-3">
+                <a asp-action="GenerateExamForTrack" class="btn btn-outline-primary me-2">Generate Exam for Track</a>
+                <a asp-action="GenerateExamForStudent" class="btn btn-outline-secondary">Generate Exam for Students</a>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-striped table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            @* <th>@Html.DisplayNameFor(model => model.First().ExamId)</th> *@
+                            <th>@Html.DisplayNameFor(model => model.First().ExamName)</th>
+                            <th>@Html.DisplayNameFor(model => model.First().StartTime)</th>
+                            <th>@Html.DisplayNameFor(model => model.First().EndTime)</th>
+                            <th>@Html.DisplayNameFor(model => model.First().CrsId)</th>
+                            @* <th>@Html.DisplayNameFor(model => model.First().InsId)</th> *@
+                            @* <th>@Html.DisplayNameFor(model => model.First().Isactive)</th> *@
+                            <th>@Html.DisplayNameFor(model => model.First().TotalMarks)</th>
+                            <th>@Html.DisplayNameFor(model => model.First().PassedGrade)</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                @* <td>@item.ExamId</td> *@
+                                <td>@item.ExamName</td>
+                                <td>@item.StartTime.ToString()</td>
+                                <td>@item.EndTime.ToString()</td>
+                                <td>@item.Crs.CrsName</td>
+                                @* <td>@item.InsId</td> *@
+                                @* <td> *@
+                                    @* @if (item.Isactive) *@
+                                    @* { *@
+                                    @*     <span class="badge bg-success">Active</span> *@
+                                    @* } *@
+                                    @* else *@
+                                    @* { *@
+                                    @*     <span class="badge bg-danger">Inactive</span> *@
+                                    @* } *@
+                                @* </td> *@
+                                <td>@item.TotalMarks</td>
+                                <td>@item.PassedGrade</td>
+                                <td>
+                                    <a asp-action="ShowAllStudentTookTheExam" asp-route-examId="@item.ExamId" class="btn btn-sm btn-outline-info">More</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+                                    

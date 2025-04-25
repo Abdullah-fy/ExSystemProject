@@ -19,5 +19,13 @@ namespace ExSystemProject.Repository
                     ).ToList();
             return result;
         }
+
+
+        public IEnumerable<StudentExam> getActiveById(int examId)
+        {
+            return _context.StudentExams
+                .Where(se => se.ExamId == examId && se.Isactive == true)
+                .ToList();
+        }
     }
 }

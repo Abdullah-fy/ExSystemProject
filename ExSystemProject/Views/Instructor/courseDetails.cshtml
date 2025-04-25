@@ -4,35 +4,97 @@
     ViewData["Title"] = "Course Details";
 }
 
-<h2>Course Exam Results</h2>
+<div class="container mt-4">
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <h4 class="card-title mb-3">Course Exam Results</h4>
 
-@if (Model != null && Model.Any())
-{
-    <table class="table table-bordered table-striped">
-        <thead>
-            <tr>
-                <th>Exam ID</th>
-                <th>Score</th>
-                <th>Status</th>
-                <th>Exam Date</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var exam in Model)
+            @if (Model != null && Model.Any())
             {
-                <tr>
-                    <td>@exam.ExamId</td>
-                    <td>@exam.Score</td>
-                    <td>@exam.PassFail</td>
-                    <td>@exam.ExaminationDate</td>
-                </tr>
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Exam ID</th>
+                                <th>Score</th>
+                                <th>Status</th>
+                                <th>Exam Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var exam in Model)
+                            {
+                                <tr>
+                                    <td>@exam.ExamId</td>
+                                    <td>@exam.Score</td>
+                                    <td>
+                                        @if (exam.PassFail.ToLower() == "pass")
+                                        {
+                                            <span class="badge bg-success">Pass</span>
+                                        }
+                                        else if (exam.PassFail.ToLower() == "fail")
+                                        {
+                                            <span class="badge bg-danger">Fail</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">@exam.PassFail</span>
+                                        }
+                                    </td>
+                                    <td>@exam.ExaminationDate?.ToString("yyyy-MM-dd")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
             }
-        </tbody>
-    </table>
-}
-else
-{
-    <div class="alert alert-info">
-        No exam results found for this course.
+            else
+            {
+                <div class="alert alert-info mt-3" role="alert">
+                    No exam results found for this course.
+                </div>
+            }
+        </div>
     </div>
-}
+</div>
+
+
+
+@* @model IEnumerable<StudentExam> *@
+
+@* @{ *@
+@*     ViewData["Title"] = "Course Details"; *@
+@* } *@
+
+@* <h2>Course Exam Results</h2> *@
+
+@* @if (Model != null && Model.Any()) *@
+@* { *@
+@*     <table class="table table-bordered table-striped"> *@
+@*         <thead> *@
+@*             <tr> *@
+@*                 <th>Exam ID</th> *@
+@*                 <th>Score</th> *@
+@*                 <th>Status</th> *@
+@*                 <th>Exam Date</th> *@
+@*             </tr> *@
+@*         </thead> *@
+@*         <tbody> *@
+@*             @foreach (var exam in Model) *@
+@*             { *@
+@*                 <tr> *@
+@*                     <td>@exam.ExamId</td> *@
+@*                     <td>@exam.Score</td> *@
+@*                     <td>@exam.PassFail</td> *@
+@*                     <td>@exam.ExaminationDate</td> *@
+@*                 </tr> *@
+@*             } *@
+@*         </tbody> *@
+@*     </table> *@
+@* } *@
+@* else *@
+@* { *@
+@*     <div class="alert alert-info"> *@
+@*         No exam results found for this course. *@
+@*     </div> *@
+@* } *@

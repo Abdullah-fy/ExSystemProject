@@ -1,0 +1,57 @@
+﻿@model InstructorProfileViewModel
+
+@{
+    ViewData["Title"] = "Edit Instructor Profile";
+}
+
+<div class="container mt-5">
+    <h2 class="mb-4">Edit Profile</h2>
+
+    <form asp-action="EditProfile" enctype="multipart/form-data" method="post">
+        <div class="mb-3">
+            <label asp-for="userName"  class="form-label fw-bold">Username</label>
+            <input asp-for="userName" readonly class="form-control" />
+            <span asp-validation-for="userName" class="text-danger"></span>
+        </div>
+
+        @if (!string.IsNullOrEmpty(Model.image))
+        {
+        <div class="mb-3">
+            <label class="form-label fw-bold">Current Image:</label><br />
+            <img src="@Model.image" alt="Current Profile Image" class="img-thumbnail" style="max-width: 200px;" />
+        </div>
+        }
+
+        <div class="mb-3">
+            <label asp-for="email"  class="form-label fw-bold">Email</label>
+            <input asp-for="email" readonly class="form-control" />
+            <span asp-validation-for="email" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="salary" class="form-label fw-bold">Salary</label>
+            <input asp-for="salary" readonly class="form-control" />
+            <span asp-validation-for="salary" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="trackId" class="form-label fw-bold">Track ID</label>
+            <input asp-for="trackId" type="hidden" />
+            <input  value="@Model.Tracks?.TrackName " readonly class="form-control" />
+            <span asp-validation-for="trackId" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="imageFile" class="form-label fw-bold">Update Image</label>
+            <input asp-for="imageFile" type="file" class="form-control" />
+            <span asp-validation-for="imageFile" class="text-danger"></span>
+        </div>
+
+        <button type="submit" class="btn btn-success">Save Changes</button>
+        <a asp-action="Profile" class="btn btn-secondary ms-2">Cancel</a>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -4,75 +4,106 @@
     var courses = ViewBag.courses as List<Course>;
 }
 
-<div class="card mb-4 p-3 shadow-sm border rounded">
-    <h4 class="mb-3">Student Information</h4>
-    <div class="row">
-        <div class="col-md-2">
-            @if (!string.IsNullOrEmpty(Model.User.Img))
-            {
-                <img src="@Model.User.Img" alt="Student Image" class="img-thumbnail" width="100" height="100" />
-            }
-            else
-            {
-                <span class="text-muted">No Image</span>
-            }
-        </div>
-        <div class="col-md-10">
-            <table class="table table-borderless">
-                <tr><th>Id</th><td>@Model.UserId</td></tr>
-                <tr><th>Username</th><td>@Model.User.Username</td></tr>
-                <tr><th>Email</th><td>@Model.User.Email</td></tr>
-                <tr><th>Track</th><td>@Model.Track.TrackName</td></tr>
-            </table>
+<div class="container mt-4">
+    <!-- Student Info Card -->
+    <div class="card mb-4 shadow-sm border-0">
+        <div class="card-body">
+            <h4 class="card-title mb-4">Student Information</h4>
+            <div class="row align-items-center">
+                <div class="col-md-2 text-center">
+                    @if (!string.IsNullOrEmpty(Model.User.Img))
+                    {
+                        <img src="@Model.User.Img" alt="Student Image" class="img-fluid rounded-circle border shadow" width="100" height="100" />
+                    }
+                    else
+                    {
+                        <div class="text-muted small">No Image</div>
+                    }
+                </div>
+                <div class="col-md-10">
+                    <table class="table table-borderless mb-0">
+                        <tbody>
+                            <tr>
+                                <th scope="row">ID</th>
+                                <td>@Model.UserId</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Username</th>
+                                <td>@Model.User.Username</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Email</th>
+                                <td>@Model.User.Email</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Track</th>
+                                <td>@Model.Track.TrackName</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
+
+    <!-- Courses Table -->
+    @if (courses != null && courses.Any())
+    {
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <h4 class="card-title mb-3">Courses Assigned</h4>
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Course Name</th>
+                                <th>Alias</th>
+                                <th>Duration</th>
+                                <th>Description</th>
+                                <th>Poster</th>
+                                <th>More</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var course in courses)
+                            {
+                                <tr>
+                                    <td>@course.CrsName</td>
+                                    <td>@course.CrsName</td>
+                                    <td>@course.CrsPeriod</td>
+                                    <td>@course.description</td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(course.Poster))
+                                        {
+                                            <img src="@course.Poster" alt="Poster" class="img-thumbnail" style="width: 60px;" />
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">N/A</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <a asp-action="courseDetails" asp-route-CrsId="@course.CrsId" asp-route-UserId="@Model.UserId" class="btn btn-sm btn-outline-primary">
+                                            More Details
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info mt-3" role="alert">
+            No courses found for this student under the current instructor.
+        </div>
+    }
 </div>
 
-@if (courses != null && courses.Any())
-{
-    <div class="card p-3 shadow-sm border rounded">
-        <h4 class="mb-3">Courses Assigned</h4>
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Course name</th>
-                    <th>Name</th>
-                    <th>Duration</th>
-                    <th>description</th>
-                    <th>poster</th>
-                    <th>more</th>
-                    @* <th>Active</th> *@
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var course in courses)
-                {
-                    <tr>
-                        <td>@course.CrsName</td>
-                        <td>@course.CrsName</td>
-                        <td>@course.CrsPeriod</td>
-                        <td>@course.description</td>
-                        <td>@course.Poster</td>
-                        <td>   <a asp-action="courseDetails" asp-route-CrsId="@course.CrsId" asp-route-UserId="@Model.UserId">more details</a>   </td>
-                        @* <td> *@
-                        @*     @if (course.isactive) *@
-                        @*     { *@
-                        @*         <span class="text-success">Active</span> *@
-                        @*     } *@
-                        @*     else *@
-                        @*     { *@
-                        @*         <span class="text-danger">Inactive</span> *@
-                        @*     } *@
-                        @* </td> *@
-                    </tr>
-                }
-            </tbody>
-        </table>
-    </div>
-}
-else
-{
-    <div class="alert alert-info mt-3">
-        No courses found for this student under the current instructor.
-    </div>
-}
+
+
+
+                                                
