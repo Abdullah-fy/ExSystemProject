@@ -543,6 +543,14 @@ namespace ExSystemProject.Repository
             return instructors;
 
         }
+        public int GetInstructorCountByBranchAsync(int branchId)
+        {
+            return _context.Instructors
+                .Include(i => i.Track)
+                .Where(i => i.Track.BranchId == branchId && i.Isactive == true)
+                .Count();
+        }
+
 
     }
 }

@@ -60,5 +60,12 @@ namespace ExSystemProject.Repository
                 return new List<Track>();
             }
         }
+        public int GetTrackCountByBranchAsync(int branchId)
+        {
+            return context.Tracks
+                .Where(t => t.BranchId == branchId && t.IsActive == true)
+                .Count();
+        }
+
     }
-    }
+}

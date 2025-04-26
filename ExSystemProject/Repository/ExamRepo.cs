@@ -199,7 +199,17 @@ namespace ExSystemProject.Repository
                 new SqlParameter("@StartTime", StartTime),
                 new SqlParameter("@EndTime", EndTime));
         }
+        public int GetExamCountByBranchAsync(int branchId)
+        {
+            return _context.Exams
+                .Include(e => e.Crs)
+                .Include(e => e.Crs.Ins)
+                .Include(e => e.Crs.Ins.Track)
+                .Where(e => e.Crs.Ins.Track.BranchId == branchId && e.Isactive == true)
+                .Count();
+        }
 
 
-     }
+
+    }
 }

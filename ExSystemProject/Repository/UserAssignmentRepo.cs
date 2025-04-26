@@ -78,4 +78,15 @@ public class UserAssignmentRepo : GenaricRepo<UserAssignment>
 
         _context.SaveChanges();
     }
+    // Add this method to UserAssignmentRepo class
+    public UserAssignment GetUserBranchAssignment(int userId)
+    {
+        return _context.UserAssignments
+            .Include(ua => ua.Branch)
+            .Include(ua => ua.User)
+            .FirstOrDefault(ua => ua.UserId == userId && ua.User.Role == "admin");
+    }
+
+
+
 }

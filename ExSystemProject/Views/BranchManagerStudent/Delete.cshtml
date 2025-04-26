@@ -1,0 +1,74 @@
+﻿@model Student
+@{
+    ViewData["Title"] = "Delete Student";
+    Layout = "~/Views/Shared/_BranchManagerLayout.cshtml";
+}
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center bg-danger text-white">
+        <h5 class="mb-0">Delete Student</h5>
+        <div>
+            <a asp-action="Index" class="btn btn-sm btn-outline-light">
+                <i class="bi bi-arrow-left me-1"></i> Back to List
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="alert alert-danger">
+            <h5><i class="bi bi-exclamation-triangle me-2"></i>Are you sure you want to deactivate this student?</h5>
+            <p>This action will deactivate the student account. The student will no longer be able to login or access the system.</p>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <h5>Student Information</h5>
+                <dl class="row">
+                    <dt class="col-sm-4">ID</dt>
+                    <dd class="col-sm-8">@Model.StudentId</dd>
+
+                    <dt class="col-sm-4">Name</dt>
+                    <dd class="col-sm-8">@Model.User?.Username</dd>
+
+                    <dt class="col-sm-4">Email</dt>
+                    <dd class="col-sm-8">@Model.User?.Email</dd>
+
+                    <dt class="col-sm-4">Gender</dt>
+                    <dd class="col-sm-8">@(Model.User?.Gender == "M" ? "Male" : "Female")</dd>
+                </dl>
+            </div>
+            <div class="col-md-6">
+                <h5>Academic Information</h5>
+                <dl class="row">
+                    <dt class="col-sm-4">Track</dt>
+                    <dd class="col-sm-8">@Model.Track?.TrackName</dd>
+
+                    <dt class="col-sm-4">Branch</dt>
+                    <dd class="col-sm-8">@Model.Track?.Branch?.BranchName</dd>
+
+                    <dt class="col-sm-4">Enrollment Date</dt>
+                    <dd class="col-sm-8">@Model.EnrollmentDate?.ToString("dd/MM/yyyy")</dd>
+
+                    <dt class="col-sm-4">Status</dt>
+                    <dd class="col-sm-8">
+                        @if (Model.Isactive == true)
+                        {
+                            <span class="badge bg-success">Active</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger">Inactive</span>
+                        }
+                    </dd>
+                </dl>
+            </div>
+        </div>
+
+        <form asp-action="Delete" method="post" class="mt-4">
+            <input type="hidden" name="id" value="@Model.StudentId" />
+            <button type="submit" class="btn btn-danger">
+                <i class="bi bi-trash me-1"></i> Confirm Delete
+            </button>
+            <a asp-action="Index" class="btn btn-outline-secondary ms-2">Cancel</a>
+        </form>
+    </div>
+</div>

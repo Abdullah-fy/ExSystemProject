@@ -1098,6 +1098,7 @@ BEGIN
         Instructor i
         JOIN Users u ON i.userId = u.userId
         JOIN Track t ON i.track_id = t.track_id
+        JOIN Branch b ON t.branch_id = b.branch_id
     WHERE 
         t.branch_id = @branch_id
         AND (@GetActive IS NULL OR i.isactive = @GetActive)
@@ -1412,7 +1413,8 @@ CREATE PROCEDURE sp_GetStudentsByBranchId
 AS
 BEGIN
     SELECT 
-        s.StudentId, s.EnrollmentDate, s.isactive AS IsActive, u.username, u.email, u.gender, u.img AS ProfileImage, t.track_name, b.branch_name,
+        s.StudentId, s.track_id, s.EnrollmentDate, s.userId, s.isactive AS IsActive,
+        u.username, u.email, u.gender, u.img AS ProfileImage, t.track_name, b.branch_name,
         COUNT(sc.Crs_Id) AS EnrolledCoursesCount
     FROM 
         Student s
@@ -1424,7 +1426,8 @@ BEGIN
         t.branch_id = @branch_id
         AND (@ActiveOnly IS NULL OR s.isactive = @ActiveOnly)
     GROUP BY
-        s.StudentId, s.EnrollmentDate, s.isactive, u.username, u.email, u.gender, u.img, t.track_name, b.branch_name
+        s.StudentId, s.track_id, s.EnrollmentDate, s.userId, s.isactive,
+        u.username, u.email, u.gender, u.img, t.track_name, b.branch_name
     ORDER BY
         u.username
 END
@@ -2384,7 +2387,7 @@ CREATE PROCEDURE sp_GetExamQuestionsAndChoices
     @exam_id INT
 AS
 BEGIN
-    SELECT  q.ques_id, q.ques_text, q.ques_type, q.ques_score, c.choice_id, c.choice_text, c.is_correct
+    SELECT  q.ques_id, q.ques_text, q.ques_type, q.ques_score, c.choice_id, c.choice_text
     FROM Question q
     JOIN Choice c ON q.ques_id = c.ques_id
     WHERE q.exam_id = @exam_id
@@ -2412,7 +2415,7 @@ CREATE PROCEDURE sp_GenerateRandomExam
     @MCQ_Count INT,
     @TF_Count INT,
     @Ins_Id INT,
-    @ExamName VARCHAR(50),
+    @ExamName VARCHAR(100),
     @StartTime DATETIME,
     @EndTime DATETIME
 AS
@@ -2470,102 +2473,200 @@ BEGIN
     AND q.ques_type = 'True/False' 
     AND q.isactive = 1
     ORDER BY NEWID()
-     
+    
     SELECT @Exam_Id AS GeneratedExamId
 END
 exec sp_GenerateRandomExam @crs_name = 'c#', @MCQ_Count = 3, @TF_Count = 2, @Ins_Id = 1, @ExamName = 'c#rondom', @startTime = '2025-04-01 10:00:00', @endTime = '2025-04-01 11:00:00'
 GO
 -- generate Rondom exam and assign to student
 CREATE PROCEDURE sp_GenerateAndAssignExam
-    @Crs_Name VARCHAR(255),
+    @Crs_Id INT,
     @MCQ_Count INT,
     @TF_Count INT,
     @Ins_Id INT,
-    @ExamName VARCHAR(50),
     @StartTime DATETIME,
     @EndTime DATETIME
 AS
 BEGIN
-    SET NOCOUNT ON
-    
-    DECLARE @Crs_Id INT
-    DECLARE @Exam_Id INT
-    DECLARE @StudentCount INT = 0
-    
+    SET NOCOUNT ON;
+
+    DECLARE @Exam_Id INT;
+    DECLARE @StudentCount INT = 0;
+    DECLARE @Crs_Name VARCHAR(255);
+    DECLARE @ExamName VARCHAR(100);
+
     BEGIN TRY
-        BEGIN TRANSACTION
-        
-        -- Get course ID
-        SELECT @Crs_Id = Crs_Id 
-        FROM Courses 
-        WHERE Crs_Name = @Crs_Name AND isactive = 1    
-        IF @Crs_Id IS NULL
+        BEGIN TRANSACTION;
+
+        -- Validate course
+        SELECT @Crs_Name = Crs_Name
+        FROM Courses
+        WHERE Crs_Id = @Crs_Id AND ins_id = @Ins_Id AND isactive = 1;
+
+        IF @Crs_Name IS NULL
         BEGIN
-            RAISERROR('Course not found or inactive', 16, 1)
+            RAISERROR('Invalid course ID or instructor not assigned or course inactive.', 16, 1);
             ROLLBACK TRANSACTION;
             RETURN;
         END
-        
-        -- Verify instructor is assigned to this course
-        IF NOT EXISTS ( SELECT 1 FROM Courses 
-						WHERE Crs_Id = @Crs_Id AND ins_id = @Ins_Id AND isactive = 1
-						)
-        BEGIN
-            RAISERROR('Instructor is not assigned to this course', 16, 1)
-            ROLLBACK TRANSACTION
-            RETURN
-        END
-        -- Create the exam
+
+        -- Create unique exam name
+        SET @ExamName = CONCAT(REPLACE(@Crs_Name, ' ', ''), '_Exam', FORMAT(GETDATE(), 'yyyyMMdd_HHmmss'));
+
+        -- Insert exam
         INSERT INTO Exam (exam_name, startTime, endTime, crs_id, ins_id, isactive)
-        VALUES (@ExamName, @StartTime, @EndTime, @Crs_Id, @Ins_Id, 1)
-        
+        VALUES (@ExamName, @StartTime, @EndTime, @Crs_Id, @Ins_Id, 1);
+
         SET @Exam_Id = SCOPE_IDENTITY();
-        
-        -- Insert random MCQ questions
+
+        -- Insert new MCQ questions
         INSERT INTO Question (ques_text, ques_type, exam_id, ques_score, isactive)
-        SELECT TOP (@MCQ_Count) ques_text, ques_type, @Exam_Id, 5, 1
-        FROM Question q JOIN Courses c 
-		ON q.exam_id IN (SELECT exam_id FROM Exam WHERE crs_id = c.Crs_Id)
-        WHERE c.Crs_Id = @Crs_Id AND q.ques_type = 'MCQ' AND q.isactive = 1
-        ORDER BY NEWID()
-        
-        -- Insert random True/False questions
+        SELECT TOP (@MCQ_Count) ques_text, 'MCQ', @Exam_Id, 5, 1
+        FROM Question
+        WHERE ques_type = 'MCQ' AND exam_id IN (
+            SELECT exam_id FROM Exam WHERE crs_id = @Crs_Id
+        )
+        ORDER BY NEWID();
+
+        -- Insert new True/False questions
         INSERT INTO Question (ques_text, ques_type, exam_id, ques_score, isactive)
-        SELECT TOP (@TF_Count) ques_text, ques_type, @Exam_Id, 5, 1
-        FROM Question q JOIN Courses c ON q.exam_id IN (SELECT exam_id FROM Exam WHERE crs_id = c.Crs_Id)
-        WHERE c.Crs_Id = @Crs_Id AND q.ques_type = 'True/False' AND q.isactive = 1
-        ORDER BY NEWID()
-        
-        -- Assign exam to all active students enrolled in the course
+        SELECT TOP (@TF_Count) ques_text, 'True/False', @Exam_Id, 5, 1
+        FROM Question
+        WHERE ques_type = 'True/False' AND exam_id IN (
+            SELECT exam_id FROM Exam WHERE crs_id = @Crs_Id
+        )
+        ORDER BY NEWID();
+
+        -- Assign exam to all active students
         INSERT INTO Student_Exam (exam_id, StudentId, Score, isactive, examination_date)
         SELECT @Exam_Id, sc.StudentId, 0, 1, NULL
-        FROM Student_Course sc JOIN Student s 
-		ON sc.StudentId = s.StudentId
-        JOIN Users u 
-		ON s.userId = u.userId
-        WHERE sc.Crs_Id = @Crs_Id AND sc.isactive = 1 AND s.isactive = 1 AND u.isactive = 1
-        
-        SET @StudentCount = @@ROWCOUNT
-        
-        COMMIT TRANSACTION
-        
+        FROM Student_Course sc
+        JOIN Student s ON sc.StudentId = s.StudentId
+        JOIN Users u ON s.userId = u.userId
+        WHERE sc.Crs_Id = @Crs_Id AND sc.isactive = 1 AND s.isactive = 1 AND u.isactive = 1;
+
+        SET @StudentCount = @@ROWCOUNT;
+
+        COMMIT TRANSACTION;
+
         SELECT 
             @Exam_Id AS GeneratedExamId,
             @StudentCount AS StudentsAssigned,
-            'Exam successfully generated and assigned to students' AS Message
+            @ExamName AS GeneratedExamName,
+            'Exam successfully generated and assigned to students' AS Message;
+
     END TRY
     BEGIN CATCH
         IF @@TRANCOUNT > 0
             ROLLBACK TRANSACTION;
-            
-        DECLARE @ErrorMessage NVARCHAR(4000) = ERROR_MESSAGE()
-        DECLARE @ErrorSeverity INT = ERROR_SEVERITY()
-        DECLARE @ErrorState INT = ERROR_STATE()
-        
-        RAISERROR(@ErrorMessage, @ErrorSeverity, @ErrorState)
+
+        DECLARE @ErrorMessage NVARCHAR(4000) = ERROR_MESSAGE();
+        DECLARE @ErrorSeverity INT = ERROR_SEVERITY();
+        DECLARE @ErrorState INT = ERROR_STATE();
+
+        RAISERROR(@ErrorMessage, @ErrorSeverity, @ErrorState);
     END CATCH
 END
+GO
 
+-- Create the new procedure for assigning an exam to a single student
+CREATE PROCEDURE sp_GenerateAndAssignExamForStudent
+    @Crs_Id INT,
+    @MCQ_Count INT,
+    @TF_Count INT,
+    @Ins_Id INT,
+    @StudentId INT,
+    @StartTime DATETIME,
+    @EndTime DATETIME
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DECLARE @Exam_Id INT;
+    DECLARE @Crs_Name VARCHAR(255);
+    DECLARE @ExamName VARCHAR(100);
+
+    BEGIN TRY
+        BEGIN TRANSACTION;
+
+        -- Validate course and instructor assignment
+        SELECT @Crs_Name = Crs_Name
+        FROM Courses
+        WHERE Crs_Id = @Crs_Id AND ins_id = @Ins_Id AND isactive = 1;
+
+        IF @Crs_Name IS NULL
+        BEGIN
+            RAISERROR('Invalid course ID or instructor not assigned or course inactive.', 16, 1);
+            ROLLBACK TRANSACTION;
+            RETURN;
+        END
+
+        -- Validate student enrollment
+        IF NOT EXISTS (
+            SELECT 1
+            FROM Student_Course sc
+            JOIN Student s ON sc.StudentId = s.StudentId
+            JOIN Users u ON s.UserId = u.UserId
+            WHERE sc.Crs_Id = @Crs_Id AND sc.StudentId = @StudentId
+                  AND sc.isactive = 1 AND s.isactive = 1 AND u.isactive = 1
+        )
+        BEGIN
+            RAISERROR('Student is not enrolled in the course or is inactive.', 16, 1);
+            ROLLBACK TRANSACTION;
+            RETURN;
+        END
+
+        -- Generate exam name
+        SET @ExamName = CONCAT(REPLACE(@Crs_Name, ' ', ''), '_Exam', FORMAT(GETDATE(), 'yyyyMMdd_HHmmss'));
+
+        -- Insert exam
+        INSERT INTO Exam (exam_name, startTime, endTime, crs_id, ins_id, isactive)
+        VALUES (@ExamName, @StartTime, @EndTime, @Crs_Id, @Ins_Id, 1);
+
+        SET @Exam_Id = SCOPE_IDENTITY();
+
+        -- Insert MCQ questions
+        INSERT INTO Question (ques_text, ques_type, exam_id, ques_score, isactive)
+        SELECT TOP (@MCQ_Count) ques_text, 'MCQ', @Exam_Id, 5, 1
+        FROM Question
+        WHERE ques_type = 'MCQ' AND exam_id IN (
+            SELECT exam_id FROM Exam WHERE crs_id = @Crs_Id
+        )
+        ORDER BY NEWID();
+
+        -- Insert True/False questions
+        INSERT INTO Question (ques_text, ques_type, exam_id, ques_score, isactive)
+        SELECT TOP (@TF_Count) ques_text, 'True/False', @Exam_Id, 5, 1
+        FROM Question
+        WHERE ques_type = 'True/False' AND exam_id IN (
+            SELECT exam_id FROM Exam WHERE crs_id = @Crs_Id
+        )
+        ORDER BY NEWID();
+
+        -- Assign exam to the specific student
+        INSERT INTO Student_Exam (exam_id, StudentId, Score, isactive, examination_date)
+        VALUES (@Exam_Id, @StudentId, 0, 1, NULL);
+
+        COMMIT TRANSACTION;
+
+        SELECT 
+            @Exam_Id AS GeneratedExamId,
+            @StudentId AS AssignedStudentId,
+            @ExamName AS GeneratedExamName,
+            'Exam successfully generated and assigned to the student' AS Message;
+
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0
+            ROLLBACK TRANSACTION;
+
+        DECLARE @ErrorMessage NVARCHAR(4000) = ERROR_MESSAGE();
+        DECLARE @ErrorSeverity INT = ERROR_SEVERITY();
+        DECLARE @ErrorState INT = ERROR_STATE();
+
+        RAISERROR(@ErrorMessage, @ErrorSeverity, @ErrorState);
+    END CATCH
+END
 GO
 CREATE OR ALTER PROCEDURE sp_UpdateExam
     @exam_id INT,

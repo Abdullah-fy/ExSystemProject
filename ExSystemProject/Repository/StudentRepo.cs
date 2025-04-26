@@ -590,7 +590,7 @@ namespace ExSystemProject.Repository
             {
                 return true; 
             }
-            return false; 
+            return false;
         }
 
 
@@ -608,9 +608,34 @@ namespace ExSystemProject.Repository
                 .Select(x => x.Student)
                 .ToList();
         }
+        public int GetStudentCountByBranchAsync(int branchId)
+        {
+            return _context.Students
+                .Include(s => s.Track)
+                .Where(s => s.Track.BranchId == branchId && s.Isactive == true)
+                .Count();
+        }
+
+        
+        public List<Student> GetStudentsByBranchIdLinq(int branchId, bool? activeStudents = true)
+        {
+            var query = _context.Students
+                .Include(s => s.User)
+                .Include(s => s.Track)
+                .Where(s => s.Track.BranchId == branchId);
+
+            if (activeStudents.HasValue)
+            {
+                query = query.Where(s => s.Isactive == activeStudents.Value);
+            }
+
+            return query.ToList();
+        }
+
+
     }
 
-   
+
 
 
 }

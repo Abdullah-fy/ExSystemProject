@@ -1,0 +1,86 @@
+﻿@model IEnumerable<Student>
+@{
+    ViewData["Title"] = "Students Management";
+    Layout = "~/Views/Shared/_BranchManagerLayout.cshtml";
+}
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Students</h5>
+        <div>
+            <a asp-action="Index" asp-route-active="true" class="btn btn-sm btn-outline-secondary me-2">
+                <i class="bi bi-check-circle me-1"></i> Active
+            </a>
+            <a asp-action="Index" asp-route-active="false" class="btn btn-sm btn-outline-secondary me-2">
+                <i class="bi bi-x-circle me-1"></i> Inactive
+            </a>
+            <a asp-action="Index" asp-route-active="null" class="btn btn-sm btn-outline-secondary me-2">
+                <i class="bi bi-list me-1"></i> All
+            </a>
+            <a asp-action="Create" class="btn btn-sm btn-primary">
+                <i class="bi bi-plus-circle me-1"></i> Add New Student
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Gender</th>
+                        <th>Track</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@item.StudentId</td>
+                            <td>@item.User?.Username</td>
+                            <td>@item.User?.Email</td>
+                            <td>@(item.User?.Gender == "M" ? "Male" : "Female")</td>
+                            <td>@item.Track?.TrackName</td>
+                            <td>
+                                @if (item.Isactive == true)
+                                {
+                                    <span class="badge bg-success">Active</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">Inactive</span>
+                                }
+                            </td>
+                            <td>
+                                <div class="btn-group">
+                                    <a asp-action="Details" asp-route-id="@item.StudentId" class="btn btn-sm btn-info">
+                                        <i class="bi bi-info-circle"></i>
+                                    </a>
+                                    <a asp-action="Edit" asp-route-id="@item.StudentId" class="btn btn-sm btn-primary">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a asp-action="Assignments" asp-route-id="@item.StudentId" class="btn btn-sm btn-success">
+                                        <i class="bi bi-journal-check"></i>
+                                    </a>
+                                    <a asp-action="Delete" asp-route-id="@item.StudentId" class="btn btn-sm btn-danger">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center">No students found</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

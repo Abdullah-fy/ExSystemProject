@@ -1,0 +1,49 @@
+﻿@model ExSystemProject.Models.Topic
+@{
+    ViewData["Title"] = "Add Topic";
+    Layout = "~/Views/Shared/_BranchManagerLayout.cshtml";
+}
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-plus-circle me-2"></i>Add Topic to @ViewBag.Course.CrsName</h5>
+        <div>
+            <a asp-action="Topics" asp-route-id="@ViewBag.Course.CrsId" class="btn btn-sm btn-secondary">
+                <i class="bi bi-arrow-left me-1"></i> Back to Topics
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        <form asp-action="AddTopic">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="CrsId" />
+
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="mb-3">
+                        <label asp-for="TopicName" class="form-label">Topic Name</label>
+                        <input asp-for="TopicName" class="form-control" />
+                        <span asp-validation-for="TopicName" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Descrtption" class="form-label">Description</label>
+                        <textarea asp-for="Descrtption" class="form-control" rows="5"></textarea>
+                        <span asp-validation-for="Descrtption" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save me-1"></i> Add Topic
+                </button>
+                <a asp-action="Topics" asp-route-id="@Model.CrsId" class="btn btn-outline-secondary ms-2">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}
