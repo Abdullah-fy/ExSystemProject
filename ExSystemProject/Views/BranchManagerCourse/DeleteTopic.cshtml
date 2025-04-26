@@ -1,0 +1,58 @@
+﻿@model ExSystemProject.Models.Topic
+@{
+    ViewData["Title"] = "Delete Topic";
+    Layout = "~/Views/Shared/_BranchManagerLayout.cshtml";
+}
+
+<div class="card">
+    <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-trash me-2"></i>Delete Topic</h5>
+        <div>
+            <a asp-action="Topics" asp-route-id="@Model.CrsId" class="btn btn-sm btn-outline-light">
+                <i class="bi bi-arrow-left me-1"></i> Back to Topics
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="alert alert-danger">
+            <h5><i class="bi bi-exclamation-triangle me-2"></i>Are you sure you want to delete this topic?</h5>
+            <p>This will permanently remove the topic from the course.</p>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <h4>Topic Details</h4>
+                <dl class="row">
+                    <dt class="col-sm-3">Topic Name</dt>
+                    <dd class="col-sm-9">@Model.TopicName</dd>
+
+                    <dt class="col-sm-3">Description</dt>
+                    <dd class="col-sm-9">@(string.IsNullOrEmpty(Model.Descrtption) ? "No description" : Model.Descrtption)</dd>
+
+                    <dt class="col-sm-3">Course</dt>
+                    <dd class="col-sm-9">@ViewBag.Course.CrsName</dd>
+
+                    <dt class="col-sm-3">Status</dt>
+                    <dd class="col-sm-9">
+                        @if (Model.Isactive == true)
+                        {
+                            <span class="badge bg-success">Active</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger">Inactive</span>
+                        }
+                    </dd>
+                </dl>
+            </div>
+        </div>
+
+        <form asp-action="DeleteTopic" class="mt-4">
+            <input type="hidden" asp-for="TopicId" />
+            <button type="submit" class="btn btn-danger">
+                <i class="bi bi-trash me-1"></i> Confirm Delete
+            </button>
+            <a asp-action="Topics" asp-route-id="@Model.CrsId" class="btn btn-outline-secondary ms-2">Cancel</a>
+        </form>
+    </div>
+</div>

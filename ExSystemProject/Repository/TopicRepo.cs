@@ -84,4 +84,27 @@ public class TopicRepo : GenaricRepo<Topic>
 
         return result;
     }
+    public Topic ToggleTopicStatus(int id)
+    {
+        // Get current topic
+        var topic = GetTopicById(id);
+        if (topic == null)
+            throw new Exception($"Topic with ID {id} not found");
+
+        // Determine the new status (opposite of current)
+        bool currentStatus = topic.Isactive ?? true;
+        bool newStatus = !currentStatus;
+
+        // Update the topic using existing method
+        var updatedTopic = UpdateTopic(
+            topic.TopicId,
+            topic.TopicName ?? string.Empty,
+            topic.Descrtption ?? string.Empty,
+            topic.CrsId ?? 0,
+            newStatus
+        );
+
+        return updatedTopic;
+    }
+
 }

@@ -1,0 +1,218 @@
+﻿@model ExSystemProject.Models.BranchDashboardViewModel
+@{
+    ViewData["Title"] = $"{Model.BranchName} Branch Dashboard";
+    Layout = "~/Views/Shared/_BranchManagerLayout.cshtml";
+}
+
+<div class="container-fluid px-4">
+    <h1 class="mt-4">@Model.BranchName Branch Dashboard</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item active">Branch Overview</li>
+    </ol>
+
+    <!-- Statistics Cards -->
+    <div class="row">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card shadow h-100 py-2 border-left-primary">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <div class="text-xs fw-bold text-uppercase mb-1">Students</div>
+                            <div class="h5 mb-0 fw-bold">@Model.StudentCount</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-people-fill fa-2x text-primary"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card shadow h-100 py-2 border-left-success">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <div class="text-xs fw-bold text-uppercase mb-1">Instructors</div>
+                            <div class="h5 mb-0 fw-bold">@Model.InstructorCount</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-person-workspace fa-2x text-success"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card shadow h-100 py-2 border-left-info">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <div class="text-xs fw-bold text-uppercase mb-1">Courses</div>
+                            <div class="h5 mb-0 fw-bold">@Model.CourseCount</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-book fa-2x text-info"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card shadow h-100 py-2 border-left-warning">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <div class="text-xs fw-bold text-uppercase mb-1">Exams</div>
+                            <div class="h5 mb-0 fw-bold">@Model.ExamCount</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-file-earmark-text fa-2x text-warning"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow h-100 py-2 border-left-primary">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <div class="text-xs fw-bold text-uppercase mb-1">Tracks</div>
+                            <div class="h5 mb-0 fw-bold">@Model.TrackCount</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-diagram-3 fa-2x text-primary"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="bi bi-lightning-charge me-1"></i>
+            Quick Actions
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3 mb-2">
+                    <a asp-controller="BranchManagerStudent" asp-action="Index" class="btn btn-primary w-100">
+                        <i class="bi bi-people me-2"></i> Manage Students
+                    </a>
+                </div>
+                <div class="col-md-3 mb-2">
+                    <a asp-controller="BranchManagerInstructor" asp-action="Index" class="btn btn-success w-100">
+                        <i class="bi bi-person-workspace me-2"></i> Manage Instructors
+                    </a>
+                </div>
+                <div class="col-md-3 mb-2">
+                    <a asp-controller="BranchManagerTrack" asp-action="Index" class="btn btn-info w-100">
+                        <i class="bi bi-diagram-3 me-2"></i> Manage Tracks
+                    </a>
+                </div>
+                <div class="col-md-3 mb-2">
+                    <a asp-controller="BranchManagerCourse" asp-action="Index" class="btn btn-warning w-100">
+                        <i class="bi bi-book me-2"></i> Manage Courses
+                    </a>
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="col-md-4 mb-2">
+                    <a asp-controller="BranchManagerExam" asp-action="Index" class="btn btn-primary w-100">
+                        <i class="bi bi-file-earmark-text me-2"></i> Manage Exams
+                    </a>
+                </div>
+                <div class="col-md-4 mb-2">
+                    <a asp-controller="BranchManagerSupervisor" asp-action="Index" class="btn btn-success w-100">
+                        <i class="bi bi-person-badge-fill me-2"></i> Manage Supervisors
+                    </a>
+                </div>
+                <div class="col-md-4 mb-2">
+                    <a asp-controller="BranchManagerReport" asp-action="Index" class="btn btn-info w-100">
+                        <i class="bi bi-file-earmark-bar-graph me-2"></i> Branch Reports
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .border-left-primary {
+            border-left: 4px solid #a41e22 !important;
+        }
+
+        .border-left-success {
+            border-left: 4px solid #1e3a47 !important;
+        }
+
+        .border-left-info {
+            border-left: 4px solid #2a7d8c !important;
+        }
+
+        .border-left-warning {
+            border-left: 4px solid #f6c23e !important;
+        }
+
+        .text-xs {
+            font-size: 0.7rem;
+        }
+
+        .text-primary {
+            color: #a41e22 !important;
+        }
+
+        .text-success {
+            color: #1e3a47 !important;
+        }
+
+        .text-info {
+            color: #2a7d8c !important;
+        }
+
+        .text-warning {
+            color: #f6c23e !important;
+        }
+
+        .btn-primary {
+            background-color: #a41e22;
+            border-color: #a41e22;
+        }
+
+            .btn-primary:hover {
+                background-color: #8a1a1e;
+                border-color: #8a1a1e;
+            }
+
+        .btn-success {
+            background-color: #1e3a47;
+            border-color: #1e3a47;
+        }
+
+            .btn-success:hover {
+                background-color: #19313d;
+                border-color: #19313d;
+            }
+
+        .btn-info {
+            background-color: #2a7d8c;
+            border-color: #2a7d8c;
+            color: white;
+        }
+
+            .btn-info:hover {
+                background-color: #236b78;
+                border-color: #236b78;
+                color: white;
+            }
+    </style>
+}

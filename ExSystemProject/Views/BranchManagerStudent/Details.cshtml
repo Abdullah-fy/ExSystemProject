@@ -1,0 +1,130 @@
+﻿@model Student
+@{
+    ViewData["Title"] = "Student Details";
+    Layout = "~/Views/Shared/_BranchManagerLayout.cshtml";
+}
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Student Details</h5>
+        <div>
+            <a asp-action="Index" class="btn btn-sm btn-secondary">
+                <i class="bi bi-arrow-left me-1"></i> Back to List
+            </a>
+            <a asp-action="Edit" asp-route-id="@Model.StudentId" class="btn btn-sm btn-primary">
+                <i class="bi bi-pencil me-1"></i> Edit
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-3 text-center mb-4">
+                @if (!string.IsNullOrEmpty(Model.User?.Img))
+                {
+                    <img src="~/images/profiles/@Model.User.Img" alt="Profile Picture" class="img-thumbnail rounded-circle mb-2" style="width: 150px; height: 150px; object-fit: cover;">
+                }
+                else
+                {
+                    <img src="~/images/profiles/default.png" alt="Default Profile" class="img-thumbnail rounded-circle mb-2" style="width: 150px; height: 150px; object-fit: cover;">
+                }
+                <h5 class="mb-1">@Model.User?.Username</h5>
+                <span class="badge @(Model.Isactive == true ? "bg-success" : "bg-danger")">
+                    @(Model.Isactive == true ? "Active" : "Inactive")
+                </span>
+            </div>
+            <div class="col-md-9">
+                <h4>Personal Information</h4>
+                <hr />
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Student ID</label>
+                            <p>@Model.StudentId</p>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Email</label>
+                            <p>@Model.User?.Email</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Gender</label>
+                            <p>@(Model.User?.Gender == "M" ? "Male" : "Female")</p>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Enrollment Date</label>
+                            <p>@Model.EnrollmentDate?.ToString("dd MMMM yyyy")</p>
+                        </div>
+                    </div>
+                </div>
+
+                <h4>Academic Information</h4>
+                <hr />
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Track</label>
+                            <p>@Model.Track?.TrackName</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Branch</label>
+                            <p>@Model.Track?.Branch?.BranchName</p>
+                        </div>
+                    </div>
+                </div>
+
+                <h4>Enrolled Courses</h4>
+                <hr />
+                @if (Model.StudentCourses != null && Model.StudentCourses.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Course</th>
+                                    <th>Enrollment Date</th>
+                                    <th>Grade</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var course in Model.StudentCourses.Where(c => c.Isactive == true))
+                                {
+                                    <tr>
+                                        <td>@course.Crs?.CrsName</td>
+                                        <td>@course.EnrolledAt?.ToString("dd/MM/yyyy")</td>
+                                        <td>@(course.Grade?.ToString() ?? "Not graded")</td>
+                                        <td>
+                                            @if (course.Ispassed == true)
+                                            {
+                                                <span class="badge bg-success">Passed</span>
+                                            }
+                                            else if (course.Ispassed == false)
+                                            {
+                                                <span class="badge bg-danger">Failed</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary">Pending</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted">No courses enrolled</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}

@@ -134,8 +134,17 @@ namespace ExSystemProject.Repository
 
         public List<Course> InstructorCourses(int instructorId)
         {
-           return _context.Courses.Where(c => c.InsId == instructorId).ToList() ?? new List<Course>();
+            return _context.Courses.Where(c => c.InsId == instructorId).ToList() ?? new List<Course>();
         }
+        public int GetCourseCountByBranchAsync(int branchId)
+        {
+            return _context.Courses
+                .Include(c => c.Ins)
+                .Include(c => c.Ins.Track)
+                .Where(c => c.Ins.Track.BranchId == branchId && c.Isactive == true)
+                .Count();
+        }
+
 
     }
 }
