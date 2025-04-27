@@ -1,0 +1,86 @@
+﻿@model ExSystemProject.Models.UserAssignment
+@{
+    ViewData["Title"] = "Delete Supervisor";
+    Layout = "~/Views/Shared/_BranchManagerLayout.cshtml";
+}
+
+<div class="card shadow">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+        <h5 class="mb-0 text-danger">
+            <i class="bi bi-trash me-2"></i> Delete Supervisor
+        </h5>
+        <div>
+            <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left me-1"></i> Back to List
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="alert alert-danger">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <strong>Warning:</strong> Are you sure you want to delete this supervisor? This will deactivate the supervisor's account.
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">Supervisor Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table">
+                            <tr>
+                                <th>Username:</th>
+                                <td>@Model.User?.Username</td>
+                            </tr>
+                            <tr>
+                                <th>Email:</th>
+                                <td>@Model.User?.Email</td>
+                            </tr>
+                            <tr>
+                                <th>Branch:</th>
+                                <td>@Model.Branch?.BranchName</td>
+                            </tr>
+                            <tr>
+                                <th>Track:</th>
+                                <td>
+                                    @if (Model.TrackId.HasValue)
+                                    {
+                                        @Model.Track?.TrackName
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">No track assigned</span>
+                                    }
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Status:</th>
+                                <td>
+                                    @if (Model.Isactive == true)
+                                    {
+                                        <span class="badge bg-success">Active</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">Inactive</span>
+                                    }
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <form asp-action="Delete" method="post">
+            <input type="hidden" name="id" value="@Model.AssignmentId" />
+            <div class="text-end">
+                <a asp-action="Index" class="btn btn-outline-secondary me-1">Cancel</a>
+                <button type="submit" class="btn btn-danger">
+                    <i class="bi bi-trash me-1"></i> Confirm Deletion
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

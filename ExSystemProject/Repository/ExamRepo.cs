@@ -248,6 +248,33 @@ namespace ExSystemProject.Repository
                     examQuestions.Contains(sa.QuesId ?? 0))
                 .ToList();
         }
+        
+
+        // Get exams by course ID
+        public List<Exam> GetExamsByCourseId(int courseId)
+        {
+            try
+            {
+                var crsIdParam = new SqlParameter("@crs_id", courseId);
+                var activeOnlyParam = new SqlParameter("@activeExamsOnly", true);
+
+                return _context.Exams
+                    .FromSqlRaw("EXEC sp_GetExamsBy_crsid @crs_id, @activeExamsOnly",
+                        crsIdParam, activeOnlyParam)
+                    .AsEnumerable()
+                    .ToList();
+            }
+            catch (Exception ex)
+            {
+                // Fallback to EF Core query if stored procedure fails
+                return _context.Exams
+                    .Include(e => e.Crs)
+                    .Include(e => e.Ins)
+                    .Where(e => e.CrsId == courseId && e.Isactive == true)
+                    .ToList();
+            }
+        }
+
 
 
 

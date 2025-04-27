@@ -1,0 +1,166 @@
+﻿@model List<ExSystemProject.DTOS.QuestionBankDTO>
+@{
+    ViewData["Title"] = "Question Bank";
+    Layout = "~/Views/Shared/_BranchManagerLayout.cshtml";
+    var examId = ViewBag.ExamId;
+    var branchId = ViewBag.BranchId;
+}
+
+<div class="card shadow">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+        <h5 class="mb-0 text-primary">
+            @if (ViewBag.ExamName != null)
+            {
+                <text><i class="bi bi-question-circle me-2"></i> Questions for Exam: @ViewBag.ExamName</text>
+            }
+            else
+            {
+                <text><i class="bi bi-question-circle me-2"></i> All Questions</text>
+            }
+        </h5>
+        <div>
+            <div class="dropdown d-inline-block me-2">
+                <button class="btn btn-outline-primary btn-sm dropdown-toggle" type="button" id="createQuestionDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-plus-lg me-1"></i> Add Question
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="createQuestionDropdown">
+                    <li>
+                        <a class="dropdown-item" href="@(examId != null ? $"/BranchManagerQuestionBank/Create?examId={examId}" : "/BranchManagerQuestionBank/Create")">
+                            <i class="bi bi-list-check me-2"></i> Multiple Choice
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" href="@(examId != null ? $"/BranchManagerQuestionBank/CreateTrueFalse?examId={examId}" : "/BranchManagerQuestionBank/CreateTrueFalse")">
+                            <i class="bi bi-check2-circle me-2"></i> True/False
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            @if (examId != null)
+            {
+                <a href="/BranchManagerQuestionBank" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-grid me-1"></i> All Questions
+                </a>
+            }
+        </div>
+    </div>
+    <div class="card-body">
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle me-2"></i> @TempData["Message"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle me-2"></i> @TempData["Message"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        @if (Model == null || !Model.Any())
+        {
+            <div class="text-center py-5">
+                <div class="display-1 text-muted">
+                    <i class="bi bi-question-square"></i>
+                </div>
+                <h3 class="mt-4">No Questions Found</h3>
+                <p class="text-muted">No questions have been added to @(ViewBag.ExamName != null ? "this exam" : "the question bank") yet.</p>
+                <div class="mt-4">
+                    <a href="@(examId != null ? $"/BranchManagerQuestionBank/Create?examId={examId}" : "/BranchManagerQuestionBank/Create")" class="btn btn-primary me-2">
+                        <i class="bi bi-plus-lg me-2"></i> Create MCQ Question
+                    </a>
+                    <a href="@(examId != null ? $"/BranchManagerQuestionBank/CreateTrueFalse?examId={examId}" : "/BranchManagerQuestionBank/CreateTrueFalse")" class="btn btn-outline-primary">
+                        <i class="bi bi-check2-circle me-2"></i> Create T/F Question
+                    </a>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover" id="questionsTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width:5%">ID</th>
+                            <th style="width:45%">Question Text</th>
+                            <th style="width:10%">Type</th>
+                            <th style="width:10%">Score</th>
+                            <th style="width:15%">Exam</th>
+                            <th style="width:15%">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var question in Model)
+                        {
+                            <tr>
+                                <td>@question.QuesId</td>
+                                <td>
+                                    @(question.QuesText?.Length > 100
+                                        ? question.QuesText.Substring(0, 100) + "..."
+                                        : question.QuesText)
+                                </td>
+                                <td>
+                                    @if (question.QuesType == "MCQ")
+                                    {
+                                        <span class="badge bg-primary">Multiple Choice</span>
+                                    }
+                                    else if (question.QuesType == "TF")
+                                    {
+                                        <span class="badge bg-success">True/False</span>
+                                    }
+                                </td>
+                                <td>@question.QuesScore pts</td>
+                                <td>
+                                    @if (string.IsNullOrEmpty(question.ExamName))
+                                    {
+                                        <span class="text-muted">No Exam</span>
+                                    }
+                                    else
+                                    {
+                                        <a href="/BranchManagerQuestionBank?examId=@question.ExamId">
+                                            @question.ExamName
+                                        </a>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a asp-action="Details" asp-route-id="@question.QuesId" class="btn btn-outline-info">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a asp-action="Edit" asp-route-id="@question.QuesId" class="btn btn-outline-primary">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <a asp-action="Delete" asp-route-id="@question.QuesId" class="btn btn-outline-danger">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#questionsTable').DataTable({
+                "order": [[0, "desc"]],
+                "pageLength": 25,
+                "language": {
+                    "search": "Search questions:",
+                    "lengthMenu": "Show _MENU_ questions per page",
+                    "info": "Showing _START_ to _END_ of _TOTAL_ questions",
+                    "infoEmpty": "No matching questions found",
+                    "zeroRecords": "No matching questions found"
+                }
+            });
+        });
+    </script>
+}

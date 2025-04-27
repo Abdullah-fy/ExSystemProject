@@ -47,5 +47,43 @@ namespace ExSystemProject.Repository
                 .AsEnumerable()
                 .ToList();
         }
+        
+
+        // Get correct choice for a question
+        public Choice GetCorrectChoiceForQuestion(int questionId)
+        {
+            return _context.Choices
+                .Where(c => c.QuesId == questionId && c.IsCorrect)
+                .FirstOrDefault();
+        }
+
+        // Update a specific choice
+        public void UpdateChoice(Choice choice)
+        {
+            try
+            {
+                _context.Entry(choice).State = EntityState.Modified;
+                _context.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error updating choice: {ex.Message}", ex);
+            }
+        }
+
+        // Add multiple choices at once
+        public void AddChoices(List<Choice> choices)
+        {
+            try
+            {
+                _context.Choices.AddRange(choices);
+                _context.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error adding choices: {ex.Message}", ex);
+            }
+        }
+
     }
 }

@@ -327,5 +327,49 @@ namespace ExSystemProject.Repository
                 throw new Exception($"Error retrieving choices for question {questionId}: {ex.Message}", ex);
             }
         }
+        
+
+        // Get questions by branch ID (questions that belong to exams in courses in this branch)
+        public List<Question> GetQuestionsByBranchId(int branchId)
+        {
+            try
+            {
+                var branchQuestions = _context.Questions
+                    .Join(_context.Exams, q => q.ExamId, e => e.ExamId, (q, e) => new { Question = q, Exam = e })
+                    .Join(_context.Courses, qe => qe.Exam.CrsId, c => c.CrsId, (qe, c) => new { qe.Question, qe.Exam, Course = c })
+                    .Join(_context.Instructors, qec => qec.Course.InsId, i => i.InsId, (qec, i) => new { qec.Question, qec.Exam, qec.Course, Instructor = i })
+                    .Join(_context.Tracks, qeci => qeci.Instructor.TrackId, t => t.TrackId, (qeci, t) => new { qeci.Question, qeci.Exam, qeci.Course, qeci.Instructor, Track = t })
+                    .Join(_context.Branches, qecit => qecit.Track.BranchId, b => b.BranchId, (qecit, b) => new { qecit.Question, qecit.Exam, qecit.Course, qecit.Instructor, qecit.Track, Branch = b })
+                    .Where(qecitb => qecitb.Branch.BranchId == branchId && qecitb.Question.Isactive == true)
+                    .Select(qecitb => qecitb.Question)
+                    .ToList();
+
+                return branchQuestions;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error retrieving questions for branch {branchId}: {ex.Message}", ex);
+            }
+        }
+
+        // Check if a question belongs to a specific branch
+        public bool IsQuestionInBranch(int questionId, int branchId)
+        {
+            try
+            {
+                return _context.Questions
+                    .Join(_context.Exams, q => q.ExamId, e => e.ExamId, (q, e) => new { Question = q, Exam = e })
+                    .Join(_context.Courses, qe => qe.Exam.CrsId, c => c.CrsId, (qe, c) => new { qe.Question, qe.Exam, Course = c })
+                    .Join(_context.Instructors, qec => qec.Course.InsId, i => i.InsId, (qec, i) => new { qec.Question, qec.Exam, qec.Course, Instructor = i })
+                    .Join(_context.Tracks, qeci => qeci.Instructor.TrackId, t => t.TrackId, (qeci, t) => new { qeci.Question, qeci.Exam, qeci.Course, qeci.Instructor, Track = t })
+                    .Join(_context.Branches, qecit => qecit.Track.BranchId, b => b.BranchId, (qecit, b) => new { qecit.Question, qecit.Exam, qecit.Course, qecit.Instructor, qecit.Track, Branch = b })
+                    .Any(qecitb => qecitb.Branch.BranchId == branchId && qecitb.Question.QuesId == questionId);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error checking if question {questionId} belongs to branch {branchId}: {ex.Message}", ex);
+            }
+        }
+
     }
 }
