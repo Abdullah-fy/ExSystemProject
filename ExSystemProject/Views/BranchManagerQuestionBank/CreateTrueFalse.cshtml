@@ -1,0 +1,107 @@
+﻿@{
+    ViewData["Title"] = "Create True/False Question";
+    Layout = "~/Views/Shared/_BranchManagerLayout.cshtml";
+
+    var examId = ViewData["ExamId"] ?? Context.Request.Query["examId"].FirstOrDefault();
+}
+
+
+
+<div class="card shadow">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+        <h5 class="mb-0 text-primary">
+            <i class="bi bi-check2-circle me-2"></i> Create True/False Question
+        </h5>
+        <div>
+            <a asp-action="Index" asp-route-examId="@examId" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left me-1"></i> Back to Question Bank
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        <form asp-action="CreateTrueFalse" method="post">
+            <div class="row mb-4">
+                <div class="col-md-8">
+                    <div class="form-group mb-3">
+                        <label for="quesText" class="form-label">Question Text <span class="text-danger">*</span></label>
+                        <textarea id="quesText" name="quesText" class="form-control" rows="4" placeholder="Enter your True/False question here..." required>@ViewBag.QuesText</textarea>
+                        <div class="form-text">Write a statement that can be clearly answered as True or False.</div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-header bg-light py-2">
+                            <h5 class="mb-0 fs-6">Question Settings</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group mb-3">
+                                <label for="quesScore" class="form-label">Question Score <span class="text-danger">*</span></label>
+                                <input id="quesScore" name="quesScore" class="form-control" type="number" min="1" max="100" value="@(ViewBag.QuesScore ?? 5)" required />
+                                <div class="form-text">Points awarded for correct answer</div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Exam <span class="text-muted">(optional)</span></label>
+                                <select id="examId" name="examId" asp-items="ViewBag.Exams" class="form-select">
+                                    <option value="">-- Select Exam --</option>
+                                </select>
+                                <div class="form-text">Assign this question to an exam</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header bg-light py-2">
+                    <h5 class="mb-0 fs-6">Correct Answer</h5>
+                    <div class="form-text">Select whether the statement is True or False.</div>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="tfCorrectAnswer" id="answerTrue" value="true" @(ViewBag.TFCorrectAnswer == "true" ? "checked" : "") required>
+                            <label class="form-check-label" for="answerTrue">True</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="tfCorrectAnswer" id="answerFalse" value="false" @(ViewBag.TFCorrectAnswer == "false" ? "checked" : "") required>
+                            <label class="form-check-label" for="answerFalse">False</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-end">
+                <a asp-action="Index" asp-route-examId="@examId" class="btn btn-outline-secondary me-1">Cancel</a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save me-1"></i> Create Question
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Simple validation
+        $(document).ready(function () {
+            $('form').on('submit', function (e) {
+                var quesText = $('#quesText').val().trim();
+                if (!quesText) {
+                    e.preventDefault();
+                    alert('Please enter a question text');
+                    return false;
+                }
+
+                if (!$('input[name="tfCorrectAnswer"]:checked').val()) {
+                    e.preventDefault();
+                    alert('Please select whether the statement is True or False');
+                    return false;
+                }
+
+                return true;
+            });
+        });
+    </script>
+}

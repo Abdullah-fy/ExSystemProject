@@ -17,7 +17,7 @@ namespace ExSystemProject.Repository
             _context = context;
         }
 
-        // Call stored procedure to create a course
+        
 
         // Call stored procedure to create a course
         public void CreateCourse(Course course)
@@ -144,6 +144,44 @@ namespace ExSystemProject.Repository
                 .Where(c => c.Ins.Track.BranchId == branchId && c.Isactive == true)
                 .Count();
         }
+       
+
+        // Get courses by branch ID
+        public List<Course> GetCoursesByBranch(int branchId)
+        {
+            try
+            {
+                return _context.Courses
+                    .Include(c => c.Ins)
+                    .Include(c => c.Ins.Track)
+                    .Include(c => c.Ins.User)
+                    .Where(c => c.Ins.Track.BranchId == branchId && c.Isactive == true)
+                    .ToList();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error retrieving courses for branch {branchId}: {ex.Message}", ex);
+            }
+        }
+
+        // Get course with branch information
+        public Course GetCourseWithBranch(int courseId)
+        {
+            try
+            {
+                return _context.Courses
+                    .Include(c => c.Ins)
+                    .Include(c => c.Ins.Track)
+                    .Include(c => c.Ins.Track.Branch)
+                    .Include(c => c.Ins.User)
+                    .FirstOrDefault(c => c.CrsId == courseId);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error retrieving course {courseId} with branch information: {ex.Message}", ex);
+            }
+        }
+
 
 
     }

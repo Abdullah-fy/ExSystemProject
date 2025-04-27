@@ -1,0 +1,135 @@
+﻿@model QuestionBankDTO
+@{
+    ViewData["Title"] = "Create Multiple Choice Question";
+    Layout = "~/Views/Shared/_BranchManagerLayout.cshtml";
+    var examId = ViewBag.ExamId;
+}
+
+<div class="card shadow">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+        <h5 class="mb-0 text-primary">
+            <i class="bi bi-question-circle me-2"></i> Create Multiple Choice Question
+        </h5>
+        <div>
+            <a asp-action="Index" asp-route-examId="@examId" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left me-1"></i> Back to Question Bank
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        <form asp-action="Create" method="post">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+            <input type="hidden" asp-for="ExamId" value="@examId" />
+            <input type="hidden" asp-for="QuesType" value="MCQ" />
+
+            <div class="row mb-4">
+                <div class="col-md-8">
+                    <div class="form-group mb-3">
+                        <label asp-for="QuesText" class="form-label">Question Text <span class="text-danger">*</span></label>
+                        <textarea asp-for="QuesText" class="form-control" rows="4" placeholder="Enter your question here..." required></textarea>
+                        <span asp-validation-for="QuesText" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-header bg-light py-2">
+                            <h5 class="mb-0 fs-6">Question Settings</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group mb-3">
+                                <label asp-for="QuesScore" class="form-label">Question Score <span class="text-danger">*</span></label>
+                                <input asp-for="QuesScore" class="form-control" type="number" min="1" max="100" value="5" required />
+                                <span asp-validation-for="QuesScore" class="text-danger"></span>
+                                <div class="form-text">Points awarded for correct answer</div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Exam <span class="text-muted">(optional)</span></label>
+                                <select asp-for="ExamId" asp-items="ViewBag.Exams" class="form-select">
+                                    <option value="">-- Select Exam --</option>
+                                </select>
+                                <div class="form-text">Assign this question to an exam</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header bg-light py-2">
+                    <h5 class="mb-0 fs-6">Answer Choices</h5>
+                    <div class="form-text">Select one correct answer. You must provide at least two choices.</div>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <div class="input-group-text">
+                                    <input type="radio" name="correctAnswer" value="0" class="form-check-input mt-0" required />
+                                </div>
+                                <input asp-for="Choices[0].ChoiceText" class="form-control" placeholder="Choice 1" />
+                                <input type="hidden" asp-for="Choices[0].IsCorrect" class="choice-correct-input" value="false" />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <div class="input-group-text">
+                                    <input type="radio" name="correctAnswer" value="1" class="form-check-input mt-0" />
+                                </div>
+                                <input asp-for="Choices[1].ChoiceText" class="form-control" placeholder="Choice 2" />
+                                <input type="hidden" asp-for="Choices[1].IsCorrect" class="choice-correct-input" value="false" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <div class="input-group-text">
+                                    <input type="radio" name="correctAnswer" value="2" class="form-check-input mt-0" />
+                                </div>
+                                <input asp-for="Choices[2].ChoiceText" class="form-control" placeholder="Choice 3 (Optional)" />
+                                <input type="hidden" asp-for="Choices[2].IsCorrect" class="choice-correct-input" value="false" />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <div class="input-group-text">
+                                    <input type="radio" name="correctAnswer" value="3" class="form-check-input mt-0" />
+                                </div>
+                                <input asp-for="Choices[3].ChoiceText" class="form-control" placeholder="Choice 4 (Optional)" />
+                                <input type="hidden" asp-for="Choices[3].IsCorrect" class="choice-correct-input" value="false" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-end">
+                <a asp-action="Index" asp-route-examId="@examId" class="btn btn-outline-secondary me-1">Cancel</a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save me-1"></i> Create Question
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        $(document).ready(function () {
+            // Handle radio button selection to set the correct choice
+            $('input[name="correctAnswer"]').change(function() {
+                // First reset all choices to false
+                $('.choice-correct-input').val('false');
+
+                // Set the selected choice to true
+                var selectedIndex = $(this).val();
+                $($('.choice-correct-input')[selectedIndex]).val('true');
+            });
+        });
+    </script>
+}

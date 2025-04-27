@@ -1,0 +1,160 @@
+﻿@model IEnumerable<ExSystemProject.Models.UserAssignment>
+@{
+    ViewData["Title"] = "Supervisors Management";
+    Layout = "~/Views/Shared/_BranchManagerLayout.cshtml";
+}
+
+<div class="card shadow">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+        <h5 class="mb-0 text-primary">
+            <i class="bi bi-people-fill me-2"></i> Supervisors
+        </h5>
+        <div>
+            <a asp-action="Create" class="btn btn-primary btn-sm">
+                <i class="bi bi-plus-circle me-1"></i> Add New Supervisor
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle me-2"></i> @TempData["Success"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle me-2"></i> @TempData["Error"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        @if (Model == null || !Model.Any())
+        {
+            <div class="text-center py-5">
+                <div class="display-1 text-muted">
+                    <i class="bi bi-people"></i>
+                </div>
+                <h3 class="mt-4">No Supervisors Found</h3>
+                <p class="text-muted">There are no supervisors assigned to this branch yet.</p>
+                <div class="mt-4">
+                    <a asp-action="Create" class="btn btn-primary">
+                        <i class="bi bi-plus-circle me-2"></i> Add New Supervisor
+                    </a>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover" id="supervisorsTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Assigned Track</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var supervisor in Model)
+                        {
+                            <tr>
+                                <td>@supervisor.AssignmentId</td>
+                                <td>@supervisor.User?.Username</td>
+                                <td>@supervisor.User?.Email</td>
+                                <td>
+                                    @if (supervisor.TrackId.HasValue)
+                                    {
+                                        @supervisor.Track?.TrackName
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">No track assigned</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (supervisor.Isactive == true)
+                                    {
+                                        <span class="badge bg-success">Active</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">Inactive</span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a asp-action="Details" asp-route-id="@supervisor.AssignmentId" class="btn btn-outline-info">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a asp-action="Edit" asp-route-id="@supervisor.AssignmentId" class="btn btn-outline-primary">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <a asp-action="Delete" asp-route-id="@supervisor.AssignmentId" class="btn btn-outline-danger">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+                                        <button type="button" class="btn @(supervisor.Isactive == true ? "btn-outline-warning" : "btn-outline-success") toggle-status"
+                                                data-id="@supervisor.AssignmentId" data-active="@supervisor.Isactive">
+                                            <i class="bi @(supervisor.Isactive == true ? "bi-x-circle" : "bi-check-circle")"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $('#supervisorsTable').DataTable({
+                "order": [[0, "desc"]]
+            });
+
+            // Toggle status
+            $('.toggle-status').on('click', function() {
+                var btn = $(this);
+                var id = btn.data('id');
+                var isActive = btn.data('active') === 'True';
+
+                $.ajax({
+                    url: '@Url.Action("ToggleStatus")',
+                    type: 'POST',
+                    data: { id: id },
+                    success: function(result) {
+                        if (result.success) {
+                            // Update button appearance
+                            if (result.isActive) {
+                                btn.removeClass('btn-outline-success').addClass('btn-outline-warning');
+                                btn.find('i').removeClass('bi-check-circle').addClass('bi-x-circle');
+                                btn.closest('tr').find('.badge').removeClass('bg-danger').addClass('bg-success').text('Active');
+                            } else {
+                                btn.removeClass('btn-outline-warning').addClass('btn-outline-success');
+                                btn.find('i').removeClass('bi-x-circle').addClass('bi-check-circle');
+                                btn.closest('tr').find('.badge').removeClass('bg-success').addClass('bg-danger').text('Inactive');
+                            }
+                            btn.data('active', result.isActive);
+
+                            // Show success message
+                            toastr.success(result.message);
+                        } else {
+                            toastr.error(result.message);
+                        }
+                    },
+                    error: function() {
+                        toastr.error('An error occurred while processing your request');
+                    }
+                });
+            });
+        });
+    </script>
+}

@@ -20,6 +20,7 @@ namespace ExSystemProject.UnitOfWorks
         TrackRepo TrackRepo;
         UserRepo UserRepo;
         UserAssignmentRepo UserAssignmentRepo;
+        SupervisorRepo SupervisorRepo;
         public UnitOfWork(ExSystemTestContext context)
         {
             this.context = context;
@@ -127,15 +128,32 @@ namespace ExSystemProject.UnitOfWorks
                     UserRepo = new UserRepo(context);
                 }
                 return UserRepo;
-            }}
+            }
+        }
         public UserAssignmentRepo userAssignmentRepo
-        { get { 
+        {
+            get
+            {
                 if (UserAssignmentRepo == null)
                 {
                     UserAssignmentRepo = new UserAssignmentRepo(context);
                 }
                 return UserAssignmentRepo;
-            }}
+            }
+        }
+        public SupervisorRepo supervisorRepo
+        {
+            get
+            {
+                if (SupervisorRepo == null)
+                {
+                    SupervisorRepo = new SupervisorRepo(context);
+                }
+                return SupervisorRepo;
+            }
+        }
+
+
         public void save()
         {
             context.SaveChanges();

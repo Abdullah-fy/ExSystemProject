@@ -1,0 +1,177 @@
+﻿@model QuestionBankDTO
+@{
+    ViewData["Title"] = "Edit Question";
+    Layout = "~/Views/Shared/_BranchManagerLayout.cshtml";
+    var questionType = Model.QuesType;
+    var isMCQ = questionType == "MCQ";
+}
+
+<div class="card shadow">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+        <h5 class="mb-0 text-primary">
+            <i class="bi bi-pencil me-2"></i> Edit @(isMCQ ? "Multiple Choice" : "True/False") Question
+        </h5>
+        <div>
+            <a asp-action="Details" asp-route-id="@Model.QuesId" class="btn btn-outline-info btn-sm">
+                <i class="bi bi-eye me-1"></i> View Details
+            </a>
+            <a asp-action="Index" asp-route-examId="@Model.ExamId" class="btn btn-outline-secondary btn-sm ms-1">
+                <i class="bi bi-arrow-left me-1"></i> Back to List
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        <form asp-action="Edit" method="post">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+            <input type="hidden" asp-for="QuesId" />
+            <input type="hidden" asp-for="QuesType" />
+
+            <div class="row mb-4">
+                <div class="col-md-8">
+                    <div class="form-group mb-3">
+                        <label asp-for="QuesText" class="form-label">Question Text <span class="text-danger">*</span></label>
+                        <textarea asp-for="QuesText" class="form-control" rows="4" placeholder="Enter your question here..." required></textarea>
+                        <span asp-validation-for="QuesText" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-header bg-light py-2">
+                            <h5 class="mb-0 fs-6">Question Settings</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group mb-3">
+                                <label asp-for="QuesScore" class="form-label">Question Score <span class="text-danger">*</span></label>
+                                <input asp-for="QuesScore" class="form-control" type="number" min="1" max="100" required />
+                                <span asp-validation-for="QuesScore" class="text-danger"></span>
+                                <div class="form-text">Points awarded for correct answer</div>
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <label class="form-label">Exam</label>
+                                <select asp-for="ExamId" asp-items="ViewBag.Exams" class="form-select">
+                                    <option value="">-- Select Exam --</option>
+                                </select>
+                                <div class="form-text">Assign this question to an exam</div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Status</label>
+                                <div class="form-check form-switch">
+                                    <input asp-for="Isactive" class="form-check-input" />
+                                    <label class="form-check-label" asp-for="Isactive">Active</label>
+                                </div>
+                                <div class="form-text">Inactive questions won't appear in exams</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @if (isMCQ)
+            {
+                <div class="card mb-4">
+                    <div class="card-header bg-light py-2">
+                        <h5 class="mb-0 fs-6">Answer Choices</h5>
+                        <div class="form-text">Select one correct answer. You must provide at least two choices.</div>
+                    </div>
+                    <div class="card-body">
+                        @for (int i = 0; i < Model.Choices.Count; i++)
+                        {
+                            <div class="mb-3">
+                                <div class="input-group">
+                                    <div class="input-group-text">
+                                        <input type="radio" name="correctAnswer" value="@i" class="form-check-input mt-0"
+                                        @(Model.Choices[i].IsCorrect ? "checked" : "") required />
+                                    </div>
+                                    <input type="hidden" asp-for="Choices[i].ChoiceId" />
+                                    <input asp-for="Choices[i].ChoiceText" class="form-control" placeholder="Choice @(i + 1)" />
+                                    <input type="hidden" asp-for="Choices[i].IsCorrect" class="choice-correct-input" />
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="card mb-4">
+                    <div class="card-header bg-light py-2">
+                        <h5 class="mb-0 fs-6">Correct Answer</h5>
+                        <div class="form-text">Select whether the statement is True or False.</div>
+                    </div>
+                    <div class="card-body">
+                        <input type="hidden" asp-for="Choices[0].ChoiceId" />
+                        <input type="hidden" asp-for="Choices[0].ChoiceText" value="True" />
+                        <input type="hidden" asp-for="Choices[0].IsCorrect" id="trueIsCorrect" />
+
+                        <input type="hidden" asp-for="Choices[1].ChoiceId" />
+                        <input type="hidden" asp-for="Choices[1].ChoiceText" value="False" />
+                        <input type="hidden" asp-for="Choices[1].IsCorrect" id="falseIsCorrect" />
+
+                        <div class="form-group">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="correctAnswer" id="answerTrue" value="true"
+                                @(Model.Choices.FirstOrDefault(c => c.ChoiceText.ToLower() == "true")?.IsCorrect == true ? "checked" : "") required>
+                                <label class="form-check-label" for="answerTrue">True</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="correctAnswer" id="answerFalse" value="false"
+                                @(Model.Choices.FirstOrDefault(c => c.ChoiceText.ToLower() == "false")?.IsCorrect == true ? "checked" : "") required>
+                                <label class="form-check-label" for="answerFalse">False</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <div class="text-end">
+                <a asp-action="Details" asp-route-id="@Model.QuesId" class="btn btn-outline-secondary me-1">Cancel</a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save me-1"></i> Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        $(document).ready(function () {
+        @if (isMCQ)
+        {
+            <text>
+                    // Handle radio button selection to set the correct choice for MCQ
+                    $('input[name="correctAnswer"]').change(function() {
+                        // First reset all choices to false
+                        $('.choice-correct-input').val('false');
+
+                        // Set the selected choice to true
+                        var selectedIndex = $(this).val();
+                        $($('.choice-correct-input')[selectedIndex]).val('true');
+                    });
+            </text>
+        }
+        else
+        {
+            <text>
+                    // Handle radio button selection for True/False
+                    $('input[name="correctAnswer"]').change(function() {
+                        var selectedValue = $(this).val();
+                        if (selectedValue === 'true') {
+                            $('#trueIsCorrect').val('true');
+                            $('#falseIsCorrect').val('false');
+                        } else {
+                            $('#trueIsCorrect').val('false');
+                            $('#falseIsCorrect').val('true');
+                        }
+                    });
+            </text>
+        }
+        });
+    </script>
+}
