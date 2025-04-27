@@ -1,0 +1,120 @@
+﻿@model ExSystemProject.DTOS.InstructorDTO
+@{
+    ViewData["Title"] = "Add New Instructor";
+    Layout = "~/Views/Shared/_BranchManagerLayout.cshtml";
+}
+
+<div class="card shadow">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+        <h5 class="mb-0 text-primary">
+            <i class="bi bi-person-plus me-2"></i> Add New Instructor
+        </h5>
+        <div>
+            <a asp-action="Index" class="btn btn-sm btn-secondary">
+                <i class="bi bi-arrow-left me-1"></i> Back to List
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        <form asp-action="Create" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        <label asp-for="Username" class="form-label">Username <span class="text-danger">*</span></label>
+                        <input asp-for="Username" class="form-control" placeholder="Enter username" required />
+                        <span asp-validation-for="Username" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        <label asp-for="Email" class="form-label">Email <span class="text-danger">*</span></label>
+                        <input asp-for="Email" class="form-control" type="email" placeholder="Enter email" required />
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        <label asp-for="Gender" class="form-label">Gender <span class="text-danger">*</span></label>
+                        <select asp-for="Gender" class="form-select" required>
+                            <option value="">-- Select Gender --</option>
+                            <option value="M">Male</option>
+                            <option value="F">Female</option>
+                        </select>
+                        <span asp-validation-for="Gender" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        <label for="Password" class="form-label">Password <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <input type="password" id="Password" name="Password" class="form-control" placeholder="Enter password" required />
+                            <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                        <div id="passwordHelp" class="form-text">Password must be at least 6 characters.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        <label asp-for="Salary" class="form-label">Salary <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input asp-for="Salary" class="form-control" type="number" min="0" step="0.01" placeholder="Enter salary" required />
+                        </div>
+                        <span asp-validation-for="Salary" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        <label asp-for="TrackId" class="form-label">Track <span class="text-danger">*</span></label>
+                        <select asp-for="TrackId" class="form-select" asp-items="ViewBag.Tracks" required>
+                            <option value="">-- Select Track --</option>
+                        </select>
+                        <span asp-validation-for="TrackId" class="text-danger"></span>
+                        <small class="form-text">The instructor will be assigned to a track in your branch.</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hidden field for BranchId -->
+            <input type="hidden" asp-for="BranchId" value="@Model.BranchId" />
+            <input type="hidden" asp-for="BranchName" value="@Model.BranchName" />
+            <input type="hidden" asp-for="Isactive" value="true" />
+
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save me-1"></i> Create Instructor
+                </button>
+                <a asp-action="Index" class="btn btn-outline-secondary ms-1">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Password toggle visibility
+            const togglePassword = document.getElementById('togglePassword');
+            const passwordInput = document.getElementById('Password');
+
+            togglePassword.addEventListener('click', function () {
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
+                this.querySelector('i').className = type === 'password' ? 'bi bi-eye' : 'bi bi-eye-slash';
+            });
+        });
+    </script>
+}

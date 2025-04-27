@@ -1,0 +1,228 @@
+﻿@model IEnumerable<ExSystemProject.Models.Instructor>
+@{
+    ViewData["Title"] = "Instructor Management";
+    Layout = "~/Views/Shared/_BranchManagerLayout.cshtml";
+}
+
+<div class="card shadow">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+        <h5 class="mb-0 text-primary">
+            <i class="bi bi-person-video3 me-2"></i> Instructors in @ViewBag.BranchName
+        </h5>
+        <div>
+            <a asp-action="Create" class="btn btn-primary btn-sm">
+                <i class="bi bi-plus-lg me-1"></i> Add New Instructor
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle me-2"></i> @TempData["Success"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle me-2"></i> @TempData["Error"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <form asp-action="Index" method="get" class="d-flex">
+                    <select name="trackId" class="form-select form-select-sm me-2" onchange="this.form.submit()">
+                        <option value="">All Tracks</option>
+                        @if (ViewBag.Tracks != null)
+                        {
+                            foreach (var track in ViewBag.Tracks)
+                            {
+                                if (ViewBag.SelectedTrack != null && ViewBag.SelectedTrack.ToString() == track.Value)
+                                {
+                                    <option value="@track.Value" selected="selected">@track.Text</option>
+                                }
+                                else
+                                {
+                                    <option value="@track.Value">@track.Text</option>
+                                }
+                            }
+                        }
+                    </select>
+
+                    <select name="active" class="form-select form-select-sm me-2" onchange="this.form.submit()">
+                        @{
+                            var isActiveTrue = ViewBag.ActiveFilter == true;
+                            var isActiveFalse = ViewBag.ActiveFilter == false;
+                            var isActiveNull = ViewBag.ActiveFilter == null;
+                        }
+
+                        <option value="true" @@(isActiveTrue ? "selected=\"selected\"" : "")>Active</option>
+                        <option value="false" @@(isActiveFalse ? "selected=\"selected\"" : "")>Inactive</option>
+                        <option value="" @@(isActiveNull ? "selected=\"selected\"" : "")>All</option>
+                    </select>
+
+                    <button type="submit" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-filter"></i> Filter
+                    </button>
+                </form>
+            </div>
+            <div class="col-md-6 text-end text-muted small">
+                <i class="bi bi-info-circle me-1"></i> Showing @Model.Count() instructor(s)
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover table-striped" id="instructorsTable">
+                <thead class="table-light">
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Track</th>
+                        <th>Salary</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var instructor in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        @if (!string.IsNullOrEmpty(instructor.User?.Img))
+                                        {
+                                            <img src="~/images/@instructor.User.Img" alt="Profile" class="rounded-circle me-2" style="width: 32px; height: 32px; object-fit: cover;">
+                                        }
+                                        else
+                                        {
+                                            <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                                                <i class="bi bi-person"></i>
+                                            </div>
+                                        }
+                                        <span class="fw-medium">@instructor.User?.Username</span>
+                                    </div>
+                                </td>
+                                <td>@instructor.User?.Email</td>
+                                <td>@instructor.Track?.TrackName</td>
+                                <td>$@instructor.Salary</td>
+                                <td>
+                                    @if (instructor.Isactive == true)
+                                    {
+                                        <span class="badge bg-success status-badge" data-id="@instructor.InsId" data-status="true">
+                                            <i class="bi bi-check-circle me-1"></i> Active
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger status-badge" data-id="@instructor.InsId" data-status="false">
+                                            <i class="bi bi-x-circle me-1"></i> Inactive
+                                        </span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a asp-action="Details" asp-route-id="@instructor.InsId" class="btn btn-outline-info">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a asp-action="Edit" asp-route-id="@instructor.InsId" class="btn btn-outline-primary">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-outline-success toggle-status-btn" 
+                                                data-id="@instructor.InsId" 
+                                                data-current-status="@instructor.Isactive">
+                                            <i class="bi bi-toggle-on"></i>
+                                        </button>
+                                        <a asp-action="Courses" asp-route-id="@instructor.InsId" class="btn btn-outline-secondary">
+                                            <i class="bi bi-journal-check"></i>
+                                        </a>
+                                        <a asp-action="Delete" asp-route-id="@instructor.InsId" class="btn btn-outline-danger">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center py-4">
+                                <div class="d-flex flex-column align-items-center">
+                                    <i class="bi bi-person-x text-muted" style="font-size: 3rem;"></i>
+                                    <p class="mt-2 mb-0">No instructors found.</p>
+                                    <a asp-action="Create" class="btn btn-sm btn-primary mt-2">Add your first instructor</a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#instructorsTable').DataTable({
+                "pageLength": 10,
+                "order": [[0, "asc"]],
+                "language": {
+                    "search": "Search instructors:",
+                    "lengthMenu": "Show _MENU_ instructors per page",
+                    "info": "Showing _START_ to _END_ of _TOTAL_ instructors",
+                    "infoEmpty": "No instructors found",
+                    "zeroRecords": "No matching instructors found"
+                }
+            });
+
+            // Handle toggle status button click
+            $('.toggle-status-btn').on('click', function () {
+                const instructorId = $(this).data('id');
+                const currentStatus = $(this).data('current-status') === 'True';
+                const statusText = currentStatus ? 'deactivate' : 'activate';
+                
+                if (confirm(`Are you sure you want to ${statusText} this instructor?`)) {
+                    // Send AJAX request to toggle status
+                    $.ajax({
+                        url: '@Url.Action("ToggleStatus")',
+                        type: 'POST',
+                        data: { id: instructorId },
+                        success: function (result) {
+                            if (result.success) {
+                                // Show success message
+                                toastr.success(result.message);
+                                
+                                // Update UI
+                                const badge = $(`.status-badge[data-id="${instructorId}"]`);
+                                if (result.isActive) {
+                                    badge.removeClass('bg-danger').addClass('bg-success');
+                                    badge.html('<i class="bi bi-check-circle me-1"></i> Active');
+                                    badge.data('status', true);
+                                } else {
+                                    badge.removeClass('bg-success').addClass('bg-danger');
+                                    badge.html('<i class="bi bi-x-circle me-1"></i> Inactive');
+                                    badge.data('status', false);
+                                }
+                                
+                                // Update button data attribute
+                                $(`.toggle-status-btn[data-id="${instructorId}"]`).data('current-status', result.isActive);
+                            } else {
+                                toastr.error(result.message);
+                            }
+                        },
+                        error: function () {
+                            toastr.error('An error occurred while updating the status.');
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+}
+

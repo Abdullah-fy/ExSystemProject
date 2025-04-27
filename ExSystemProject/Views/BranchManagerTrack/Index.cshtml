@@ -1,0 +1,200 @@
+﻿@model IEnumerable<ExSystemProject.Models.Track>
+@{
+    ViewData["Title"] = "Track Management";
+    Layout = "~/Views/Shared/_BranchManagerLayout.cshtml";
+}
+
+<div class="card shadow">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+        <h5 class="mb-0 text-primary">
+            <i class="bi bi-diagram-3-fill me-2"></i> Tracks in @ViewBag.BranchName
+        </h5>
+        <div>
+            <a asp-action="Create" class="btn btn-primary btn-sm">
+                <i class="bi bi-plus-lg me-1"></i> Create New Track
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle me-2"></i> @TempData["Success"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle me-2"></i> @TempData["Error"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <div>
+                <a asp-action="Index" asp-route-active="true" class="btn @(ViewContext.HttpContext.Request.Query["active"].ToString() != "false" ? "btn-primary" : "btn-outline-primary") btn-sm me-2">
+                    <i class="bi bi-check-circle me-1"></i> Active
+                </a>
+                <a asp-action="Index" asp-route-active="false" class="btn @(ViewContext.HttpContext.Request.Query["active"].ToString() == "false" ? "btn-primary" : "btn-outline-primary") btn-sm me-2">
+                    <i class="bi bi-x-circle me-1"></i> Inactive
+                </a>
+                <a asp-action="Index" asp-route-active="" class="btn @(string.IsNullOrEmpty(ViewContext.HttpContext.Request.Query["active"].ToString()) ? "btn-primary" : "btn-outline-primary") btn-sm">
+                    <i class="bi bi-list me-1"></i> All
+                </a>
+            </div>
+            <div class="text-muted small">
+                <i class="bi bi-info-circle me-1"></i> Showing @Model.Count() track(s)
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover table-striped">
+                <thead class="table-light">
+                    <tr>
+                        <th>Name</th>
+                        <th>Duration</th>
+                        <th>Intake</th>
+                        <th>Status</th>
+                        <th>Instructors</th>
+                        <th>Students</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Any())
+                    {
+                        foreach (var track in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="fw-medium">@track.TrackName</div>
+                                </td>
+                                <td>@track.TrackDuration months</td>
+                                <td>@track.TrackIntake</td>
+                                <td>
+                                    @if (track.IsActive == true)
+                                    {
+                                        <span class="badge bg-success status-badge" data-id="@track.TrackId" data-status="true">
+                                            <i class="bi bi-check-circle me-1"></i> Active
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger status-badge" data-id="@track.TrackId" data-status="false">
+                                            <i class="bi bi-x-circle me-1"></i> Inactive
+                                        </span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (track.Instructors != null)
+                                    {
+                                        var activeInstructors = track.Instructors.Where(i => i.Isactive == true).ToList();
+                                        <a href="@Url.Action("Instructors", new { id = track.TrackId })" class="badge text-bg-info">
+                                            <i class="bi bi-person-video3 me-1"></i> @activeInstructors.Count
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge text-bg-secondary">0</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (track.Students != null)
+                                    {
+                                        var activeStudents = track.Students.Where(s => s.Isactive == true).ToList();
+                                        <a href="@Url.Action("Students", new { id = track.TrackId })" class="badge text-bg-primary">
+                                            <i class="bi bi-people me-1"></i> @activeStudents.Count
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge text-bg-secondary">0</span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a asp-action="Details" asp-route-id="@track.TrackId" class="btn btn-outline-info">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a asp-action="Edit" asp-route-id="@track.TrackId" class="btn btn-outline-primary">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-outline-success toggle-status-btn"
+                                                data-id="@track.TrackId"
+                                                data-current-status="@track.IsActive">
+                                            <i class="bi bi-toggle-on"></i>
+                                        </button>
+                                        <a asp-action="Delete" asp-route-id="@track.TrackId" class="btn btn-outline-danger">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center py-4">
+                                <div class="d-flex flex-column align-items-center">
+                                    <i class="bi bi-diagram-3 text-muted" style="font-size: 3rem;"></i>
+                                    <p class="mt-2 mb-0">No tracks found.</p>
+                                    <a asp-action="Create" class="btn btn-sm btn-primary mt-2">Create your first track</a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Handle toggle status button click
+            $('.toggle-status-btn').on('click', function () {
+                const trackId = $(this).data('id');
+                const currentStatus = $(this).data('current-status') === 'True';
+                const statusText = currentStatus ? 'deactivate' : 'activate';
+
+                if (confirm(`Are you sure you want to ${statusText} this track? This will affect related instructors and students.`)) {
+                    // Send AJAX request to toggle status
+                    $.ajax({
+                        url: '@Url.Action("ToggleStatus")',
+                        type: 'POST',
+                        data: { id: trackId },
+                        success: function (result) {
+                            if (result.success) {
+                                // Show success message
+                                toastr.success(result.message);
+
+                                // Update UI
+                                const badge = $(`.status-badge[data-id="${trackId}"]`);
+                                if (result.isActive) {
+                                    badge.removeClass('bg-danger').addClass('bg-success');
+                                    badge.html('<i class="bi bi-check-circle me-1"></i> Active');
+                                    badge.data('status', true);
+                                } else {
+                                    badge.removeClass('bg-success').addClass('bg-danger');
+                                    badge.html('<i class="bi bi-x-circle me-1"></i> Inactive');
+                                    badge.data('status', false);
+                                }
+
+                                // Update button data attribute
+                                $(`.toggle-status-btn[data-id="${trackId}"]`).data('current-status', result.isActive);
+                            } else {
+                                toastr.error(result.message);
+                            }
+                        },
+                        error: function () {
+                            toastr.error('An error occurred while updating the status.');
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+}

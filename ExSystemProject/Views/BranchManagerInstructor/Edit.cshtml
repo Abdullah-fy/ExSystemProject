@@ -1,0 +1,118 @@
+﻿@model ExSystemProject.DTOS.InstructorDTO
+@{
+    ViewData["Title"] = "Edit Instructor";
+    Layout = "~/Views/Shared/_BranchManagerLayout.cshtml";
+}
+
+<div class="card shadow">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+        <h5 class="mb-0 text-primary">
+            <i class="bi bi-pencil me-2"></i> Edit Instructor: @Model.Username
+        </h5>
+        <div>
+            <a asp-action="Details" asp-route-id="@Model.InsId" class="btn btn-sm btn-secondary">
+                <i class="bi bi-arrow-left me-1"></i> Back to Details
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        <form asp-action="Edit" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+            <input type="hidden" asp-for="InsId" />
+            <input type="hidden" asp-for="UserId" />
+            <input type="hidden" asp-for="BranchId" />
+            <input type="hidden" asp-for="BranchName" />
+            <input type="hidden" asp-for="ImageUrl" />
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        <label asp-for="Username" class="form-label">Username <span class="text-danger">*</span></label>
+                        <input asp-for="Username" class="form-control" placeholder="Enter username" required />
+                        <span asp-validation-for="Username" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        <label asp-for="Email" class="form-label">Email <span class="text-danger">*</span></label>
+                        <input asp-for="Email" class="form-control" type="email" placeholder="Enter email" required />
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        <label asp-for="Gender" class="form-label">Gender <span class="text-danger">*</span></label>
+                        <select asp-for="Gender" class="form-select" required>
+                            <option value="">-- Select Gender --</option>
+                            <option value="M">Male</option>
+                            <option value="F">Female</option>
+                        </select>
+                        <span asp-validation-for="Gender" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        <label asp-for="Salary" class="form-label">Salary <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input asp-for="Salary" class="form-control" type="number" min="0" step="0.01" placeholder="Enter salary" required />
+                        </div>
+                        <span asp-validation-for="Salary" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        <label asp-for="TrackId" class="form-label">Track <span class="text-danger">*</span></label>
+                        <select asp-for="TrackId" class="form-select" asp-items="ViewBag.Tracks" required>
+                            <option value="">-- Select Track --</option>
+                        </select>
+                        <span asp-validation-for="TrackId" class="text-danger"></span>
+                        <small class="form-text">The instructor must be assigned to a track in your branch.</small>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        <label class="form-label d-block">Status</label>
+                        <div class="form-check form-switch">
+                            @{
+                                bool isChecked = Model.Isactive.HasValue && Model.Isactive.Value;
+                            }
+                            <input type="checkbox" class="form-check-input" id="IsactiveCheckbox" name="IsactiveCheckbox" @(isChecked ? "checked" : "") />
+                            <label class="form-check-label" for="IsactiveCheckbox">Active</label>
+                            <input type="hidden" name="Isactive" id="IsactiveHidden" value="@isChecked.ToString()" />
+                        </div>
+                        <div class="form-text">Deactivating an instructor will affect their access to the system.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save me-1"></i> Save Changes
+                </button>
+                <a asp-action="Details" asp-route-id="@Model.InsId" class="btn btn-outline-secondary ms-1">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        $(document).ready(function () {
+            // Handle status checkbox change
+            $('#IsactiveCheckbox').on('change', function() {
+                var isChecked = $(this).is(':checked');
+                $('#IsactiveHidden').val(isChecked);
+            });
+        });
+    </script>
+}

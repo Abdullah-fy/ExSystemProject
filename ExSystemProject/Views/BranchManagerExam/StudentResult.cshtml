@@ -1,0 +1,128 @@
+﻿@model IEnumerable<ExSystemProject.Models.StudentAnswer>
+@{
+    ViewData["Title"] = "Student Exam Result";
+    Layout = "~/Views/Shared/_BranchManagerLayout.cshtml";
+}
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">
+            Student Result: @ViewBag.Student?.User?.Username - @ViewBag.Exam?.ExamName
+        </h5>
+        <a asp-action="Results" asp-route-id="@ViewBag.Exam?.ExamId" class="btn btn-secondary btn-sm">
+            <i class="bi bi-arrow-left me-1"></i> Back to Results
+        </a>
+    </div>
+    <div class="card-body">
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card @(ViewBag.IsPassed ? "bg-success" : "bg-danger") text-white">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-8">
+                                <h5 class="card-title">@ViewBag.Student?.User?.Username</h5>
+                                <p class="card-text mb-0">Score: @ViewBag.Result?.Score / @ViewBag.Exam?.TotalMarks</p>
+                                <p class="card-text">
+                                    Result:
+                                    @if (ViewBag.IsPassed)
+                                    {
+                                        <span class="badge bg-light text-dark">PASSED</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-light text-dark">FAILED</span>
+                                    }
+                                </p>
+                            </div>
+                            <div class="col-4 text-end">
+                                <h1 class="display-4">
+                                    @{
+                                        var percentage = ViewBag.Exam?.TotalMarks > 0
+                                        ? ((double)ViewBag.Result?.Score / ViewBag.Exam?.TotalMarks) * 100
+                                        : 0;
+                                    }
+                                    @percentage.ToString("0")%
+                                </h1>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <h5 class="card-title">Exam Details</h5>
+                        <p class="mb-1"><strong>Exam:</strong> @ViewBag.Exam?.ExamName</p>
+                        <p class="mb-1"><strong>Course:</strong> @ViewBag.Exam?.Crs?.CrsName</p>
+                        <p class="mb-1"><strong>Date:</strong> @ViewBag.Result?.ExaminationDate?.ToString("yyyy-MM-dd")</p>
+                        <p class="mb-0"><strong>Passing Grade:</strong> @ViewBag.Exam?.PassedGrade</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h5>Question Responses</h5>
+        @if (Model != null && Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Question</th>
+                            <th>Type</th>
+                            <th>Student's Answer</th>
+                            <th>Correct Answer</th>
+                            <th>Points</th>
+                            <th>Result</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var answer in Model)
+                        {
+                            var isCorrect = answer.Choice?.IsCorrect ?? false;
+                            <tr>
+                                <td>@answer.Ques?.QuesText</td>
+                                <td>@answer.Ques?.QuesType</td>
+                                <td>@answer.Choice?.ChoiceText</td>
+                                <td>
+                                    @if (answer.Ques != null)
+                                    {
+                                        var correctChoice = answer.Ques.Choices?.FirstOrDefault(c => c.IsCorrect);
+                                        @(correctChoice?.ChoiceText ?? "N/A")
+                                    }
+                                </td>
+                                <td>
+                                    @if (isCorrect)
+                                    {
+                                        @answer.Ques?.QuesScore
+                                    }
+                                    else
+                                    {
+                                        <span>0</span>
+                                    }
+                                    <span class="text-muted">/ @answer.Ques?.QuesScore</span>
+                                </td>
+                                <td>
+                                    @if (isCorrect)
+                                    {
+                                        <span class="badge bg-success">Correct</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">Incorrect</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-warning">
+                No answers found for this exam. The student may not have submitted any responses.
+            </div>
+        }
+    </div>
+</div>
