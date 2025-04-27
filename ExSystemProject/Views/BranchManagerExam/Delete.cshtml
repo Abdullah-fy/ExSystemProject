@@ -1,0 +1,52 @@
+﻿@model ExSystemProject.Models.Exam
+@{
+    ViewData["Title"] = "Delete Exam";
+    Layout = "~/Views/Shared/_BranchManagerLayout.cshtml";
+}
+
+<div class="card border-danger">
+    <div class="card-header bg-danger text-white">
+        <h5 class="mb-0">Delete Exam</h5>
+    </div>
+    <div class="card-body">
+        <div class="alert alert-warning">
+            <i class="bi bi-exclamation-triangle me-2"></i> Are you sure you want to delete this exam?
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <h6 class="fw-bold">Exam Details</h6>
+                <table class="table table-striped table-sm">
+                    <tr>
+                        <th>Exam Name</th>
+                        <td>@Model.ExamName</td>
+                    </tr>
+                    <tr>
+                        <th>Course</th>
+                        <td>@(Model.Crs?.CrsName ?? "N/A")</td>
+                    </tr>
+                    <tr>
+                        <th>Instructor</th>
+                        <td>@(Model.Ins?.User?.Username ?? "N/A")</td>
+                    </tr>
+                    <tr>
+                        <th>Start Time</th>
+                        <td>@(Model.StartTime?.ToString("yyyy-MM-dd HH:mm") ?? "N/A")</td>
+                    </tr>
+                    <tr>
+                        <th>End Time</th>
+                        <td>@(Model.EndTime?.ToString("yyyy-MM-dd HH:mm") ?? "N/A")</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <form asp-action="Delete" method="post">
+            <input type="hidden" asp-for="ExamId" />
+            <button type="submit" class="btn btn-danger">
+                <i class="bi bi-trash me-1"></i> Delete
+            </button>
+            <a asp-action="Details" asp-route-id="@Model.ExamId" class="btn btn-outline-secondary">Cancel</a>
+        </form>
+    </div>
+</div>

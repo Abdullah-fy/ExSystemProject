@@ -1,0 +1,118 @@
+﻿@model List<ExSystemProject.Models.Exam>
+@{
+    ViewData["Title"] = "Exam Management";
+    Layout = "~/Views/Shared/_BranchManagerLayout.cshtml";
+}
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">
+            @if (ViewBag.CourseId != null)
+            {
+                <span>Exams for Course: @ViewBag.CourseName</span>
+            }
+            else
+            {
+                <span>All Exams</span>
+            }
+        </h5>
+        <div>
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="bi bi-plus-circle me-1"></i> Create New Exam
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle me-2"></i> @TempData["Success"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle me-2"></i> @TempData["Error"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Exam Name</th>
+                        <th>Course</th>
+                        <th>Instructor</th>
+                        <th>Start Time</th>
+                        <th>End Time</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var exam in Model)
+                    {
+                        <tr>
+                            <td>@exam.ExamId</td>
+                            <td>@exam.ExamName</td>
+                            <td>@(exam.Crs?.CrsName ?? "N/A")</td>
+                            <td>@(exam.Ins?.User?.Username ?? "N/A")</td>
+                            <td>@(exam.StartTime?.ToString("yyyy-MM-dd HH:mm") ?? "N/A")</td>
+                            <td>@(exam.EndTime?.ToString("yyyy-MM-dd HH:mm") ?? "N/A")</td>
+                            <td>
+                                @if (exam.Isactive == true)
+                                {
+                                    <span class="badge bg-success">Active</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">Inactive</span>
+                                }
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a asp-action="Details" asp-route-id="@exam.ExamId" class="btn btn-sm btn-info">
+                                        <i class="bi bi-info-circle"></i>
+                                    </a>
+                                    <a asp-action="Edit" asp-route-id="@exam.ExamId" class="btn btn-sm btn-primary">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a asp-action="Results" asp-route-id="@exam.ExamId" class="btn btn-sm btn-success">
+                                        <i class="bi bi-clipboard-data"></i>
+                                    </a>
+                                    <a asp-action="AssignExam" asp-route-id="@exam.ExamId" class="btn btn-sm btn-warning">
+                                        <i class="bi bi-person-plus"></i>
+                                    </a>
+                                    <a asp-action="Delete" asp-route-id="@exam.ExamId" class="btn btn-sm btn-danger">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="8" class="text-center">No exams found.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@if (ViewBag.CourseId != null)
+{
+    <div class="mt-3">
+        <a asp-action="GenerateRandom" asp-route-courseId="@ViewBag.CourseId" class="btn btn-success">
+            <i class="bi bi-shuffle me-1"></i> Generate Random Exam
+        </a>
+        <a asp-controller="BranchManagerCourse" asp-action="Details" asp-route-id="@ViewBag.CourseId" class="btn btn-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Back to Course Details
+        </a>
+    </div>
+}

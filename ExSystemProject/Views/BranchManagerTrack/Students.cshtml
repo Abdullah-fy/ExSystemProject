@@ -1,0 +1,124 @@
+﻿@model IEnumerable<ExSystemProject.Models.Student>
+@{
+    ViewData["Title"] = ViewData["Title"] ?? "Track Students";
+    Layout = "~/Views/Shared/_BranchManagerLayout.cshtml";
+    var track = ViewBag.Track as ExSystemProject.Models.Track;
+}
+
+<div class="card shadow">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+        <h5 class="mb-0 text-primary">
+            <i class="bi bi-people-fill me-2"></i> Students in @track?.TrackName
+        </h5>
+        <div>
+            <a asp-action="Details" asp-route-id="@track?.TrackId" class="btn btn-sm btn-secondary">
+                <i class="bi bi-arrow-left me-1"></i> Back to Track
+            </a>
+            <a asp-controller="BranchManagerStudent" asp-action="Create" class="btn btn-primary btn-sm ms-1">
+                <i class="bi bi-person-plus me-1"></i> Add New Student
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover table-striped" id="studentsTable">
+                <thead class="table-light">
+                    <tr>
+                        <th>Student</th>
+                        <th>Email</th>
+                        <th>Gender</th>
+                        <th>Enrollment Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var student in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        @if (!string.IsNullOrEmpty(student.User?.Img))
+                                        {
+                                            <img src="~/images/profiles/@student.User.Img" alt="Profile" class="rounded-circle me-2" style="width: 32px; height: 32px; object-fit: cover;">
+                                        }
+                                        else
+                                        {
+                                            <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                                                <i class="bi bi-person"></i>
+                                            </div>
+                                        }
+                                        <span class="fw-medium">@student.User?.Username</span>
+                                    </div>
+                                </td>
+                                <td>@student.User?.Email</td>
+                                <td>@(student.User?.Gender == "M" ? "Male" : student.User?.Gender == "F" ? "Female" : "")</td>
+                                <td>@student.EnrollmentDate?.ToString("yyyy-MM-dd")</td>
+                                <td>
+                                    @if (student.Isactive == true)
+                                    {
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-check-circle me-1"></i> Active
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">
+                                            <i class="bi bi-x-circle me-1"></i> Inactive
+                                        </span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a asp-controller="BranchManagerStudent" asp-action="Details" asp-route-id="@student.StudentId" class="btn btn-outline-info">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a asp-controller="BranchManagerStudent" asp-action="Edit" asp-route-id="@student.StudentId" class="btn btn-outline-primary">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <a asp-controller="BranchManagerStudent" asp-action="Assignments" asp-route-id="@student.StudentId" class="btn btn-outline-success">
+                                            <i class="bi bi-journal-check"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center py-4">
+                                <div class="d-flex flex-column align-items-center">
+                                    <i class="bi bi-people text-muted" style="font-size: 3rem;"></i>
+                                    <p class="mt-2 mb-0">No students found in this track.</p>
+                                    <a asp-controller="BranchManagerStudent" asp-action="Create" class="btn btn-sm btn-primary mt-2">Add a student</a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#studentsTable').DataTable({
+                "pageLength": 10,
+                "order": [[0, "asc"]],
+                "language": {
+                    "search": "Search students:",
+                    "lengthMenu": "Show _MENU_ students per page",
+                    "info": "Showing _START_ to _END_ of _TOTAL_ students",
+                    "infoEmpty": "No students found",
+                    "zeroRecords": "No matching students found"
+                }
+            });
+        });
+    </script>
+}
+

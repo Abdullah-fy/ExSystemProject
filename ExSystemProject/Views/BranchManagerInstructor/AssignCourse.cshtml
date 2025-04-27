@@ -1,0 +1,107 @@
+﻿@model object
+@{
+    ViewData["Title"] = "Assign Course";
+    Layout = "~/Views/Shared/_BranchManagerLayout.cshtml";
+    var instructor = ViewBag.Instructor as ExSystemProject.Models.Instructor;
+}
+
+<div class="card shadow">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+        <h5 class="mb-0 text-primary">
+            <i class="bi bi-journal-plus me-2"></i> Assign Course to Instructor
+        </h5>
+        <div>
+            <a asp-action="Details" asp-route-id="@instructor?.InsId" class="btn btn-sm btn-secondary">
+                <i class="bi bi-arrow-left me-1"></i> Back to Instructor
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle me-2"></i> @TempData["Error"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header bg-light">
+                        <h6 class="mb-0">Instructor Information</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            @if (!string.IsNullOrEmpty(instructor?.User?.Img))
+                            {
+                                <img src="~/images/@instructor.User.Img" alt="Profile" class="rounded-circle me-3" style="width: 60px; height: 60px; object-fit: cover;">
+                            }
+                            else
+                            {
+                                <div class="rounded-circle bg-light d-flex align-items-center justify-content-center me-3" style="width: 60px; height: 60px;">
+                                    <i class="bi bi-person text-secondary" style="font-size: 1.5rem;"></i>
+                                </div>
+                            }
+                            <div>
+                                <h5 class="mb-1">@instructor?.User?.Username</h5>
+                                <p class="text-muted mb-0">@instructor?.User?.Email</p>
+                            </div>
+                        </div>
+                        <table class="table table-sm mb-0">
+                            <tr>
+                                <th>Track:</th>
+                                <td>@instructor?.Track?.TrackName</td>
+                            </tr>
+                            <tr>
+                                <th>Status:</th>
+                                <td>
+                                    @if (instructor?.Isactive == true)
+                                    {
+                                        <span class="badge bg-success">Active</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">Inactive</span>
+                                    }
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <h6 class="mb-0">Assign Course</h6>
+                    </div>
+                    <div class="card-body">
+                        <form asp-action="AssignCourse" method="post">
+                            <input type="hidden" name="instructorId" value="@instructor?.InsId" />
+
+                            <div class="form-group mb-4">
+                                <label for="courseId" class="form-label">Select Course <span class="text-danger">*</span></label>
+                                <select id="courseId" name="courseId" class="form-select" asp-items="ViewBag.Courses" required>
+                                    <option value="">-- Select Course --</option>
+                                </select>
+                                <div class="form-text">Only available courses are shown.</div>
+                            </div>
+
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-check-lg me-1"></i> Assign Course
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

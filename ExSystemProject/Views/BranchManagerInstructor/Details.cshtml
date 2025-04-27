@@ -1,0 +1,208 @@
+﻿@model ExSystemProject.Models.Instructor
+@{
+    ViewData["Title"] = ViewData["Title"] ?? $"Instructor: {Model.User?.Username}";
+    Layout = "~/Views/Shared/_BranchManagerLayout.cshtml";
+}
+
+<div class="card shadow">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+        <h5 class="mb-0 text-primary">
+            <i class="bi bi-person-video3 me-2"></i> Instructor Details
+        </h5>
+        <div>
+            <a asp-action="Index" class="btn btn-sm btn-secondary">
+                <i class="bi bi-arrow-left me-1"></i> Back to List
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card mb-4">
+                    <div class="card-body text-center">
+                        @if (!string.IsNullOrEmpty(Model.User?.Img))
+                        {
+                            <img src="~/images/@Model.User.Img" alt="Profile" class="rounded-circle img-thumbnail mb-3" style="width: 120px; height: 120px; object-fit: cover;">
+                        }
+                        else
+                        {
+                            <div class="mx-auto rounded-circle bg-light d-flex align-items-center justify-content-center mb-3" style="width: 120px; height: 120px;">
+                                <i class="bi bi-person text-secondary" style="font-size: 3rem;"></i>
+                            </div>
+                        }
+                        <h5 class="card-title mb-1">@Model.User?.Username</h5>
+                        <p class="text-muted small">@Model.User?.Email</p>
+
+                        @if (Model.Isactive == true)
+                        {
+                            <span class="badge bg-success px-3 py-2"><i class="bi bi-check-circle me-1"></i> Active</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger px-3 py-2"><i class="bi bi-x-circle me-1"></i> Inactive</span>
+                        }
+
+                        <div class="d-grid gap-2 mt-3">
+                            <a asp-action="Edit" asp-route-id="@Model.InsId" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-pencil me-1"></i> Edit Instructor
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-title border-bottom pb-2">Instructor Information</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <th style="width: 40%">Gender:</th>
+                                <td>@(Model.User?.Gender == "M" ? "Male" : "Female")</td>
+                            </tr>
+                            <tr>
+                                <th>Salary:</th>
+                                <td>$@Model.Salary</td>
+                            </tr>
+                            <tr>
+                                <th>Track:</th>
+                                <td>@Model.Track?.TrackName</td>
+                            </tr>
+                            <tr>
+                                <th>Branch:</th>
+                                <td>@Model.Track?.Branch?.BranchName</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-8">
+                <div class="card mb-4">
+                    <div class="card-header bg-light">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">Assigned Courses</h6>
+                            <a asp-action="AssignCourse" asp-route-id="@Model.InsId" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-plus-lg me-1"></i> Assign Course
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        @if (ViewBag.Courses != null && ((IEnumerable<dynamic>)ViewBag.Courses).Any())
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-hover table-striped">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Course Name</th>
+                                            <th>Duration</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var course in (IEnumerable<dynamic>)ViewBag.Courses)
+                                        {
+                                            <tr>
+                                                <td>@course.CrsName</td>
+                                                <td>@course.CrsPeriod hours</td>
+                                                <td>
+                                                    @if (course.Isactive == true)
+                                                    {
+                                                        <span class="badge bg-success">Active</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge bg-danger">Inactive</span>
+                                                    }
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="text-end">
+                                <a asp-action="Courses" asp-route-id="@Model.InsId" class="btn btn-sm btn-link">View Course Statistics</a>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="text-center py-4">
+                                <div class="d-flex flex-column align-items-center">
+                                    <i class="bi bi-journal-x text-muted" style="font-size: 3rem;"></i>
+                                    <p class="mt-2 mb-0">No courses assigned to this instructor yet.</p>
+                                    <a asp-action="AssignCourse" asp-route-id="@Model.InsId" class="btn btn-sm btn-primary mt-2">
+                                        Assign a course
+                                    </a>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <h6 class="mb-0">Actions</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <a asp-action="Courses" asp-route-id="@Model.InsId" class="btn btn-outline-primary">
+                                <i class="bi bi-journals me-1"></i> View Courses & Statistics
+                            </a>
+                            <a asp-action="AssignCourse" asp-route-id="@Model.InsId" class="btn btn-outline-success">
+                                <i class="bi bi-plus-circle me-1"></i> Assign Course
+                            </a>
+                            <button type="button" class="btn btn-outline-secondary toggle-status-btn"
+                                    data-id="@Model.InsId"
+                                    data-current-status="@Model.Isactive">
+                                @if (Model.Isactive == true)
+                                {
+                                    <i class="bi bi-toggle-on me-1"></i>
+                                    <span>Deactivate Instructor</span>
+                                }
+                                else
+                                {
+                                    <i class="bi bi-toggle-off me-1"></i>
+                                    <span>Activate Instructor</span>
+                                }
+                            </button>
+                            <a asp-action="Delete" asp-route-id="@Model.InsId" class="btn btn-outline-danger">
+                                <i class="bi bi-trash me-1"></i> Delete Instructor
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Handle toggle status button click
+            $('.toggle-status-btn').on('click', function () {
+                const instructorId = $(this).data('id');
+                const currentStatus = $(this).data('current-status') === 'True';
+                const statusText = currentStatus ? 'deactivate' : 'activate';
+
+                if (confirm(`Are you sure you want to ${statusText} this instructor?`)) {
+                    // Send AJAX request to toggle status
+                    $.ajax({
+                        url: '@Url.Action("ToggleStatus")',
+                        type: 'POST',
+                        data: { id: instructorId },
+                        success: function (result) {
+                            if (result.success) {
+                                // Reload the page to show updated status
+                                location.reload();
+                            } else {
+                                alert(result.message);
+                            }
+                        },
+                        error: function () {
+                            alert('An error occurred while updating the status.');
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+}

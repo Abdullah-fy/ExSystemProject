@@ -21,10 +21,10 @@ namespace ExSystemProject.Repository
 
         ExSystemTestContext _context;
 
-        public StudentRepo(ExSystemTestContext context ) : base(context)
+        public StudentRepo(ExSystemTestContext context) : base(context)
         {
             this._context = context;
-         }
+        }
         public Student getByUserId(int userId)
         {
             var result = _context.Students.FirstOrDefault(i => i.UserId == userId && i.Isactive == true);
@@ -544,20 +544,21 @@ namespace ExSystemProject.Repository
         public Student Getstd(int userid)
         {
             var stdd = _context.Students.FirstOrDefault(s => s.UserId == userid);
-            return stdd; 
+            return stdd;
         }
 
 
         // repo to insert into student-course 
 
-        public bool Enrollment(int userid , int crsid)
+        public bool Enrollment(int userid, int crsid)
         {
             var student = _context.Students.FirstOrDefault(s => s.UserId == userid);
-          //  var course = _context.Courses.FirstOrDefault(c => c.CrsId == crsid);
+            //  var course = _context.Courses.FirstOrDefault(c => c.CrsId == crsid);
 
             var exists = _context.StudentCourses.Any(s => s.StudentId == student.StudentId && s.CrsId == crsid);
 
-            if (!exists) {
+            if (!exists)
+            {
 
                 var stdcrs = new StudentCourse()
                 {
@@ -567,7 +568,7 @@ namespace ExSystemProject.Repository
 
                 _context.StudentCourses.Add(stdcrs);
                 _context.SaveChanges();
-                return true; 
+                return true;
 
             }
             else
@@ -581,14 +582,14 @@ namespace ExSystemProject.Repository
 
         }
 
-        public bool ISEnroll(int userid , int crsid)
+        public bool ISEnroll(int userid, int crsid)
         {
             var student = _context.Students.FirstOrDefault(s => s.UserId == userid);
-           bool dd =  _context.StudentCourses.Any(s => s.StudentId == student.StudentId && s.CrsId == crsid);
+            bool dd = _context.StudentCourses.Any(s => s.StudentId == student.StudentId && s.CrsId == crsid);
 
             if (!dd)
             {
-                return true; 
+                return true;
             }
             return false;
         }
@@ -616,7 +617,7 @@ namespace ExSystemProject.Repository
                 .Count();
         }
 
-        
+
         public List<Student> GetStudentsByBranchIdLinq(int branchId, bool? activeStudents = true)
         {
             var query = _context.Students
@@ -631,6 +632,78 @@ namespace ExSystemProject.Repository
 
             return query.ToList();
         }
+        public List<Student> GetStudentsByDepartmentWithBranch(int trackId, bool? activeStudents = null)
+        {
+            try
+            {
+                var parameters = new[]
+                {
+            new SqlParameter("@track_id", SqlDbType.Int) { Value = trackId },
+            new SqlParameter("@activeStudent", SqlDbType.Bit) { Value = activeStudents ?? (object)DBNull.Value }
+        };
+
+                // Execute using raw SQL to avoid composition issues
+                var students = new List<Student>();
+
+                using (var command = _context.Database.GetDbConnection().CreateCommand())
+                {
+                    command.CommandText = "EXEC sp_GetStudentsByDepartmentWithBranch @track_id, @activeStudent";
+                    command.Parameters.Add(parameters[0]);
+                    command.Parameters.Add(parameters[1]);
+                    command.CommandType = CommandType.Text;
+
+                    _context.Database.OpenConnection();
+
+                    using (var result = command.ExecuteReader())
+                    {
+                        while (result.Read())
+                        {
+                            var student = new Student
+                            {
+                                StudentId = result["StudentId"] != DBNull.Value ? (int)result["StudentId"] : 0,
+                                EnrollmentDate = result["EnrollmentDate"] != DBNull.Value ? (DateTime)result["EnrollmentDate"] : null,
+                                Isactive = result["isactive"] != DBNull.Value ? (bool)result["isactive"] : false,
+                                TrackId = result["track_id"] != DBNull.Value ? (int)result["track_id"] : null,
+                                UserId = result["userId"] != DBNull.Value ? (int)result["userId"] : 0,
+                                User = new User
+                                {
+                                    Username = result["username"]?.ToString(),
+                                    Email = result["email"]?.ToString(),
+                                    Gender = result["gender"]?.ToString()
+                                },
+                                Track = new Track
+                                {
+                                    TrackId = result["track_id"] != DBNull.Value ? (int)result["track_id"] : 0,
+                                    TrackName = result["track_name"]?.ToString(),
+                                    BranchId = result["branch_id"] != DBNull.Value ? (int)result["branch_id"] : 0
+                                }
+                            };
+
+                            if (result["branch_id"] != DBNull.Value && result["branch_name"] != DBNull.Value)
+                            {
+                                student.Track.Branch = new Branch
+                                {
+                                    BranchId = (int)result["branch_id"],
+                                    BranchName = result["branch_name"]?.ToString()
+                                };
+                            }
+
+                            students.Add(student);
+                        }
+                    }
+                }
+
+                return students;
+            }
+            catch (Exception ex)
+            {
+                // Log the exception if possible
+                Console.WriteLine($"Error in GetStudentsByDepartmentWithBranch: {ex.Message}");
+                return new List<Student>();
+            }
+        }
+
+
 
 
     }

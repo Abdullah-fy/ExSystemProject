@@ -1,0 +1,133 @@
+﻿@model IEnumerable<dynamic>
+@{
+    ViewData["Title"] = ViewData["Title"] ?? "Track Instructors";
+    Layout = "~/Views/Shared/_BranchManagerLayout.cshtml";
+    var track = ViewBag.Track as ExSystemProject.Models.Track;
+}
+
+<div class="card shadow">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+        <h5 class="mb-0 text-primary">
+            <i class="bi bi-person-video3 me-2"></i> Instructors in @track?.TrackName
+        </h5>
+        <div>
+            <a asp-action="Details" asp-route-id="@track?.TrackId" class="btn btn-sm btn-secondary">
+                <i class="bi bi-arrow-left me-1"></i> Back to Track
+            </a>
+            <a asp-controller="BranchManagerInstructor" asp-action="Create" class="btn btn-primary btn-sm ms-1">
+                <i class="bi bi-person-plus me-1"></i> Add New Instructor
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover table-striped" id="instructorsTable">
+                <thead class="table-light">
+                    <tr>
+                        <th>Instructor</th>
+                        <th>Email</th>
+                        <th>Gender</th>
+                        <th>Courses</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var instructor in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        @if (!string.IsNullOrEmpty(instructor.User?.Img))
+                                        {
+                                            <img src="~/images/profiles/@instructor.User.Img" alt="Profile" class="rounded-circle me-2" style="width: 32px; height: 32px; object-fit: cover;">
+                                        }
+                                        else
+                                        {
+                                            <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                                                <i class="bi bi-person"></i>
+                                            </div>
+                                        }
+                                        <span class="fw-medium">@instructor.User?.Username</span>
+                                    </div>
+                                </td>
+                                <td>@instructor.User?.Email</td>
+                                <td>@(instructor.User?.Gender == "M" ? "Male" : instructor.User?.Gender == "F" ? "Female" : "")</td>
+                                <td>
+                                    @if (instructor.Courses != null && instructor.Courses.Count > 0)
+                                    {
+                                        <span class="badge text-bg-info">@instructor.Courses.Count</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge text-bg-secondary">0</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (instructor.Isactive == true)
+                                    {
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-check-circle me-1"></i> Active
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">
+                                            <i class="bi bi-x-circle me-1"></i> Inactive
+                                        </span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a asp-controller="BranchManagerInstructor" asp-action="Details" asp-route-id="@instructor.InsId" class="btn btn-outline-info">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a asp-controller="BranchManagerInstructor" asp-action="Edit" asp-route-id="@instructor.InsId" class="btn btn-outline-primary">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <a asp-controller="BranchManagerInstructor" asp-action="Courses" asp-route-id="@instructor.InsId" class="btn btn-outline-success">
+                                            <i class="bi bi-journal-check"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center py-4">
+                                <div class="d-flex flex-column align-items-center">
+                                    <i class="bi bi-person-video3 text-muted" style="font-size: 3rem;"></i>
+                                    <p class="mt-2 mb-0">No instructors found in this track.</p>
+                                    <a asp-controller="BranchManagerInstructor" asp-action="Create" class="btn btn-sm btn-primary mt-2">Add an instructor</a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#instructorsTable').DataTable({
+                "pageLength": 10,
+                "order": [[0, "asc"]],
+                "language": {
+                    "search": "Search instructors:",
+                    "lengthMenu": "Show _MENU_ instructors per page",
+                    "info": "Showing _START_ to _END_ of _TOTAL_ instructors",
+                    "infoEmpty": "No instructors found",
+                    "zeroRecords": "No matching instructors found"
+                }
+            });
+        });
+    </script>
+}
+

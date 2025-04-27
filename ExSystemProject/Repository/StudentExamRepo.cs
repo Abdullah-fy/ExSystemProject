@@ -27,5 +27,15 @@ namespace ExSystemProject.Repository
                 .Where(se => se.ExamId == examId && se.Isactive == true)
                 .ToList();
         }
+        public List<StudentExam> GetStudentExamsByExamId(int examId)
+        {
+            return _context.StudentExams
+                .Include(se => se.Student)
+                    .ThenInclude(s => s.User)
+                .Where(se => se.ExamId == examId)
+                .ToList();
+        }
+
+
     }
 }

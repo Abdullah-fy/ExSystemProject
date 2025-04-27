@@ -208,6 +208,47 @@ namespace ExSystemProject.Repository
                 .Where(e => e.Crs.Ins.Track.BranchId == branchId && e.Isactive == true)
                 .Count();
         }
+        // Get exam results
+        public List<StudentExam> GetExamResults(int examId)
+        {
+            return _context.StudentExams
+                .Include(se => se.Student)
+                    .ThenInclude(s => s.User)
+                .Include(se => se.Exam)
+                .Where(se => se.ExamId == examId)
+                .OrderByDescending(se => se.Score)
+                .ToList();
+        }
+
+        // Get a specific student's exam result
+        public StudentExam GetStudentExamResult(int examId, int studentId)
+        {
+            return _context.StudentExams
+                .Include(se => se.Student)
+                    .ThenInclude(s => s.User)
+                .Include(se => se.Exam)
+                .FirstOrDefault(se => se.ExamId == examId && se.StudentId == studentId);
+        }
+
+        // Get a student's answers for a specific exam
+        public List<StudentAnswer> GetStudentExamAnswers(int examId, int studentId)
+        {
+            // Get all questions for this exam
+            var examQuestions = _context.Questions
+                .Where(q => q.ExamId == examId)
+                .Select(q => q.QuesId)
+                .ToList();
+
+            // Get all student answers for these questions
+            return _context.StudentAnswers
+                .Include(sa => sa.Ques)
+                .Include(sa => sa.Choice)
+                .Where(sa =>
+                    sa.Studentid == studentId &&
+                    examQuestions.Contains(sa.QuesId ?? 0))
+                .ToList();
+        }
+
 
 
 

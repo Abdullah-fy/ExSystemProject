@@ -1,0 +1,84 @@
+﻿@model ExSystemProject.Models.Track
+@{
+    ViewData["Title"] = "Edit Track";
+    Layout = "~/Views/Shared/_BranchManagerLayout.cshtml";
+}
+
+<div class="card shadow">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+        <h5 class="mb-0 text-primary">
+            <i class="bi bi-pencil me-2"></i> Edit Track: @Model.TrackName
+        </h5>
+        <div>
+            <a asp-action="Details" asp-route-id="@Model.TrackId" class="btn btn-sm btn-secondary">
+                <i class="bi bi-arrow-left me-1"></i> Back to Details
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        <form asp-action="Edit" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+            <input type="hidden" asp-for="TrackId" />
+            <input type="hidden" asp-for="BranchId" />
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        <label asp-for="TrackName" class="form-label">Track Name<span class="text-danger">*</span></label>
+                        <input asp-for="TrackName" class="form-control" placeholder="Enter track name" required />
+                        <span asp-validation-for="TrackName" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        <label asp-for="TrackDuration" class="form-label">Duration (months)<span class="text-danger">*</span></label>
+                        <input asp-for="TrackDuration" class="form-control" type="number" min="1" max="24" placeholder="Enter duration in months" required />
+                        <span asp-validation-for="TrackDuration" class="text-danger"></span>
+                        <small class="form-text text-muted">Common values are 4 or 9 months</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        <label asp-for="TrackIntake" class="form-label">Intake<span class="text-danger">*</span></label>
+                        <input asp-for="TrackIntake" class="form-control" type="number" min="1" placeholder="Enter intake number" required />
+                        <span asp-validation-for="TrackIntake" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-group mb-3">
+                        <label asp-for="IsActive" class="form-label d-block">Status</label>
+                        <div class="form-check form-switch">
+                            <input asp-for="IsActive" class="form-check-input" type="checkbox" />
+                            <label class="form-check-label" for="IsActive">Active</label>
+                        </div>
+                        <small class="form-text text-muted">Changing status will affect instructors and students in this track</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group mb-3">
+                <label class="form-label">Branch</label>
+                <input type="text" value="@ViewBag.BranchName" class="form-control" readonly />
+                <small class="form-text text-muted">Tracks cannot be moved between branches</small>
+            </div>
+
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save me-1"></i> Save Changes
+                </button>
+                <a asp-action="Details" asp-route-id="@Model.TrackId" class="btn btn-outline-secondary ms-1">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
