@@ -1,4 +1,5 @@
 ﻿using ExSystemProject.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace ExSystemProject.Repository
 {
@@ -52,6 +53,15 @@ namespace ExSystemProject.Repository
                 _context.SaveChanges();
             }
         }
+        public List<StudentCourse> GetAllStudentCoursesByBranch(int branchId)
+        {
+            return _context.StudentCourses
+                .Include(sc => sc.Student)
+                .Include(sc => sc.Student.Track)
+                .Where(sc => sc.Student.Track.BranchId == branchId && sc.Isactive == true)
+                .ToList();
+        }
+
 
 
 

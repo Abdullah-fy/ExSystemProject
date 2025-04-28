@@ -19,6 +19,7 @@
                         <div class="col">
                             <div class="text-xs fw-bold text-uppercase mb-1">Students</div>
                             <div class="h5 mb-0 fw-bold">@Model.StudentCount</div>
+                            <div class="small text-muted">Active Students</div>
                         </div>
                         <div class="col-auto">
                             <i class="bi bi-people-fill fa-2x text-primary"></i>
@@ -35,6 +36,7 @@
                         <div class="col">
                             <div class="text-xs fw-bold text-uppercase mb-1">Instructors</div>
                             <div class="h5 mb-0 fw-bold">@Model.InstructorCount</div>
+                            <div class="small text-muted">Active Instructors</div>
                         </div>
                         <div class="col-auto">
                             <i class="bi bi-person-workspace fa-2x text-success"></i>
@@ -51,6 +53,7 @@
                         <div class="col">
                             <div class="text-xs fw-bold text-uppercase mb-1">Courses</div>
                             <div class="h5 mb-0 fw-bold">@Model.CourseCount</div>
+                            <div class="small text-muted">Active Courses</div>
                         </div>
                         <div class="col-auto">
                             <i class="bi bi-book fa-2x text-info"></i>
@@ -67,6 +70,7 @@
                         <div class="col">
                             <div class="text-xs fw-bold text-uppercase mb-1">Exams</div>
                             <div class="h5 mb-0 fw-bold">@Model.ExamCount</div>
+                            <div class="small text-muted">Total Exams</div>
                         </div>
                         <div class="col-auto">
                             <i class="bi bi-file-earmark-text fa-2x text-warning"></i>
@@ -78,18 +82,132 @@
     </div>
 
     <div class="row mb-4">
-        <div class="col-12">
+        <div class="col-xl-6 col-md-6 mb-4">
             <div class="card shadow h-100 py-2 border-left-primary">
                 <div class="card-body">
                     <div class="row align-items-center">
                         <div class="col">
                             <div class="text-xs fw-bold text-uppercase mb-1">Tracks</div>
                             <div class="h5 mb-0 fw-bold">@Model.TrackCount</div>
+                            <div class="small text-muted">Active Tracks</div>
                         </div>
                         <div class="col-auto">
                             <i class="bi bi-diagram-3 fa-2x text-primary"></i>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-6 col-md-6 mb-4">
+            <div class="card shadow h-100 py-2 border-left-success">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <div class="text-xs fw-bold text-uppercase mb-1">Supervisors</div>
+                            <div class="h5 mb-0 fw-bold">@Model.SupervisorCount</div>
+                            <div class="small text-muted">Active Supervisors</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-person-badge-fill fa-2x text-success"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance Metrics -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header">
+                    <i class="bi bi-graph-up me-1"></i>
+                    Branch Performance Metrics
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <div class="card border-left-info h-100">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h6 class="text-xs fw-bold text-uppercase mb-1">Pass Rate</h6>
+                                            <div class="h5 mb-0 fw-bold">@Model.PassRate%</div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="bi bi-award fa-2x text-info"></i>
+                                        </div>
+                                    </div>
+                                    <div class="progress mt-2" style="height: 8px;">
+                                        <div class="progress-bar bg-info" role="progressbar" style="width: @Model.PassRate%" aria-valuenow="@Model.PassRate" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card border-left-warning h-100">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h6 class="text-xs fw-bold text-uppercase mb-1">Course Completion</h6>
+                                            <div class="h5 mb-0 fw-bold">@Model.CourseCompletionRate%</div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="bi bi-check-circle fa-2x text-warning"></i>
+                                        </div>
+                                    </div>
+                                    <div class="progress mt-2" style="height: 8px;">
+                                        <div class="progress-bar bg-warning" role="progressbar" style="width: @Model.CourseCompletionRate%" aria-valuenow="@Model.CourseCompletionRate" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card border-left-success h-100">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h6 class="text-xs fw-bold text-uppercase mb-1">Average Grade</h6>
+                                            <div class="h5 mb-0 fw-bold">@Model.AverageGrade%</div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="bi bi-bar-chart fa-2x text-success"></i>
+                                        </div>
+                                    </div>
+                                    <div class="progress mt-2" style="height: 8px;">
+                                        <div class="progress-bar bg-success" role="progressbar" style="width: @Model.AverageGrade%" aria-valuenow="@Model.AverageGrade" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="row">
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="bi bi-bar-chart-line me-1"></i>
+                    Students per Track
+                </div>
+                <div class="card-body">
+                    <canvas id="studentsPerTrackChart" width="100%" height="40"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="bi bi-pie-chart me-1"></i>
+                    Exam Results Distribution
+                </div>
+                <div class="card-body">
+                    <canvas id="examResultsChart" width="100%" height="40"></canvas>
                 </div>
             </div>
         </div>
@@ -215,4 +333,57 @@
                 color: white;
             }
     </style>
+}
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Students per Track Chart
+        const trackLabels = @Html.Raw(Json.Serialize(Model.TrackNames));
+        const studentsPerTrack = @Html.Raw(Json.Serialize(Model.StudentsPerTrack));
+
+        const studentsPerTrackChart = new Chart(document.getElementById("studentsPerTrackChart"), {
+            type: 'bar',
+            data: {
+                labels: trackLabels,
+                datasets: [{
+                    label: 'Students',
+                    backgroundColor: '#a41e22',
+                    borderColor: '#a41e22',
+                    data: studentsPerTrack,
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                }
+            }
+        });
+
+        // Exam Results Distribution Chart
+        const examResultsChart = new Chart(document.getElementById("examResultsChart"), {
+            type: 'doughnut',
+            data: {
+                labels: ['Passed', 'Failed', 'Not Taken'],
+                datasets: [{
+                    data: [@Model.PassedExams, @Model.FailedExams, @Model.NotTakenExams],
+                    backgroundColor: ['#1e3a47', '#a41e22', '#6c757d'],
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                    }
+                }
+            }
+        });
+    </script>
 }
