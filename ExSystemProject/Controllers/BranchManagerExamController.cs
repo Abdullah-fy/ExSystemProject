@@ -385,11 +385,20 @@ namespace ExSystemProject.Controllers
                 .Where(s => !_unitOfWork.studentExamRepo.GetStudentExamsByExamId(id).Any(se => se.StudentId == s.StudentId))
                 .ToList();
 
-            ViewBag.Students = new MultiSelectList(courseStudents, "StudentId", "User.Username");
-            ViewBag.Exam = exam;
+            // Create SelectListItems from the student list
+            var studentItems = courseStudents.Select(s => new SelectListItem
+            {
+                Value = s.StudentId.ToString(),
+                Text = s.User?.Username ?? $"Student {s.StudentId}"
+            }).ToList();
 
+            // Use SelectList instead of MultiSelectList to avoid the Count() issue
+            ViewBag.Students = new SelectList(studentItems, "Value", "Text");
+
+            ViewBag.Exam = exam;
             ViewData["Title"] = $"Assign Exam: {exam.ExamName}";
-            return View();
+
+            return View(exam);
         }
 
         // POST: BranchManagerExam/AssignExam/5
@@ -407,18 +416,26 @@ namespace ExSystemProject.Controllers
 
             if (selectedStudents == null || selectedStudents.Length == 0)
             {
-                ModelState.AddModelError("", "Please select at least one student");
+                TempData["Error"] = "Please select at least one student";
 
-                // Get students taking this course
+                // Get students taking this course who haven't been assigned this exam yet
                 var courseStudents = _unitOfWork.studentRepo.GetStudentByCourseId(exam.CrsId ?? 0)
                     .Where(s => !_unitOfWork.studentExamRepo.GetStudentExamsByExamId(id).Any(se => se.StudentId == s.StudentId))
                     .ToList();
 
-                ViewBag.Students = new MultiSelectList(courseStudents, "StudentId", "User.Username");
+                // Create SelectListItems from the student list
+                var studentItems = courseStudents.Select(s => new SelectListItem
+                {
+                    Value = s.StudentId.ToString(),
+                    Text = s.User?.Username ?? $"Student {s.StudentId}"
+                }).ToList();
+
+                // Use SelectList instead of MultiSelectList
+                ViewBag.Students = new SelectList(studentItems, "Value", "Text");
                 ViewBag.Exam = exam;
 
                 ViewData["Title"] = $"Assign Exam: {exam.ExamName}";
-                return View();
+                return View(exam);
             }
 
             try
@@ -441,6 +458,7 @@ namespace ExSystemProject.Controllers
                 return RedirectToAction(nameof(AssignExam), new { id });
             }
         }
+
 
         // GET: BranchManagerExam/Results/5
         public IActionResult Results(int id)

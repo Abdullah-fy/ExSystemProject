@@ -61,15 +61,36 @@ namespace ExSystemProject.Controllers
             return View(model);
         }
 
+
+      
         // POST: BranchManagerStudent/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Create(StudentViewModel model)
+        public IActionResult Create(StudentViewModel model, string Password)
         {
             if (ModelState.IsValid)
             {
                 try
                 {
+                    // Check for required password
+                    if (string.IsNullOrEmpty(Password))
+                    {
+                        ModelState.AddModelError("Password", "Password is required");
+                        ViewData["PasswordError"] = "Password is required";
+
+                        // Repopulate tracks dropdown
+                        model.tracks = _unitOfWork.trackRepo.getAll()
+                            .Where(t => t.BranchId == CurrentBranchId && t.IsActive == true)
+                            .Select(t => new SelectListItem
+                            {
+                                Value = t.TrackId.ToString(),
+                                Text = t.TrackName
+                            })
+                            .ToList();
+
+                        return View(model);
+                    }
+
                     // Verify the selected track belongs to this branch
                     if (!string.IsNullOrEmpty(model.TrackId))
                     {
@@ -79,19 +100,41 @@ namespace ExSystemProject.Controllers
                         if (track == null || track.BranchId != CurrentBranchId)
                         {
                             ModelState.AddModelError("TrackId", "Invalid track selection.");
+
+                            // Repopulate tracks dropdown
+                            model.tracks = _unitOfWork.trackRepo.getAll()
+                                .Where(t => t.BranchId == CurrentBranchId && t.IsActive == true)
+                                .Select(t => new SelectListItem
+                                {
+                                    Value = t.TrackId.ToString(),
+                                    Text = t.TrackName
+                                })
+                                .ToList();
+
                             return View(model);
                         }
                     }
 
+                    // No image, so set to null
+                    model.Image = null;
+
+                   // Assign the Password parameter to model.password
+                    model.password = Password;
+
+                    // Add the student using repository
                     _unitOfWork.studentRepo.AddNewStudent(model);
+
+                    TempData["SuccessMessage"] = "Student created successfully!";
                     return RedirectToAction(nameof(Index));
                 }
                 catch (System.Exception ex)
                 {
                     ModelState.AddModelError("", $"Error creating student: {ex.Message}");
+                    TempData["Error"] = $"Error creating student: {ex.Message}";
                 }
             }
 
+            // If we got this far, something failed, redisplay form
             // Repopulate tracks if there was an error
             model.tracks = _unitOfWork.trackRepo.getAll()
                 .Where(t => t.BranchId == CurrentBranchId && t.IsActive == true)
@@ -104,6 +147,8 @@ namespace ExSystemProject.Controllers
 
             return View(model);
         }
+
+
 
         // GET: BranchManagerStudent/Edit/5
         public IActionResult Edit(int id)
