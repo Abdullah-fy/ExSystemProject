@@ -152,6 +152,7 @@
 </div>
 
 @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         $(document).ready(function () {
             // Handle toggle status button click
@@ -159,42 +160,79 @@
                 const trackId = $(this).data('id');
                 const currentStatus = $(this).data('current-status') === 'True';
                 const statusText = currentStatus ? 'deactivate' : 'activate';
+                const buttonElement = $(this);
 
-                if (confirm(`Are you sure you want to ${statusText} this track? This will affect related instructors and students.`)) {
-                    // Send AJAX request to toggle status
-                    $.ajax({
-                        url: '@Url.Action("ToggleStatus")',
-                        type: 'POST',
-                        data: { id: trackId },
-                        success: function (result) {
-                            if (result.success) {
-                                // Show success message
-                                toastr.success(result.message);
-
-                                // Update UI
-                                const badge = $(`.status-badge[data-id="${trackId}"]`);
-                                if (result.isActive) {
-                                    badge.removeClass('bg-danger').addClass('bg-success');
-                                    badge.html('<i class="bi bi-check-circle me-1"></i> Active');
-                                    badge.data('status', true);
-                                } else {
-                                    badge.removeClass('bg-success').addClass('bg-danger');
-                                    badge.html('<i class="bi bi-x-circle me-1"></i> Inactive');
-                                    badge.data('status', false);
-                                }
-
-                                // Update button data attribute
-                                $(`.toggle-status-btn[data-id="${trackId}"]`).data('current-status', result.isActive);
-                            } else {
-                                toastr.error(result.message);
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: `Are you sure you want to ${statusText} this track? This will affect related instructors and students.`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: currentStatus ? '#dc3545' : '#198754',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: `Yes, ${statusText} it!`
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Show loading state
+                        Swal.fire({
+                            title: 'Processing...',
+                            text: `${currentStatus ? 'Deactivating' : 'Activating'} track...`,
+                            allowOutsideClick: false,
+                            showConfirmButton: false,
+                            willOpen: () => {
+                                Swal.showLoading();
                             }
-                        },
-                        error: function () {
-                            toastr.error('An error occurred while updating the status.');
-                        }
-                    });
-                }
+                        });
+
+                        // Send AJAX request to toggle status
+                        $.ajax({
+                            url: '@Url.Action("ToggleStatus")',
+                            type: 'POST',
+                            data: { id: trackId },
+                            success: function (result) {
+                                if (result.success) {
+                                    // Show success message
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Success!',
+                                        text: result.message,
+                                        timer: 2000,
+                                        showConfirmButton: false
+                                    });
+
+                                    // Update UI
+                                    const badge = $(`.status-badge[data-id="${trackId}"]`);
+                                    if (result.isActive) {
+                                        badge.removeClass('bg-danger').addClass('bg-success');
+                                        badge.html('<i class="bi bi-check-circle me-1"></i> Active');
+                                        badge.data('status', true);
+                                    } else {
+                                        badge.removeClass('bg-success').addClass('bg-danger');
+                                        badge.html('<i class="bi bi-x-circle me-1"></i> Inactive');
+                                        badge.data('status', false);
+                                    }
+
+                                    // Update button data attribute
+                                    buttonElement.data('current-status', result.isActive);
+                                } else {
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'Error',
+                                        text: result.message
+                                    });
+                                }
+                            },
+                            error: function () {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error',
+                                    text: 'An error occurred while updating the status.'
+                                });
+                            }
+                        });
+                    }
+                });
             });
         });
     </script>
 }
+

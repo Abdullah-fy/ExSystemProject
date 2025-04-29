@@ -5,82 +5,90 @@
 }
 
 <div class="card shadow border-danger">
-    <div class="card-header bg-danger text-white">
-        <h5 class="mb-0"><i class="bi bi-exclamation-triangle-fill me-2"></i> Delete Track</h5>
+    <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center py-3">
+        <h5 class="mb-0"><i class="bi bi-exclamation-triangle-fill me-2"></i>Delete Track</h5>
+        <a asp-action="Index" class="btn btn-sm btn-outline-light">
+            <i class="bi bi-arrow-left me-1"></i> Back to List
+        </a>
     </div>
-    <div class="card-body">
-        <div class="alert alert-warning">
-            <i class="bi bi-exclamation-triangle-fill me-2"></i>
-            <strong>Warning:</strong> Are you sure you want to delete this track? This action cannot be undone.
+    <div class="card-body p-4">
+        <div class="alert alert-danger">
+            <h5 class="alert-heading"><i class="bi bi-exclamation-circle-fill me-2"></i>Warning!</h5>
+            <p>Are you sure you want to delete this track?</p>
             <hr>
-            <p>Deleting this track will affect instructors and students currently associated with it.</p>
+            <p class="mb-0">This action will <strong>permanently delete</strong> this track. This operation cannot be undone.</p>
         </div>
 
-        <div class="row mb-4">
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header bg-light">
-                        <h6 class="mb-0">Track Details</h6>
-                    </div>
-                    <div class="card-body">
-                        <table class="table table-sm">
-                            <tr>
-                                <th>Track Name:</th>
-                                <td>@Model.TrackName</td>
-                            </tr>
-                            <tr>
-                                <th>Duration:</th>
-                                <td>@Model.TrackDuration months</td>
-                            </tr>
-                            <tr>
-                                <th>Intake:</th>
-                                <td>@Model.TrackIntake</td>
-                            </tr>
-                            <tr>
-                                <th>Status:</th>
-                                <td>
-                                    @if (Model.IsActive == true)
-                                    {
-                                        <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i> Active</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i> Inactive</span>
-                                    }
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header bg-light">
-                        <h6 class="mb-0">Associated Data</h6>
-                    </div>
-                    <div class="card-body">
-                        <p>The following data will be affected:</p>
-                        <ul>
-                            <li><strong>@Model.Instructors?.Count() Instructors</strong> will be unassigned from this track</li>
-                            <li><strong>@Model.Students?.Count() Students</strong> will be unassigned from this track</li>
-                            <li>All associated courses may need reassignment</li>
-                        </ul>
-                    </div>
-                </div>
+        <div class="mt-4">
+            <h5 class="text-danger">Track Details</h5>
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <tr>
+                        <th style="width: 30%">Track ID</th>
+                        <td>@Model.TrackId</td>
+                    </tr>
+                    <tr>
+                        <th>Track Name</th>
+                        <td>@Model.TrackName</td>
+                    </tr>
+                    <tr>
+                        <th>Duration</th>
+                        <td>@(Model.TrackDuration ?? 0) Months</td>
+                    </tr>
+                    <tr>
+                        <th>Intake</th>
+                        <td>@(Model.TrackIntake ?? 0)</td>
+                    </tr>
+                    <tr>
+                        <th>Status</th>
+                        <td>
+                            @if (Model.IsActive == true)
+                            {
+                                <span class="badge bg-success">Active</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">Inactive</span>
+                            }
+                        </td>
+                    </tr>
+                </table>
             </div>
         </div>
 
-        <form asp-action="DeleteConfirmed" method="post">
+        <form asp-action="DeleteConfirmed" method="post" id="deleteForm">
             <input type="hidden" name="id" value="@Model.TrackId" />
-
-            <div class="d-flex justify-content-between">
+            <div class="d-flex justify-content-between mt-4">
                 <a asp-action="Index" class="btn btn-outline-secondary">
-                    <i class="bi bi-arrow-left me-1"></i> Back to List
+                    <i class="bi bi-arrow-left"></i> Cancel and Return
                 </a>
                 <button type="submit" class="btn btn-danger">
-                    <i class="bi bi-trash me-1"></i> Confirm Delete
+                    <i class="bi bi-trash"></i> Confirm Delete
                 </button>
             </div>
         </form>
     </div>
 </div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.getElementById('deleteForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "You won't be able to revert this! This will affect instructors and students in this track.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Yes, delete it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    this.submit();
+                }
+            });
+        });
+    </script>
+}
