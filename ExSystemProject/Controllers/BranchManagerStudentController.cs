@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
 
 namespace ExSystemProject.Controllers
 {
@@ -29,7 +30,16 @@ namespace ExSystemProject.Controllers
         // GET: BranchManagerStudent/Details/5
         public IActionResult Details(int id)
         {
-            var student = _unitOfWork.studentRepo.GetStudentByIdWithBranch(id);
+            // Use the same query approach as in Assignments to ensure consistency
+            var student = _unitOfWork.context.Students
+                .Include(s => s.User)
+                .Include(s => s.Track)
+                    .ThenInclude(t => t.Branch)
+                .Include(s => s.StudentCourses)
+                    .ThenInclude(sc => sc.Crs)
+                        .ThenInclude(c => c.Ins)
+                            .ThenInclude(i => i.User)
+                .FirstOrDefault(s => s.StudentId == id);
 
             // Check if student exists and belongs to this branch
             if (student == null || student.Track?.BranchId != CurrentBranchId)
@@ -40,6 +50,7 @@ namespace ExSystemProject.Controllers
             ViewData["Title"] = "Student Details";
             return View(student);
         }
+
 
         // GET: BranchManagerStudent/Create
         public IActionResult Create()
@@ -219,34 +230,88 @@ namespace ExSystemProject.Controllers
         // GET: BranchManagerStudent/Assignments/5
         public IActionResult Assignments(int id)
         {
-            var student = _unitOfWork.studentRepo.GetStudentByIdWithBranch(id);
-
-            // Check if student exists and belongs to this branch
-            if (student == null || student.Track?.BranchId != CurrentBranchId)
+            try
             {
-                return NotFound();
+                // Explicitly get student with all related data including courses
+                var student = _unitOfWork.context.Students
+                    .Include(s => s.User)
+                    .Include(s => s.Track)
+                        .ThenInclude(t => t.Branch)
+                    .Include(s => s.StudentCourses)
+                        .ThenInclude(sc => sc.Crs)
+                            .ThenInclude(c => c.Ins)
+                                .ThenInclude(i => i.User)
+                    .FirstOrDefault(s => s.StudentId == id);
+
+                // Check if student exists and belongs to this branch
+                if (student == null || student.Track?.BranchId != CurrentBranchId)
+                {
+                    return NotFound();
+                }
+
+                ViewData["Title"] = "Student Course Assignments";
+                ViewData["BranchId"] = CurrentBranchId;
+
+                // Add success/error messages
+                if (TempData["Success"] != null)
+                {
+                    ViewData["SuccessMessage"] = TempData["Success"];
+                }
+
+                if (TempData["Error"] != null)
+                {
+                    ViewData["ErrorMessage"] = TempData["Error"];
+                }
+
+                return View(student);
             }
-
-            ViewData["Title"] = "Student Course Assignments";
-            return View(student);
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Error loading student assignments: {ex.Message}";
+                return RedirectToAction(nameof(Details), new { id = id });
+            }
         }
+
+
         // GET: BranchManagerStudent/GetAvailableCourses
-        [HttpGet]
-        public IActionResult GetAvailableCourses(int studentId, int branchId)
-        {
-            // Get courses from the branch that the student isn't already enrolled in
-            var courses = _unitOfWork.courseRepo.GetAllCourses(true)
-                .Where(c => c.Ins?.Track?.BranchId == branchId)
-                .Where(c => !c.StudentCourses.Any(sc => sc.StudentId == studentId && sc.Isactive == true))
-                .Select(c => new {
-                    CrsId = c.CrsId,
-                    CrsName = c.CrsName,
-                    InstructorName = c.Ins?.User?.Username
-                })
-                .ToList();
 
-            return Json(courses);
+        [HttpGet]
+        public IActionResult GetAvailableCourses(int studentId)
+        {
+            try
+            {
+                // First, get all active courses in the current branch
+                var branchCourses = _unitOfWork.courseRepo.GetAllCourses(true)
+                    .Where(c => c.Ins?.Track?.BranchId == CurrentBranchId)
+                    .ToList();
+
+                // Next, get all course IDs the student is already enrolled in
+                var enrolledCourseIds = _unitOfWork.context.StudentCourses
+                    .Where(sc => sc.StudentId == studentId && sc.Isactive == true)
+                    .Select(sc => sc.CrsId)
+                    .ToList();
+
+                // Then filter out courses the student is already enrolled in
+                var availableCourses = branchCourses
+                    .Where(c => !enrolledCourseIds.Contains(c.CrsId))
+                    .Select(c => new {
+                        CrsId = c.CrsId,
+                        CrsName = c.CrsName,
+                        InstructorName = c.Ins?.User?.Username ?? "Not Assigned"
+                    })
+                    .ToList();
+
+                return Json(availableCourses);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in GetAvailableCourses: {ex.Message}");
+                return Json(new { error = ex.Message });
+            }
         }
+
+
+
 
         // POST: BranchManagerStudent/EnrollInCourse
         [HttpPost]
@@ -254,18 +319,29 @@ namespace ExSystemProject.Controllers
         {
             try
             {
+                // Debug logging
+                System.Diagnostics.Debug.WriteLine($"EnrollInCourse called: Student ID={studentId}, Course ID={courseId}");
+
                 // Validate the student belongs to this branch
                 var student = _unitOfWork.studentRepo.GetStudentByIdWithBranch(studentId);
                 if (student == null || student.Track?.BranchId != CurrentBranchId)
                 {
-                    return NotFound("Student not found or doesn't belong to your branch");
+                    TempData["Error"] = "Student not found or doesn't belong to your branch";
+                    return RedirectToAction(nameof(Assignments), new { id = studentId });
                 }
 
-                // Validate the course belongs to this branch
+                // Validate the course exists and belongs to this branch
                 var course = _unitOfWork.courseRepo.GetCourseById(courseId);
-                if (course == null || course.Ins?.Track?.BranchId != CurrentBranchId)
+                if (course == null)
                 {
-                    return NotFound("Course not found or doesn't belong to your branch");
+                    TempData["Error"] = "Course not found";
+                    return RedirectToAction(nameof(Assignments), new { id = studentId });
+                }
+
+                if (course.Ins?.Track?.BranchId != CurrentBranchId)
+                {
+                    TempData["Error"] = "Course doesn't belong to your branch";
+                    return RedirectToAction(nameof(Assignments), new { id = studentId });
                 }
 
                 // Check if already enrolled
@@ -277,16 +353,28 @@ namespace ExSystemProject.Controllers
 
                 // Enroll the student
                 _unitOfWork.studentCourseRepo.EnrollStudent(studentId, courseId);
+
+                // Clear any cached data about this student
+                _unitOfWork.context.Entry(student).State = EntityState.Detached;
+
+                System.Diagnostics.Debug.WriteLine("Enrollment successful");
                 TempData["Success"] = "Student successfully enrolled in the course";
 
                 return RedirectToAction(nameof(Assignments), new { id = studentId });
             }
             catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"Error enrolling student: {ex.Message}");
+                if (ex.InnerException != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Inner exception: {ex.InnerException.Message}");
+                }
+
                 TempData["Error"] = $"Error enrolling student: {ex.Message}";
                 return RedirectToAction(nameof(Assignments), new { id = studentId });
             }
         }
+
 
         // POST: BranchManagerStudent/UnenrollFromCourse
         [HttpPost]

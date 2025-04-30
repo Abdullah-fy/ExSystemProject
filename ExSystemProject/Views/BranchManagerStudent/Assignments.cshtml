@@ -20,15 +20,7 @@
         <div class="row">
             <div class="col-md-3">
                 <div class="card mb-3">
-                    <div class="card-body text-center">
-                        @if (!string.IsNullOrEmpty(Model.User?.Img))
-                        {
-                            <img src="~/images/profiles/@Model.User.Img" alt="Profile Picture" class="img-thumbnail rounded-circle mb-2" style="width: 100px; height: 100px; object-fit: cover;">
-                        }
-                        else
-                        {
-                            <img src="~/images/profiles/default.png" alt="Default Profile" class="img-thumbnail rounded-circle mb-2" style="width: 100px; height: 100px; object-fit: cover;">
-                        }
+                    <div class="card-body">
                         <h5 class="card-title">@Model.User?.Username</h5>
                         <p class="card-text text-muted">@Model.User?.Email</p>
                         <p class="card-text">
@@ -127,13 +119,14 @@
                                 </select>
                             </div>
                             <div class="col-md-3">
-                                <button type="submit" class="btn btn-primary w-100">
+                                <button type="submit" id="enrollButton" class="btn btn-primary w-100">
                                     <i class="bi bi-plus-circle me-1"></i> Enroll
                                 </button>
                             </div>
                         </div>
                     </form>
                 </div>
+
             </div>
         </div>
     </div>
@@ -164,28 +157,86 @@
 </div>
 
 @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         $(document).ready(function () {
             // Load available courses when the page loads
             loadAvailableCourses();
+
+            // Add form submission handler with direct logging
+            $('#enrollForm').on('submit', function(e) {
+                const studentId = @Model.StudentId;
+                const courseId = $('#courseId').val();
+
+                console.log('Form submission - Student ID:', studentId);
+                console.log('Form submission - Course ID:', courseId);
+
+                if (!courseId) {
+                    e.preventDefault();
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Selection Required',
+                        text: 'Please select a course first',
+                        confirmButtonColor: '#a41e22'
+                    });
+                    return false;
+                }
+
+                // Allow form to submit normally - this will post to EnrollInCourse
+                return true;
+            });
+
+            // Handle success/error messages
+        @if (TempData["Success"] != null)
+        {
+            <text>
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        text: '@TempData["Success"]',
+                        confirmButtonColor: '#a41e22'
+                    });
+            </text>
+        }
+
+        @if (TempData["Error"] != null)
+        {
+            <text>
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: '@TempData["Error"]',
+                        confirmButtonColor: '#a41e22'
+                    });
+            </text>
+        }
         });
 
         function loadAvailableCourses() {
+            console.log("Loading available courses for student ID: @Model.StudentId");
+
             $.ajax({
                 url: '/BranchManagerStudent/GetAvailableCourses',
                 type: 'GET',
-                data: { studentId: @Model.StudentId, branchId: @ViewData["BranchId"] },
+                data: {
+                    studentId: @Model.StudentId
+                },
                 success: function (data) {
+                    console.log("Courses loaded:", data);
                     var select = $('#courseId');
                     select.empty();
                     select.append('<option value="">-- Select a course --</option>');
 
-                    $.each(data, function (i, course) {
-                        select.append($('<option>', {
-                            value: course.crsId,
-                            text : course.crsName + ' (Instructor: ' + (course.instructorName || 'Not Assigned') + ')'
-                        }));
-                    });
+                    if (data && data.length > 0) {
+                        $.each(data, function (i, course) {
+                            select.append($('<option>', {
+                                value: course.crsId,
+                                text: course.crsName + ' (Instructor: ' + (course.instructorName || 'Not Assigned') + ')'
+                            }));
+                        });
+                    } else {
+                        select.append('<option value="" disabled>No available courses found</option>');
+                    }
                 },
                 error: function (err) {
                     console.error('Error loading available courses:', err);
