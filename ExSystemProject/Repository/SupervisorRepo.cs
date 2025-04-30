@@ -56,23 +56,41 @@ namespace ExSystemProject.Repository
         // Create a new supervisor
         public void CreateSupervisor(int userId, string username, string email, int branchId)
         {
-            // First check if the user exists and has the supervisor role
-            var user = _context.Users.Find(userId);
-            if (user == null || user.Role != "supervisor")
+            try
             {
-                throw new InvalidOperationException("User not found or not a supervisor");
+                // First check if the user exists and has the supervisor role
+                var user = _context.Users.Find(userId);
+                if (user == null)
+                {
+                    throw new InvalidOperationException("User not found");
+                }
+
+                if (user.Role != "supervisor")
+                {
+                    throw new InvalidOperationException("User is not a supervisor");
+                }
+
+                var supervisor = new UserAssignment
+                {
+                    UserId = userId,
+                    BranchId = branchId,
+                    Isactive = true
+                };
+
+                _context.UserAssignments.Add(supervisor);
+                _context.SaveChanges();
             }
-
-            var supervisor = new UserAssignment
+            catch (Exception ex)
             {
-                UserId = userId,
-                BranchId = branchId,
-                Isactive = true
-            };
-
-            _context.UserAssignments.Add(supervisor);
-            _context.SaveChanges();
+                System.Diagnostics.Debug.WriteLine($"Error in CreateSupervisor: {ex.Message}");
+                if (ex.InnerException != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Inner exception: {ex.InnerException.Message}");
+                }
+                throw; // Re-throw so the controller can handle it
+            }
         }
+
 
         // Update supervisor details
         public void UpdateSupervisor(int assignmentId, int userId, string username, string email, int? branchId, bool isActive)

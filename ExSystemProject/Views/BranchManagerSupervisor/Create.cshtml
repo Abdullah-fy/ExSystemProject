@@ -16,7 +16,7 @@
         </div>
     </div>
     <div class="card-body">
-        <form asp-action="Create" method="post">
+        <form asp-action="Create" method="post" id="createSupervisorForm">
             <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
             <div class="row">
@@ -28,13 +28,19 @@
                         <div class="card-body">
                             <div class="mb-3">
                                 <label asp-for="Username" class="form-label">Username <span class="text-danger">*</span></label>
-                                <input asp-for="Username" class="form-control" />
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                    <input asp-for="Username" class="form-control" placeholder="Enter username" required />
+                                </div>
                                 <span asp-validation-for="Username" class="text-danger"></span>
                             </div>
 
                             <div class="mb-3">
                                 <label asp-for="Email" class="form-label">Email <span class="text-danger">*</span></label>
-                                <input asp-for="Email" class="form-control" />
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                                    <input asp-for="Email" class="form-control" type="email" placeholder="example@domain.com" required />
+                                </div>
                                 <span asp-validation-for="Email" class="text-danger"></span>
                             </div>
 
@@ -64,8 +70,13 @@
                         <div class="card-body">
                             <div class="mb-3">
                                 <label class="form-label">Branch</label>
-                                <input type="text" class="form-control" value="@Model.BranchName" readonly />
-                                <input asp-for="BranchId" type="hidden" />
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-building"></i></span>
+                                    <input type="text" class="form-control" value="@Model.BranchName" readonly />
+                                </div>
+                                <!-- Hidden fields for branch data -->
+                                <input type="hidden" asp-for="BranchId" />
+                                <input type="hidden" asp-for="BranchName" />
                             </div>
 
                             <div class="mb-3">
@@ -92,25 +103,28 @@
                         </div>
                         <div class="card-body">
                             <div class="mb-3">
-                                <label for="Password" class="form-label">Password <span class="text-danger">*</span></label>
+                                <label asp-for="Password" class="form-label">Password <span class="text-danger">*</span></label>
                                 <div class="input-group">
-                                    <input name="Password" id="Password" class="form-control" type="password" value="@(ViewData["Password"])" />
+                                    <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                                    <input asp-for="Password" id="Password" class="form-control" type="password" required />
                                     <button type="button" class="btn btn-outline-secondary" id="togglePassword" tabindex="-1">
                                         <i class="bi bi-eye"></i>
                                     </button>
                                 </div>
-                                <span class="text-danger" data-valmsg-for="Password"></span>
+                                <div class="form-text">Password must be at least 6 characters long.</div>
+                                <span asp-validation-for="Password" class="text-danger"></span>
                             </div>
 
                             <div class="mb-3">
-                                <label for="ConfirmPassword" class="form-label">Confirm Password <span class="text-danger">*</span></label>
+                                <label asp-for="ConfirmPassword" class="form-label">Confirm Password <span class="text-danger">*</span></label>
                                 <div class="input-group">
-                                    <input name="ConfirmPassword" id="ConfirmPassword" class="form-control" type="password" value="@(ViewData["ConfirmPassword"])" />
+                                    <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                                    <input asp-for="ConfirmPassword" id="ConfirmPassword" class="form-control" type="password" required />
                                     <button type="button" class="btn btn-outline-secondary" id="toggleConfirmPassword" tabindex="-1">
                                         <i class="bi bi-eye"></i>
                                     </button>
                                 </div>
-                                <span class="text-danger" data-valmsg-for="ConfirmPassword"></span>
+                                <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
                             </div>
                         </div>
                     </div>
@@ -119,7 +133,7 @@
 
             <div class="text-end mt-3">
                 <a asp-action="Index" class="btn btn-outline-secondary me-1">Cancel</a>
-                <button type="submit" class="btn btn-primary">
+                <button type="submit" class="btn btn-primary" id="submitButton">
                     <i class="bi bi-save me-1"></i> Create Supervisor
                 </button>
             </div>
@@ -158,6 +172,36 @@
                 } else {
                     passwordField.attr("type", "password");
                     $(this).find("i").removeClass("bi-eye-slash").addClass("bi-eye");
+                }
+            });
+
+            // Form validation before submission
+            $("#createSupervisorForm").on("submit", function(e) {
+                var branchName = $("#BranchName").val();
+                var branchId = $("#BranchId").val();
+
+                // Log form data for debugging
+                console.log("Form data:", {
+                    username: $("#Username").val(),
+                    email: $("#Email").val(),
+                    gender: $("input[name='Gender']:checked").val(),
+                    branchId: branchId,
+                    branchName: branchName
+                });
+
+                if (!branchId) {
+                    e.preventDefault();
+                    alert("Branch ID is required.");
+                    return false;
+                }
+
+                var password = $("#Password").val();
+                var confirmPassword = $("#ConfirmPassword").val();
+
+                if (password !== confirmPassword) {
+                    e.preventDefault();
+                    alert("Passwords don't match.");
+                    return false;
                 }
             });
         });

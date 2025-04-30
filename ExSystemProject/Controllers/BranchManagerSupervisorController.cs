@@ -54,104 +54,131 @@ namespace ExSystemProject.Controllers
         // GET: BranchManagerSupervisor/Create
         public IActionResult Create()
         {
-            // Get tracks from the current branch for optional assignment
-            var tracks = _unitOfWork.trackRepo.GetTracksByBranchId(CurrentBranchId)
-                .Where(t => t.IsActive == true)
-                .Select(t => new SelectListItem
-                {
-                    Value = t.TrackId.ToString(),
-                    Text = t.TrackName
-                })
-                .ToList();
-
-            var model = new SupervisorViewModel
+            try
             {
-                BranchId = CurrentBranchId,
-                BranchName = CurrentBranchName,
-                IsActive = true,
-                Tracks = tracks
-            };
-
-            ViewData["Title"] = "Create New Supervisor";
-            return View(model);
-        }
-
-        // POST: BranchManagerSupervisor/Create
-        // POST: BranchManagerSupervisor/Create
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult Create(SupervisorViewModel model, string Password, string ConfirmPassword)
-        {
-            // Manually populate the password fields from form values
-            model.Password = Password;
-            model.ConfirmPassword = ConfirmPassword;
-
-            // Validate the model
-            if (!ModelState.IsValid)
-            {
-                // Store password for redisplay
-                ViewData["Password"] = Password;
-                ViewData["ConfirmPassword"] = ConfirmPassword;
-
-                // Repopulate tracks and return view
-                model.BranchId = CurrentBranchId;
-                model.BranchName = CurrentBranchName;
-                model.Tracks = _unitOfWork.trackRepo.GetTracksByBranchId(CurrentBranchId)
+                // Get tracks from the current branch for optional assignment
+                var tracks = _unitOfWork.trackRepo.GetTracksByBranchId(CurrentBranchId)
                     .Where(t => t.IsActive == true)
                     .Select(t => new SelectListItem
                     {
                         Value = t.TrackId.ToString(),
-                        Text = t.TrackName,
-                        Selected = t.TrackId == model.TrackId
+                        Text = t.TrackName
                     })
                     .ToList();
 
-                return View(model);
-            }
+                // Get branch details directly from the database
+                var branch = _unitOfWork.branchRepo.getById(CurrentBranchId);
+                string branchName = branch?.BranchName;
 
-            try
-            {
-                // Create user with supervisor role
-                var user = new User
+                if (string.IsNullOrEmpty(branchName))
                 {
-                    Username = model.Username,
-                    Email = model.Email,
-                    Gender = model.Gender,
-                    Upassword = BCrypt.Net.BCrypt.HashPassword(Password),
-                    Role = "supervisor",
-                    Isactive = model.IsActive
-                };
+                    // Fallback to the current branch name from the base controller
+                    branchName = CurrentBranchName ?? "Default Branch";
+                }
 
-                _unitOfWork.userRepo.add(user);
-                _unitOfWork.save();
-
-                // Create supervisor assignment
-                var assignment = new UserAssignment
+                var model = new SupervisorViewModel
                 {
-                    UserId = user.UserId,
                     BranchId = CurrentBranchId,
-                    TrackId = model.TrackId,
-                    Isactive = model.IsActive
+                    BranchName = branchName,
+                    IsActive = true,
+                    Tracks = tracks
                 };
 
-                _unitOfWork.userAssignmentRepo.add(assignment);
-                _unitOfWork.save();
-
-                TempData["Success"] = "Supervisor created successfully!";
-                return RedirectToAction(nameof(Index));
+                ViewData["Title"] = "Create New Supervisor";
+                return View(model);
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", $"Error creating supervisor: {ex.Message}");
+                TempData["Error"] = $"Error loading form: {ex.Message}";
+                return RedirectToAction(nameof(Index));
+            }
+        }
 
-                // Store password for redisplay
-                ViewData["Password"] = Password;
-                ViewData["ConfirmPassword"] = ConfirmPassword;
+        // POST: BranchManagerSupervisor/Create
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Create(SupervisorViewModel model)
+        {
+            try
+            {
+                // For debugging
+                System.Diagnostics.Debug.WriteLine($"Model: Username={model.Username}, Email={model.Email}, BranchId={model.BranchId}, BranchName={model.BranchName}");
 
-                // Repopulate tracks and return view
+                // Force set the BranchId to the current branch ID for security
                 model.BranchId = CurrentBranchId;
-                model.BranchName = CurrentBranchName;
-                model.Tracks = _unitOfWork.trackRepo.GetTracksByBranchId(CurrentBranchId)
+
+                // Get branch details directly from the database
+                var branch = _unitOfWork.branchRepo.getById(CurrentBranchId);
+                if (branch != null)
+                {
+                    model.BranchName = branch.BranchName;
+                }
+
+                // Check for email uniqueness
+                if (_unitOfWork.userRepo.getAll().Any(u => u.Email == model.Email))
+                {
+                    ModelState.AddModelError("Email", "This email address is already in use");
+
+                    // Repopulate tracks dropdown
+                    var tracks = _unitOfWork.trackRepo.GetTracksByBranchId(CurrentBranchId)
+                        .Where(t => t.IsActive == true)
+                        .Select(t => new SelectListItem
+                        {
+                            Value = t.TrackId.ToString(),
+                            Text = t.TrackName,
+                            Selected = t.TrackId == model.TrackId
+                        })
+                        .ToList();
+
+                    model.Tracks = tracks;
+                    return View(model);
+                }
+
+                if (ModelState.IsValid)
+                {
+                    // Create user with supervisor role
+                    var user = new User
+                    {
+                        Username = model.Username,
+                        Email = model.Email,
+                        Gender = model.Gender,
+                        Upassword = BCrypt.Net.BCrypt.HashPassword(model.Password),
+                        Role = "supervisor",
+                        Isactive = model.IsActive
+                    };
+
+                    _unitOfWork.userRepo.add(user);
+                    _unitOfWork.save();
+
+                    System.Diagnostics.Debug.WriteLine($"User created with ID: {user.UserId}");
+
+                    // Create supervisor assignment
+                    var assignment = new UserAssignment
+                    {
+                        UserId = user.UserId,
+                        BranchId = CurrentBranchId,
+                        TrackId = model.TrackId,
+                        Isactive = model.IsActive
+                    };
+
+                    _unitOfWork.userAssignmentRepo.add(assignment);
+                    _unitOfWork.save();
+
+                    System.Diagnostics.Debug.WriteLine($"Assignment created with ID: {assignment.AssignmentId}");
+
+                    TempData["Success"] = "Supervisor created successfully!";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                // If we get here, something went wrong with validation
+                System.Diagnostics.Debug.WriteLine("Model validation failed:");
+                foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    System.Diagnostics.Debug.WriteLine($"- {error.ErrorMessage}");
+                }
+
+                // Repopulate tracks dropdown
+                var tracksList = _unitOfWork.trackRepo.GetTracksByBranchId(CurrentBranchId)
                     .Where(t => t.IsActive == true)
                     .Select(t => new SelectListItem
                     {
@@ -161,9 +188,36 @@ namespace ExSystemProject.Controllers
                     })
                     .ToList();
 
+                model.Tracks = tracksList;
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                // Enhanced error logging
+                System.Diagnostics.Debug.WriteLine($"Error creating supervisor: {ex.Message}");
+                if (ex.InnerException != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Inner exception: {ex.InnerException.Message}");
+                }
+
+                ModelState.AddModelError("", $"Error creating supervisor: {ex.Message}");
+
+                // Repopulate tracks dropdown
+                var tracks = _unitOfWork.trackRepo.GetTracksByBranchId(CurrentBranchId)
+                    .Where(t => t.IsActive == true)
+                    .Select(t => new SelectListItem
+                    {
+                        Value = t.TrackId.ToString(),
+                        Text = t.TrackName,
+                        Selected = t.TrackId == model.TrackId
+                    })
+                    .ToList();
+
+                model.Tracks = tracks;
                 return View(model);
             }
         }
+
 
 
 
