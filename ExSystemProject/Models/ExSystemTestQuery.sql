@@ -3022,3 +3022,59 @@ BEGIN
 END
 GO
 
+-- Add this procedure to your SQL file
+CREATE OR ALTER PROCEDURE sp_AssignCourseToInstructor
+    @CourseId INT,
+    @InstructorId INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    -- Verify that both course and instructor exist and are active
+    IF NOT EXISTS (SELECT 1 FROM Courses WHERE Crs_Id = @CourseId AND isactive = 1)
+    BEGIN
+        RAISERROR('Course not found or is not active.', 16, 1);
+        RETURN;
+    END
+    
+    IF NOT EXISTS (SELECT 1 FROM Instructor WHERE Ins_Id = @InstructorId AND isactive = 1)
+    BEGIN
+        RAISERROR('Instructor not found or is not active.', 16, 1);
+        RETURN;
+    END
+    
+    -- Update the course
+    UPDATE Courses 
+    SET ins_id = @InstructorId
+    WHERE Crs_Id = @CourseId;
+    
+END
+go
+
+CREATE OR ALTER PROCEDURE sp_AssignCourseToInstructor
+    @CourseId INT,
+    @InstructorId INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    -- Verify that both course and instructor exist and are active
+    IF NOT EXISTS (SELECT 1 FROM Courses WHERE Crs_Id = @CourseId AND isactive = 1)
+    BEGIN
+        RAISERROR('Course not found or is not active.', 16, 1);
+        RETURN;
+    END
+    
+    IF NOT EXISTS (SELECT 1 FROM Instructor WHERE Ins_Id = @InstructorId AND isactive = 1)
+    BEGIN
+        RAISERROR('Instructor not found or is not active.', 16, 1);
+        RETURN;
+    END
+    
+    -- Update the course
+    UPDATE Courses 
+    SET ins_id = @InstructorId
+    WHERE Crs_Id = @CourseId;
+    
+END
+

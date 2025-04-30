@@ -1,8 +1,10 @@
 ﻿using ExSystemProject.Models;
 using ExSystemProject.UnitOfWorks;
 using ExSystemProject.ViewModels;
+using ExSystemProject.DTOS;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -42,113 +44,57 @@ namespace ExSystemProject.Controllers
         // GET: BranchManagerStudent/Create
         public IActionResult Create()
         {
-            // Only get tracks from the current branch
-            var tracks = _unitOfWork.trackRepo.getAll()
-                .Where(t => t.BranchId == CurrentBranchId && t.IsActive == true)
-                .Select(t => new SelectListItem
-                {
-                    Value = t.TrackId.ToString(),
-                    Text = t.TrackName
-                })
-                .ToList();
-
-            var model = new StudentViewModel
-            {
-                tracks = tracks
-            };
-
-            ViewData["Title"] = "Add New Student";
-            return View(model);
+            PrepareCreateViewBags();
+            return View(new StudentDTO());
         }
 
-
-      
         // POST: BranchManagerStudent/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Create(StudentViewModel model, string Password)
+        public IActionResult Create(StudentDTO studentDTO, string Password, string PasswordBackup)
         {
-            if (ModelState.IsValid)
+            // Use backup password if main password is empty
+            string finalPassword = !string.IsNullOrEmpty(Password) ? Password : PasswordBackup;
+
+            try
             {
-                try
+                // Validate required fields
+                if (string.IsNullOrEmpty(studentDTO.Username) ||
+                    string.IsNullOrEmpty(studentDTO.Email) ||
+                    string.IsNullOrEmpty(studentDTO.Gender) ||
+                    string.IsNullOrEmpty(finalPassword))
                 {
-                    // Check for required password
-                    if (string.IsNullOrEmpty(Password))
-                    {
-                        ModelState.AddModelError("Password", "Password is required");
-                        ViewData["PasswordError"] = "Password is required";
-
-                        // Repopulate tracks dropdown
-                        model.tracks = _unitOfWork.trackRepo.getAll()
-                            .Where(t => t.BranchId == CurrentBranchId && t.IsActive == true)
-                            .Select(t => new SelectListItem
-                            {
-                                Value = t.TrackId.ToString(),
-                                Text = t.TrackName
-                            })
-                            .ToList();
-
-                        return View(model);
-                    }
-
-                    // Verify the selected track belongs to this branch
-                    if (!string.IsNullOrEmpty(model.TrackId))
-                    {
-                        int trackId = int.Parse(model.TrackId);
-                        var track = _unitOfWork.trackRepo.getById(trackId);
-
-                        if (track == null || track.BranchId != CurrentBranchId)
-                        {
-                            ModelState.AddModelError("TrackId", "Invalid track selection.");
-
-                            // Repopulate tracks dropdown
-                            model.tracks = _unitOfWork.trackRepo.getAll()
-                                .Where(t => t.BranchId == CurrentBranchId && t.IsActive == true)
-                                .Select(t => new SelectListItem
-                                {
-                                    Value = t.TrackId.ToString(),
-                                    Text = t.TrackName
-                                })
-                                .ToList();
-
-                            return View(model);
-                        }
-                    }
-
-                    // No image, so set to null
-                    model.Image = null;
-
-                   // Assign the Password parameter to model.password
-                    model.password = Password;
-
-                    // Add the student using repository
-                    _unitOfWork.studentRepo.AddNewStudent(model);
-
-                    TempData["SuccessMessage"] = "Student created successfully!";
-                    return RedirectToAction(nameof(Index));
+                    ModelState.AddModelError("", "Please fill in all required fields");
+                    PrepareCreateViewBags();
+                    return View(studentDTO);
                 }
-                catch (System.Exception ex)
+
+                // Validate password length
+                if (finalPassword.Length < 6)
                 {
-                    ModelState.AddModelError("", $"Error creating student: {ex.Message}");
-                    TempData["Error"] = $"Error creating student: {ex.Message}";
+                    ModelState.AddModelError("Password", "Password must be at least 6 characters long");
+                    PrepareCreateViewBags();
+                    return View(studentDTO);
                 }
+
+                // Create the student
+                _unitOfWork.studentRepo.CreateStudentWithStoredProcedure(
+                    studentDTO.Username,
+                    studentDTO.Email,
+                    studentDTO.Gender,
+                    finalPassword,
+                    studentDTO.TrackId);
+
+                TempData["SuccessMessage"] = "Student created successfully!";
+                return RedirectToAction(nameof(Index));
             }
-
-            // If we got this far, something failed, redisplay form
-            // Repopulate tracks if there was an error
-            model.tracks = _unitOfWork.trackRepo.getAll()
-                .Where(t => t.BranchId == CurrentBranchId && t.IsActive == true)
-                .Select(t => new SelectListItem
-                {
-                    Value = t.TrackId.ToString(),
-                    Text = t.TrackName
-                })
-                .ToList();
-
-            return View(model);
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", $"Error creating student: {ex.Message}");
+                PrepareCreateViewBags();
+                return View(studentDTO);
+            }
         }
-
-
 
         // GET: BranchManagerStudent/Edit/5
         public IActionResult Edit(int id)
@@ -161,87 +107,79 @@ namespace ExSystemProject.Controllers
                 return NotFound();
             }
 
-            // Get tracks from the current branch
-            var tracks = _unitOfWork.trackRepo.getAll()
-                .Where(t => t.BranchId == CurrentBranchId && t.IsActive == true)
-                .Select(t => new SelectListItem
-                {
-                    Value = t.TrackId.ToString(),
-                    Text = t.TrackName,
-                    Selected = t.TrackId == student.TrackId
-                })
-                .ToList();
-
-            var viewModel = new StudentEditViewModel
+            // Map to DTO
+            var studentDTO = new StudentDTO
             {
                 StudentId = student.StudentId,
                 Username = student.User?.Username,
                 Email = student.User?.Email,
                 Gender = student.User?.Gender,
                 TrackId = student.TrackId,
-                IsActive = student.Isactive ?? true,
-                Tracks = tracks
+                Isactive = student.Isactive ?? true  // Default to true if null
             };
 
-            ViewData["Title"] = "Edit Student";
-            return View(viewModel);
+            PrepareEditViewBags();
+            return View(studentDTO);
         }
 
         // POST: BranchManagerStudent/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Edit(int id, StudentEditViewModel model)
+        public IActionResult Edit(int id, StudentDTO studentDTO)
         {
-            if (id != model.StudentId)
+            if (id != studentDTO.StudentId)
             {
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
+            try
             {
-                try
+                // Verify the track belongs to this branch
+                if (studentDTO.TrackId.HasValue)
                 {
-                    // Verify the track belongs to this branch
-                    if (model.TrackId.HasValue)
+                    var track = _unitOfWork.trackRepo.getById(studentDTO.TrackId.Value);
+                    if (track == null || track.BranchId != CurrentBranchId)
                     {
-                        var track = _unitOfWork.trackRepo.getById(model.TrackId.Value);
-                        if (track == null || track.BranchId != CurrentBranchId)
-                        {
-                            ModelState.AddModelError("TrackId", "Invalid track selection");
-                            return View(model);
-                        }
+                        ModelState.AddModelError("TrackId", "Invalid track selection");
+                        PrepareEditViewBags();
+                        return View(studentDTO);
                     }
-
-                    // Update the student
-                    _unitOfWork.studentRepo.UpdateStudent(
-                        model.StudentId,
-                        model.Username,
-                        model.Email,
-                        model.Gender,
-                        model.TrackId,
-                        model.IsActive
-                    );
-
-                    return RedirectToAction(nameof(Index));
                 }
-                catch (System.Exception ex)
+
+                // Debug logging
+                System.Diagnostics.Debug.WriteLine($"Updating student: ID={studentDTO.StudentId}, " +
+                    $"Username={studentDTO.Username}, Email={studentDTO.Email}, " +
+                    $"Gender={studentDTO.Gender}, TrackId={studentDTO.TrackId}, " +
+                    $"IsActive={studentDTO.Isactive}");
+
+                // If Isactive is null, set it to true (maintain current status)
+                bool isActive = studentDTO.Isactive ?? true;
+
+                // Update the student
+                _unitOfWork.studentRepo.UpdateStudent(
+                    studentDTO.StudentId,
+                    studentDTO.Username,
+                    studentDTO.Email,
+                    studentDTO.Gender,
+                    studentDTO.TrackId,
+                    isActive
+                );
+
+                TempData["SuccessMessage"] = "Student updated successfully!";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", $"Error updating student: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Error updating student: {ex.Message}");
+                if (ex.InnerException != null)
                 {
-                    ModelState.AddModelError("", $"Error updating student: {ex.Message}");
+                    System.Diagnostics.Debug.WriteLine($"Inner exception: {ex.InnerException.Message}");
                 }
             }
 
-            // Repopulate tracks dropdown if there was an error
-            model.Tracks = _unitOfWork.trackRepo.getAll()
-                .Where(t => t.BranchId == CurrentBranchId && t.IsActive == true)
-                .Select(t => new SelectListItem
-                {
-                    Value = t.TrackId.ToString(),
-                    Text = t.TrackName,
-                    Selected = t.TrackId == model.TrackId
-                })
-                .ToList();
-
-            return View(model);
+            PrepareEditViewBags();
+            return View(studentDTO);
         }
 
         // GET: BranchManagerStudent/Delete/5
@@ -376,6 +314,40 @@ namespace ExSystemProject.Controllers
             }
         }
 
+        private void PrepareCreateViewBags()
+        {
+            var tracks = _unitOfWork.trackRepo.getAll()
+                .Where(t => t.BranchId == CurrentBranchId && t.IsActive == true)
+                .Select(t => new SelectListItem
+                {
+                    Value = t.TrackId.ToString(),
+                    Text = t.TrackName
+                })
+                .ToList();
 
+            ViewBag.Tracks = new SelectList(tracks, "Value", "Text");
+        }
+
+        private void PrepareEditViewBags()
+        {
+            try
+            {
+                var tracks = _unitOfWork.trackRepo.getAll()
+                    .Where(t => t.BranchId == CurrentBranchId && t.IsActive == true)
+                    .Select(t => new SelectListItem
+                    {
+                        Value = t.TrackId.ToString(),
+                        Text = t.TrackName
+                    })
+                    .ToList();
+
+                ViewBag.Tracks = new SelectList(tracks, "Value", "Text");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in PrepareEditViewBags: {ex.Message}");
+                ViewBag.Tracks = new SelectList(new List<SelectListItem>(), "Value", "Text");
+            }
+        }
     }
 }
