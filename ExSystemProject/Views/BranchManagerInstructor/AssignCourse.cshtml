@@ -104,4 +104,81 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        $(document).ready(function() {
+            // Display SweetAlert for TempData messages
+        @if (TempData["Success"] != null)
+        {
+            <text>
+                        Swal.fire({
+                            title: "Success!",
+                            text: "@TempData["Success"]",
+                            icon: "success",
+                            confirmButtonColor: "#3085d6"
+                        });
+            </text>
+        }
+
+        @if (TempData["Error"] != null)
+        {
+            <text>
+                        Swal.fire({
+                            title: "Error!",
+                            text: "@TempData["Error"]",
+                            icon: "error",
+                            confirmButtonColor: "#d33"
+                        });
+            </text>
+        }
+
+            // Enhance the form submission with confirmation
+            $('form').on('submit', function(e) {
+                e.preventDefault();
+                const form = this;
+
+                // Validate course selection
+                const courseId = $('#courseId').val();
+                if (!courseId) {
+                    Swal.fire({
+                        title: "Validation Error",
+                        text: "Please select a course to assign",
+                        icon: "warning"
+                    });
+                    return false;
+                }
+
+                // Show confirmation dialog
+                Swal.fire({
+                    title: "Confirm Assignment",
+                    text: "Are you sure you want to assign this course to the instructor?",
+                    icon: "question",
+                    showCancelButton: true,
+                    confirmButtonColor: "#3085d6",
+                    cancelButtonColor: "#d33",
+                    confirmButtonText: "Yes, assign it!"
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Show loading
+                        Swal.fire({
+                            title: "Processing...",
+                            text: "Assigning course to instructor",
+                            allowOutsideClick: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+
+                        // Submit the form
+                        form.submit();
+                    }
+                });
+            });
+        });
+    </script>
 }
+
+@section Styles {
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+}
+

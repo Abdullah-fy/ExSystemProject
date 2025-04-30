@@ -4,6 +4,7 @@ using ExSystemProject.UnitOfWorks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.Data.SqlClient;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -327,42 +328,84 @@ namespace ExSystemProject.Controllers
 
             return View();
         }
-
         // POST: BranchManagerInstructor/AssignCourse
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult AssignCourse(int instructorId, int courseId)
         {
-            var instructor = _unitOfWork.instructorRepo.getById(instructorId);
-            var course = _unitOfWork.courseRepo.getById(courseId);
-
-            // Verify instructor exists and belongs to this branch
-            if (instructor == null || instructor.Track?.BranchId != CurrentBranchId)
-            {
-                return NotFound();
-            }
-
-            if (course == null)
-            {
-                return NotFound("Course not found");
-            }
-
             try
             {
-                // Assign course to instructor
-                course.InsId = instructorId;
-                _unitOfWork.courseRepo.update(course);
-                _unitOfWork.save();
+                // Get the instructor and verify they belong to this branch
+                var instructor = _unitOfWork.instructorRepo.GetInstructorByIdWithBranch(instructorId);
+                if (instructor == null || instructor.Track?.BranchId != CurrentBranchId)
+                {
+                    return NotFound("Instructor not found or does not belong to your branch");
+                }
 
-                TempData["Success"] = "Course assigned successfully";
-                return RedirectToAction(nameof(Courses), new { id = instructorId });
+                // Get the course
+                var course = _unitOfWork.courseRepo.getById(courseId);
+                if (course == null)
+                {
+                    return NotFound("Course not found");
+                }
+
+                // Check if course is already assigned to another instructor
+                if (course.InsId.HasValue && course.InsId != instructorId)
+                {
+                    // Get current instructor name for better error message
+                    var currentInstructor = _unitOfWork.instructorRepo.getById(course.InsId.Value);
+                    string instructorName = currentInstructor?.User?.Username ?? "another instructor";
+                    TempData["Error"] = $"This course is already assigned to {instructorName}. Please unassign it first.";
+                    return RedirectToAction(nameof(AssignCourse), new { id = instructorId });
+                }
+
+                // Use the new stored procedure method to assign the course
+                bool success = _unitOfWork.courseRepo.AssignCourseToInstructor(courseId, instructorId);
+
+                if (success)
+                {
+                    TempData["Success"] = "Course assigned successfully";
+                    return RedirectToAction(nameof(Courses), new { id = instructorId });
+                }
+                else
+                {
+                    TempData["Error"] = "Failed to assign course";
+                    return RedirectToAction(nameof(AssignCourse), new { id = instructorId });
+                }
+            }
+            catch (SqlException sqlEx)
+            {
+                // Check for specific error messages from the stored procedure
+                if (sqlEx.Message.Contains("Course not found or is not active"))
+                {
+                    TempData["Error"] = "The course must be active to be assigned";
+                }
+                else if (sqlEx.Message.Contains("Instructor not found or is not active"))
+                {
+                    TempData["Error"] = "The instructor must be active to be assigned courses";
+                }
+                else
+                {
+                    TempData["Error"] = $"Database error: {sqlEx.Message}";
+                }
+
+                return RedirectToAction(nameof(AssignCourse), new { id = instructorId });
             }
             catch (Exception ex)
             {
+                // Log the error
+                Console.WriteLine($"Error in AssignCourse: {ex.Message}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
+                }
+
                 TempData["Error"] = $"Error assigning course: {ex.Message}";
                 return RedirectToAction(nameof(AssignCourse), new { id = instructorId });
             }
         }
+
+
 
         [HttpPost]
         public IActionResult ToggleStatus(int id)
