@@ -170,11 +170,11 @@ namespace ExSystemProject.Controllers
                 Gender = instructor.User?.Gender,
                 Salary = instructor.Salary,
                 TrackId = instructor.TrackId,
-                TrackName = instructor.Track?.TrackName,
+                TrackName = instructor.Track?.TrackName ?? string.Empty,
                 BranchId = instructor.Track?.BranchId,
-                BranchName = instructor.Track?.Branch?.BranchName,
+                BranchName = instructor.Track?.Branch?.BranchName ?? string.Empty,
                 Isactive = instructor.Isactive,
-                ImageUrl = instructor.User?.Img
+                ImageUrl = instructor.User?.Img ?? "default.jpg" // Use default if null
             };
 
             ViewData["Title"] = $"Edit Instructor: {instructorDTO.Username}";
@@ -197,6 +197,9 @@ namespace ExSystemProject.Controllers
             {
                 ModelState.AddModelError("TrackId", "Please select a valid track from this branch");
             }
+
+            // Set default image URL if not provided
+            instructorDTO.ImageUrl ??= "default.jpg";
 
             if (!ModelState.IsValid)
             {
@@ -361,7 +364,6 @@ namespace ExSystemProject.Controllers
             }
         }
 
-        // POST: BranchManagerInstructor/ToggleStatus/5
         [HttpPost]
         public IActionResult ToggleStatus(int id)
         {
