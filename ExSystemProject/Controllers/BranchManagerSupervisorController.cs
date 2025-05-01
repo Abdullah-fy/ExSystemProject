@@ -265,62 +265,134 @@ namespace ExSystemProject.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Edit(int id, SupervisorEditViewModel model)
         {
-            if (id != model.AssignmentId)
+            try
             {
-                return NotFound();
-            }
+                System.Diagnostics.Debug.WriteLine($"Edit POST request received for ID: {id}, Model AssignmentId: {model.AssignmentId}");
+                System.Diagnostics.Debug.WriteLine($"Model data: Username={model.Username}, Email={model.Email}, Gender={model.Gender}, TrackId={model.TrackId}");
 
-            var supervisor = _unitOfWork.supervisorRepo.GetSupervisorById(id);
-
-            // Verify supervisor exists and belongs to this branch
-            if (supervisor == null || supervisor.BranchId != CurrentBranchId)
-            {
-                return NotFound();
-            }
-
-            if (ModelState.IsValid)
-            {
-                try
+                if (id != model.AssignmentId)
                 {
-                    // Update supervisor
-                    _unitOfWork.supervisorRepo.UpdateSupervisor(
-                        model.AssignmentId,
-                        model.UserId,
-                        model.Username,
-                        model.Email,
-                        model.BranchId,
-                        model.IsActive
-                    );
+                    return NotFound();
+                }
 
-                    // If track changed, update it separately
-                    if (supervisor.TrackId != model.TrackId)
+                var supervisor = _unitOfWork.supervisorRepo.GetSupervisorById(id);
+
+                // Verify supervisor exists and belongs to this branch
+                if (supervisor == null || supervisor.BranchId != CurrentBranchId)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Supervisor not found or doesn't belong to this branch. BranchId: {CurrentBranchId}");
+                    return NotFound();
+                }
+
+                // Check if email is changed and is already in use by another user
+                if (supervisor.User.Email != model.Email &&
+                    _unitOfWork.userRepo.getAll().Any(u => u.Email == model.Email && u.UserId != model.UserId))
+                {
+                    ModelState.AddModelError("Email", "This email address is already in use by another user");
+
+                    // Repopulate tracks dropdown
+                    var tracks = _unitOfWork.trackRepo.GetTracksByBranchId(CurrentBranchId)
+                        .Select(t => new SelectListItem
+                        {
+                            Value = t.TrackId.ToString(),
+                            Text = t.TrackName,
+                            Selected = t.TrackId == model.TrackId
+                        })
+                        .ToList();
+
+                    model.Tracks = tracks;
+                    model.BranchName = CurrentBranchName;
+                    return View(model);
+                }
+
+                // Make sure BranchId is always set to CurrentBranchId for security
+                model.BranchId = CurrentBranchId;
+
+                // Get branch name if not provided
+                if (string.IsNullOrEmpty(model.BranchName))
+                {
+                    var branch = _unitOfWork.branchRepo.getById(CurrentBranchId);
+                    model.BranchName = branch?.BranchName ?? CurrentBranchName;
+                }
+
+                if (ModelState.IsValid)
+                {
+                    try
                     {
+                        System.Diagnostics.Debug.WriteLine("Model is valid, updating supervisor...");
+
+                        // Update user information
+                        var user = _unitOfWork.userRepo.getById(model.UserId);
+                        if (user != null)
+                        {
+                            user.Username = model.Username;
+                            user.Email = model.Email;
+                            user.Gender = model.Gender;
+                            user.Isactive = model.IsActive;
+                            _unitOfWork.userRepo.update(user);
+                            _unitOfWork.save();
+
+                            System.Diagnostics.Debug.WriteLine($"User updated successfully: {user.UserId}");
+                        }
+
+                        // Update assignment information
+                        supervisor.Isactive = model.IsActive;
                         supervisor.TrackId = model.TrackId;
+                        _unitOfWork.supervisorRepo.update(supervisor);
                         _unitOfWork.save();
+
+                        System.Diagnostics.Debug.WriteLine($"Assignment updated successfully: {supervisor.AssignmentId}");
+
+                        TempData["Success"] = "Supervisor updated successfully!";
+                        return RedirectToAction(nameof(Details), new { id = model.AssignmentId });
                     }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Error updating supervisor: {ex.Message}");
+                        if (ex.InnerException != null)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"Inner exception: {ex.InnerException.Message}");
+                        }
 
-                    TempData["Success"] = "Supervisor updated successfully!";
-                    return RedirectToAction(nameof(Details), new { id = model.AssignmentId });
+                        ModelState.AddModelError("", $"Error updating supervisor: {ex.Message}");
+                    }
                 }
-                catch (Exception ex)
+                else
                 {
-                    ModelState.AddModelError("", $"Error updating supervisor: {ex.Message}");
+                    System.Diagnostics.Debug.WriteLine("Model validation failed:");
+                    foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
+                    {
+                        System.Diagnostics.Debug.WriteLine($"- {error.ErrorMessage}");
+                    }
                 }
+
+                // If we get here, something went wrong with validation or saving
+                // Repopulate tracks and return view
+                model.BranchName = CurrentBranchName ?? model.BranchName;
+                model.Tracks = _unitOfWork.trackRepo.GetTracksByBranchId(CurrentBranchId)
+                    .Select(t => new SelectListItem
+                    {
+                        Value = t.TrackId.ToString(),
+                        Text = t.TrackName,
+                        Selected = t.TrackId == model.TrackId
+                    })
+                    .ToList();
+
+                return View(model);
             }
-
-            // If we get here, repopulate tracks and return view
-            model.BranchName = CurrentBranchName;
-            model.Tracks = _unitOfWork.trackRepo.GetTracksByBranchId(CurrentBranchId)
-                .Select(t => new SelectListItem
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Unhandled exception in Edit POST: {ex.Message}");
+                if (ex.InnerException != null)
                 {
-                    Value = t.TrackId.ToString(),
-                    Text = t.TrackName,
-                    Selected = t.TrackId == model.TrackId
-                })
-                .ToList();
+                    System.Diagnostics.Debug.WriteLine($"Inner exception: {ex.InnerException.Message}");
+                }
 
-            return View(model);
+                TempData["Error"] = $"An unexpected error occurred: {ex.Message}";
+                return RedirectToAction(nameof(Index));
+            }
         }
+
 
         // GET: BranchManagerSupervisor/Delete/5
         public IActionResult Delete(int id)
