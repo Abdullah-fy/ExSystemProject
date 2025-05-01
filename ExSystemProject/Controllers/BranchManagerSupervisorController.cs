@@ -25,15 +25,17 @@ namespace ExSystemProject.Controllers
         }
 
         // GET: BranchManagerSupervisor
-        public IActionResult Index(bool? active = true)
+        public IActionResult Index(bool? active = null)
         {
             ViewData["Title"] = "Supervisors Management";
 
-            // Get supervisors for this branch
+            // Get supervisors for this branch with the specified active filter
             var supervisors = _unitOfWork.supervisorRepo.GetSupervisorsByBranchId(CurrentBranchId, active);
 
             return View(supervisors);
         }
+
+
 
         // GET: BranchManagerSupervisor/Details/5
         public IActionResult Details(int id)
@@ -467,8 +469,10 @@ namespace ExSystemProject.Controllers
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = ex.Message });
+                System.Diagnostics.Debug.WriteLine($"Error in ToggleStatus: {ex.Message}");
+                return Json(new { success = false, message = $"Error: {ex.Message}" });
             }
         }
+
     }
 }

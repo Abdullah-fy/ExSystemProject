@@ -39,10 +39,11 @@ namespace ExSystemProject.Repository
         }
 
         // Get supervisors by branch ID
-        public List<UserAssignment> GetSupervisorsByBranchId(int branchId, bool? activeOnly = true)
+        public List<UserAssignment> GetSupervisorsByBranchId(int branchId, bool? activeOnly = null)
         {
             var query = _context.UserAssignments
                 .Include(ua => ua.User)
+                .Include(ua => ua.Track)
                 .Where(ua => ua.BranchId == branchId && ua.User.Role == "supervisor");
 
             if (activeOnly.HasValue)
@@ -52,6 +53,7 @@ namespace ExSystemProject.Repository
 
             return query.ToList();
         }
+
 
         // Create a new supervisor
         public void CreateSupervisor(int userId, string username, string email, int branchId)
