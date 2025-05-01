@@ -78,7 +78,7 @@ public class UserAssignmentRepo : GenaricRepo<UserAssignment>
 
         _context.SaveChanges();
     }
-    // Add this method to UserAssignmentRepo class
+    
     public UserAssignment GetUserBranchAssignment(int userId)
     {
         return _context.UserAssignments

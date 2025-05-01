@@ -119,7 +119,7 @@ namespace ExSystemProject.Controllers
         // POST: BranchManagerTrack/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Edit(int id, Track track)
+        public IActionResult Edit(int id, Track track, string IsActive)
         {
             if (id != track.TrackId)
             {
@@ -128,6 +128,9 @@ namespace ExSystemProject.Controllers
 
             // Always set the branch ID to current branch for security
             track.BranchId = CurrentBranchId;
+
+            // Parse the IsActive value from form
+            track.IsActive = IsActive?.ToLower() == "true";
 
             if (ModelState.IsValid)
             {
@@ -150,6 +153,7 @@ namespace ExSystemProject.Controllers
             return View(track);
         }
 
+
         // GET: BranchManagerTrack/Delete/5
         public IActionResult Delete(int id)
         {
@@ -165,8 +169,8 @@ namespace ExSystemProject.Controllers
             return View(track);
         }
 
-        // POST: BranchManagerTrack/Delete/5
-        [HttpPost, ActionName("Delete")]
+        // POST: BranchManagerTrack/DeleteConfirmed/5
+        [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(int id)
         {
@@ -180,7 +184,9 @@ namespace ExSystemProject.Controllers
 
             try
             {
-                _unitOfWork.trackRepo.delete(id);
+                // Soft delete by setting IsActive to false
+                track.IsActive = false;
+                _unitOfWork.trackRepo.update(track);
                 _unitOfWork.save();
 
                 TempData["Success"] = "Track deleted successfully";
@@ -192,6 +198,8 @@ namespace ExSystemProject.Controllers
                 return RedirectToAction(nameof(Delete), new { id });
             }
         }
+
+
 
         // POST: BranchManagerTrack/ToggleStatus/5
         [HttpPost]

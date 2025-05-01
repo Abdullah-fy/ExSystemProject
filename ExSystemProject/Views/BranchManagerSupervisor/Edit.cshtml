@@ -21,9 +21,12 @@
     <div class="card-body">
         <form asp-action="Edit" method="post">
             <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+            <!-- Hidden fields -->
             <input type="hidden" asp-for="AssignmentId" />
             <input type="hidden" asp-for="UserId" />
             <input type="hidden" asp-for="BranchId" />
+            <input type="hidden" asp-for="BranchName" />
 
             <div class="row">
                 <div class="col-md-8">
@@ -34,13 +37,19 @@
                         <div class="card-body">
                             <div class="mb-3">
                                 <label asp-for="Username" class="form-label">Username <span class="text-danger">*</span></label>
-                                <input asp-for="Username" class="form-control" />
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                    <input asp-for="Username" class="form-control" required />
+                                </div>
                                 <span asp-validation-for="Username" class="text-danger"></span>
                             </div>
 
                             <div class="mb-3">
                                 <label asp-for="Email" class="form-label">Email <span class="text-danger">*</span></label>
-                                <input asp-for="Email" class="form-control" />
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                                    <input asp-for="Email" class="form-control" type="email" required />
+                                </div>
                                 <span asp-validation-for="Email" class="text-danger"></span>
                             </div>
 
@@ -48,11 +57,11 @@
                                 <label asp-for="Gender" class="form-label">Gender <span class="text-danger">*</span></label>
                                 <div class="d-flex">
                                     <div class="form-check me-3">
-                                        <input asp-for="Gender" type="radio" value="M" class="form-check-input" id="genderMale" />
+                                        <input asp-for="Gender" type="radio" value="M" class="form-check-input" id="genderMale" checked="@(Model.Gender == "M")" />
                                         <label class="form-check-label" for="genderMale">Male</label>
                                     </div>
                                     <div class="form-check">
-                                        <input asp-for="Gender" type="radio" value="F" class="form-check-input" id="genderFemale" />
+                                        <input asp-for="Gender" type="radio" value="F" class="form-check-input" id="genderFemale" checked="@(Model.Gender == "F")" />
                                         <label class="form-check-label" for="genderFemale">Female</label>
                                     </div>
                                 </div>
@@ -70,7 +79,10 @@
                         <div class="card-body">
                             <div class="mb-3">
                                 <label class="form-label">Branch</label>
-                                <input type="text" class="form-control" value="@Model.BranchName" readonly />
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-building"></i></span>
+                                    <input type="text" class="form-control" value="@Model.BranchName" readonly />
+                                </div>
                             </div>
 
                             <div class="mb-3">
@@ -107,4 +119,55 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+    <script>
+        $(document).ready(function() {
+            // For debugging
+            console.log("Form loaded with values:");
+            console.log({
+                assignmentId: @Model.AssignmentId,
+                userId: @Model.UserId,
+                username: "@Model.Username",
+                email: "@Model.Email",
+                gender: "@Model.Gender",
+                branchId: @Model.BranchId,
+                branchName: "@Model.BranchName",
+                trackId: @(Model.TrackId.HasValue ? Model.TrackId.Value.ToString() : "null"),
+                isActive: @Model.IsActive.ToString().ToLower()
+            });
+
+            // Form validation before submission
+            $("form").on("submit", function(e) {
+                var username = $("#Username").val();
+                var email = $("#Email").val();
+                var gender = $("input[name='Gender']:checked").val();
+
+                if (!username) {
+                    e.preventDefault();
+                    alert("Username is required.");
+                    return false;
+                }
+
+                if (!email) {
+                    e.preventDefault();
+                    alert("Email is required.");
+                    return false;
+                }
+
+                if (!gender) {
+                    e.preventDefault();
+                    alert("Gender is required.");
+                    return false;
+                }
+
+                // Log what's being submitted
+                console.log("Form submitting with values:", {
+                    username: username,
+                    email: email,
+                    gender: gender,
+                    trackId: $("#TrackId").val(),
+                    isActive: $("#IsActive").is(":checked")
+                });
+            });
+        });
+    </script>
 }

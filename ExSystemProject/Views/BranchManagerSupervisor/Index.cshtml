@@ -2,6 +2,7 @@
 @{
     ViewData["Title"] = "Supervisors Management";
     Layout = "~/Views/Shared/_BranchManagerLayout.cshtml";
+    var activeFilter = ViewContext.HttpContext.Request.Query["active"].ToString();
 }
 
 <div class="card shadow">
@@ -10,6 +11,17 @@
             <i class="bi bi-people-fill me-2"></i> Supervisors
         </h5>
         <div>
+            <div class="btn-group btn-group-sm me-2">
+                <a asp-action="Index" asp-route-active="true" class="btn @(activeFilter == "True" || activeFilter == "true" || string.IsNullOrEmpty(activeFilter) ? "btn-primary" : "btn-outline-primary")">
+                    <i class="bi bi-check-circle me-1"></i> Active
+                </a>
+                <a asp-action="Index" asp-route-active="false" class="btn @(activeFilter == "False" || activeFilter == "false" ? "btn-primary" : "btn-outline-primary")">
+                    <i class="bi bi-x-circle me-1"></i> Inactive
+                </a>
+                <a asp-action="Index" asp-route-active="" class="btn @(activeFilter == "" ? "btn-primary" : "btn-outline-primary")">
+                    <i class="bi bi-list me-1"></i> All
+                </a>
+            </div>
             <a asp-action="Create" class="btn btn-primary btn-sm">
                 <i class="bi bi-plus-circle me-1"></i> Add New Supervisor
             </a>
@@ -38,7 +50,20 @@
                     <i class="bi bi-people"></i>
                 </div>
                 <h3 class="mt-4">No Supervisors Found</h3>
-                <p class="text-muted">There are no supervisors assigned to this branch yet.</p>
+                <p class="text-muted">
+                    @if (activeFilter == "True" || activeFilter == "true")
+                    {
+                        <span>There are no active supervisors assigned to this branch yet.</span>
+                    }
+                    else if (activeFilter == "False" || activeFilter == "false")
+                    {
+                        <span>There are no inactive supervisors in this branch.</span>
+                    }
+                    else
+                    {
+                        <span>There are no supervisors assigned to this branch yet.</span>
+                    }
+                </p>
                 <div class="mt-4">
                     <a asp-action="Create" class="btn btn-primary">
                         <i class="bi bi-plus-circle me-2"></i> Add New Supervisor
@@ -63,7 +88,7 @@
                     <tbody>
                         @foreach (var supervisor in Model)
                         {
-                            <tr>
+                            <tr class="@(supervisor.Isactive != true ? "table-secondary" : "")">
                                 <td>@supervisor.AssignmentId</td>
                                 <td>@supervisor.User?.Username</td>
                                 <td>@supervisor.User?.Email</td>
@@ -112,46 +137,129 @@
         }
     </div>
 </div>
-
 @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         $(document).ready(function() {
-            $('#supervisorsTable').DataTable({
-                "order": [[0, "desc"]]
-            });
+            // Initialize DataTable if needed
+            if ($.fn.DataTable) {
+                $('#supervisorsTable').DataTable({
+                    "order": [[0, "desc"]]
+                });
+            }
 
-            // Toggle status
+            // Display SweetAlert for TempData messages
+        @if (TempData["Success"] != null)
+        {
+            <text>
+                        Swal.fire({
+                            title: "Success!",
+                            text: "@TempData["Success"]",
+                            icon: "success",
+                            confirmButtonColor: "#28a745"
+                        });
+            </text>
+        }
+
+        @if (TempData["Error"] != null)
+        {
+            <text>
+                        Swal.fire({
+                            title: "Error!",
+                            text: "@TempData["Error"]",
+                            icon: "error",
+                            confirmButtonColor: "#dc3545"
+                        });
+            </text>
+        }
+
+            // Handle toggle status button click
             $('.toggle-status').on('click', function() {
-                var btn = $(this);
-                var id = btn.data('id');
-                var isActive = btn.data('active') === 'True';
+                const btn = $(this);
+                const id = btn.data('id');
+                // Get current status as a boolean, handling different string formats
+                const isActive = String(btn.data('active')).toLowerCase() === 'true';
+                const statusText = isActive ? 'deactivate' : 'activate';
 
-                $.ajax({
-                    url: '@Url.Action("ToggleStatus")',
-                    type: 'POST',
-                    data: { id: id },
-                    success: function(result) {
-                        if (result.success) {
-                            // Update button appearance
-                            if (result.isActive) {
-                                btn.removeClass('btn-outline-success').addClass('btn-outline-warning');
-                                btn.find('i').removeClass('bi-check-circle').addClass('bi-x-circle');
-                                btn.closest('tr').find('.badge').removeClass('bg-danger').addClass('bg-success').text('Active');
-                            } else {
-                                btn.removeClass('btn-outline-warning').addClass('btn-outline-success');
-                                btn.find('i').removeClass('bi-x-circle').addClass('bi-check-circle');
-                                btn.closest('tr').find('.badge').removeClass('bg-success').addClass('bg-danger').text('Inactive');
+                console.log(`Toggle button clicked: ID=${id}, Current Status=${isActive}`);
+
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: `Do you want to ${statusText} this supervisor?`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: isActive ? '#dc3545' : '#28a745',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: `Yes, ${statusText} it!`
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Show loading state
+                        Swal.fire({
+                            title: 'Processing...',
+                            text: `${isActive ? 'Deactivating' : 'Activating'} supervisor...`,
+                            allowOutsideClick: false,
+                            allowEscapeKey: false,
+                            didOpen: () => {
+                                Swal.showLoading();
                             }
-                            btn.data('active', result.isActive);
+                        });
 
-                            // Show success message
-                            toastr.success(result.message);
-                        } else {
-                            toastr.error(result.message);
-                        }
-                    },
-                    error: function() {
-                        toastr.error('An error occurred while processing your request');
+                        // Send AJAX request to toggle status
+                        $.ajax({
+                            url: '@Url.Action("ToggleStatus")',
+                            type: 'POST',
+                            data: { id: id },
+                            success: function(result) {
+                                console.log('AJAX Response:', result);
+
+                                if (result.success) {
+                                    // Show success message
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Success!',
+                                        text: result.message,
+                                        timer: 2000,
+                                        showConfirmButton: false
+                                    });
+
+                                    // Update button appearance
+                                    if (result.isActive) {
+                                        btn.removeClass('btn-outline-success').addClass('btn-outline-warning');
+                                        btn.find('i').removeClass('bi-check-circle').addClass('bi-x-circle');
+                                        btn.closest('tr').find('.badge').removeClass('bg-danger').addClass('bg-success').text('Active');
+                                        btn.closest('tr').removeClass('table-secondary');
+                                    } else {
+                                        btn.removeClass('btn-outline-warning').addClass('btn-outline-success');
+                                        btn.find('i').removeClass('bi-x-circle').addClass('bi-check-circle');
+                                        btn.closest('tr').find('.badge').removeClass('bg-success').addClass('bg-danger').text('Inactive');
+                                        btn.closest('tr').addClass('table-secondary');
+                                    }
+
+                                    // Most importantly, update the data-active attribute
+                                    btn.data('active', result.isActive);
+                                    btn.attr('data-active', result.isActive);
+
+                                    console.log(`Status updated to: ${result.isActive}, Button data now:`, btn.data('active'));
+
+                                    // Optional: refresh page after short delay
+                                    // setTimeout(() => { window.location.reload(); }, 2000);
+                                } else {
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'Error',
+                                        text: result.message || 'An error occurred while updating status.'
+                                    });
+                                }
+                            },
+                            error: function(xhr, status, error) {
+                                console.error('AJAX Error:', error);
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error',
+                                    text: 'An error occurred while processing your request'
+                                });
+                            }
+                        });
                     }
                 });
             });

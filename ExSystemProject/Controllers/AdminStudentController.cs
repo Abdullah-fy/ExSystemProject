@@ -105,7 +105,7 @@ namespace ExSystemProject.Controllers
         }
 
 
-        // POST: AdminStudent/Create
+       
         // POST: AdminStudent/Create
         [HttpPost]
         [ValidateAntiForgeryToken]

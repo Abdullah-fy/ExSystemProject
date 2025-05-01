@@ -181,6 +181,32 @@ namespace ExSystemProject.Repository
                 throw new Exception($"Error retrieving course {courseId} with branch information: {ex.Message}", ex);
             }
         }
+        public bool AssignCourseToInstructor(int courseId, int instructorId)
+        {
+            try
+            {
+                // Create parameters for the stored procedure
+                var courseIdParam = new SqlParameter("@CourseId", courseId);
+                var instructorIdParam = new SqlParameter("@InstructorId", instructorId);
+
+                // Execute the stored procedure
+                _context.Database.ExecuteSqlRaw(
+                    "EXEC sp_AssignCourseToInstructor @CourseId, @InstructorId",
+                    courseIdParam, instructorIdParam);
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error assigning course: {ex.Message}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
+                }
+                throw;
+            }
+        }
+
 
 
 

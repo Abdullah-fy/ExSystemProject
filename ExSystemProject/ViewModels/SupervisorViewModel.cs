@@ -1,7 +1,6 @@
-﻿// ExSystemProject/ViewModels/SupervisorViewModel.cs
-using Microsoft.AspNetCore.Mvc.Rendering;
-using System.Collections.Generic;
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
 using System.ComponentModel.DataAnnotations;
+using System.Collections.Generic;
 
 namespace ExSystemProject.ViewModels
 {
@@ -31,8 +30,11 @@ namespace ExSystemProject.ViewModels
         public string ConfirmPassword { get; set; }
 
         // Branch will be set automatically from the controller
+        [Required(ErrorMessage = "Branch ID is required")]
         public int BranchId { get; set; }
-        public string BranchName { get; set; }
+
+        // Remove Required attribute from BranchName to avoid validation errors
+        public string BranchName { get; set; } = ""; // Initialize with empty string
 
         // Track is optional for a supervisor
         public int? TrackId { get; set; }

@@ -26,20 +26,35 @@ namespace ExSystemProject.Repository
 
         public void EnrollStudent(int studentId, int courseId)
         {
-            var enrollment = new StudentCourse
+            try
             {
-                StudentId = studentId,
-                CrsId = courseId,
-                Isactive = true,
-                
-                EnrolledAt = DateOnly.FromDateTime(DateTime.Now),
-                Grade = null,
-                Ispassed = null
-            };
+                // Create a new enrollment (StudentCourse)
+                var enrollment = new StudentCourse
+                {
+                    StudentId = studentId,
+                    CrsId = courseId,
+                    // Convert DateTime.Now to DateOnly
+                    EnrolledAt = DateOnly.FromDateTime(DateTime.Now),
+                    Isactive = true
+                    // Grade and ispassed will be null by default
+                };
 
-            _context.StudentCourses.Add(enrollment);
-            _context.SaveChanges();
+                // Add to context
+                _context.StudentCourses.Add(enrollment);
+
+                // Save changes immediately
+                _context.SaveChanges();
+
+                Console.WriteLine($"Enrolled student {studentId} in course {courseId}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error enrolling student: {ex.Message}");
+                throw; // Re-throw to be handled by the controller
+            }
         }
+
+
 
 
         public void UnenrollStudent(int studentId, int courseId)
