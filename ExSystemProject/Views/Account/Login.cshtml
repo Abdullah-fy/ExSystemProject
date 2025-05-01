@@ -3,43 +3,93 @@
 
 @{
     ViewData["Title"] = "Login";
+    Layout = "_Layout";
 }
 
-<h1>Login</h1>
+<div class="row justify-content-center my-5">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow border-0">
+            <div class="card-body p-5">
+                <div class="text-center mb-4">
+                    <img src="~/images/iti2.png" alt="ITI Logo" class="mb-4" style="height: 70px;" onerror="this.src='https://placehold.co/140x70?text=ITI+Logo'">
+                    <h2 class="fw-bold text-center" style="color: var(--iti-blue);">Welcome Back</h2>
+                    <p class="text-muted">Sign in to continue to the Examination System</p>
+                </div>
 
-<h4>LoginViewModel</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Login">
-            <div asp-validation-summary="All" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="Username" class="control-label"></label>
-                <input asp-for="Username" class="form-control" />
-                <span asp-validation-for="Username" class="text-danger"></span>
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <div asp-validation-summary="All" class="text-danger"></div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+
+                <form asp-action="Login" method="post" class="needs-validation">
+                    <div class="mb-4">
+                        <label asp-for="Username" class="form-label">Username</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="bi bi-person"></i></span>
+                            <input asp-for="Username" class="form-control" placeholder="Enter your username" required autofocus />
+                        </div>
+                        <span asp-validation-for="Username" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between">
+                            <label asp-for="password" class="form-label">Password</label>
+                            <a href="#" class="text-decoration-none small" style="color: var(--iti-red);">Forgot password?</a>
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="bi bi-lock"></i></span>
+                            <input asp-for="password" class="form-control" id="password-field" placeholder="Enter your password" required />
+                            <button type="button" class="input-group-text bg-light" id="togglePassword"><i class="bi bi-eye"></i></button>
+                        </div>
+                        <span asp-validation-for="password" class="text-danger small"></span>
+                    </div>
+
+                    <div class="form-check mb-4">
+                        <input asp-for="RememberMe" class="form-check-input" type="checkbox" id="rememberMe" />
+                        <label asp-for="RememberMe" class="form-check-label" for="rememberMe">
+                            Remember me on this device
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn btn-lg w-100 mb-4" style="background-color: var(--iti-red); color: white;">
+                        <i class="bi bi-box-arrow-in-right me-2"></i> Sign In
+                    </button>
+
+                    <div class="text-center">
+                        <p class="text-muted">
+                            Don't have an account? <a href="#" style="color: var(--iti-red);">Contact administrator</a>
+                        </p>
+                    </div>
+                </form>
             </div>
-            <div class="form-group">
-                <label asp-for="password" class="control-label"></label>
-                <input asp-for="password" class="form-control" />
-                <span asp-validation-for="password" class="text-danger"></span>
-            </div>
-            <br />
-            <div class="form-group">
-                <input asp-for="RememberMe" type="checkbox" />
-                <label asp-for="RememberMe" class="control-label"></label>
-                <span asp-validation-for="RememberMe" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Login" class="btn btn-primary" />
-            </div>
-        </form>
+        </div>
+
+        <div class="text-center mt-4">
+            <a asp-controller="Home" asp-action="Index" class="text-decoration-none" style="color: var(--iti-blue);">
+                <i class="bi bi-arrow-left me-1"></i> Back to Home
+            </a>
+        </div>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        // Toggle password visibility
+        document.getElementById('togglePassword').addEventListener('click', function() {
+            const passwordField = document.getElementById('password-field');
+            const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordField.setAttribute('type', type);
+
+            // Toggle eye icon
+            const eyeIcon = this.querySelector('i');
+            eyeIcon.classList.toggle('bi-eye');
+            eyeIcon.classList.toggle('bi-eye-slash');
+        });
+    </script>
 }
