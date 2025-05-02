@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "Register";
+    Layout = "_Layout";
     SelectList branchList = new SelectList(Model.Branches, "BranchId", "BranchName");
     SelectList trackList = new SelectList(Model.Tracks, "TrackId", "TrackName");
     var R = Enum.GetValues(typeof(approles)).Cast<approles>().Select(a => new SelectListItem
@@ -16,97 +17,193 @@
             });
 }
 
-<h1>Register</h1>
+<div class="row justify-content-center my-5">
+    <div class="col-md-10 col-lg-8">
+        <div class="card shadow border-0">
+            <div class="card-body p-4">
+                <!-- Matching the Login page header style -->
+                <div class="text-center mb-4">
+                    <img src="~/images/iti2.png" alt="ITI Logo" class="mb-4" style="height: 70px;" onerror="this.src='https://placehold.co/140x70?text=ITI+Logo'">
+                    <h2 class="fw-bold text-center" style="color: var(--iti-blue);">Create New Account</h2>
+                    <p class="text-muted">Register a new user for the Examination System</p>
+                </div>
 
-<h4>RegisterViewModel</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Register" enctype="multipart/form-data">
-            <div asp-validation-summary="All" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="Username" class="control-label"></label>
-                <input asp-for="Username" class="form-control" />
-                <span asp-validation-for="Username" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Email" class="control-label"></label>
-                <input asp-for="Email" class="form-control" />
-                <span asp-validation-for="Email" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Password" class="control-label"></label>
-                <input asp-for="Password" class="form-control" />
-                <span asp-validation-for="Password" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="ConfirmPassword" class="control-label"></label>
-                <input asp-for="ConfirmPassword" class="form-control" />
-                <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Salary" class="control-label"></label>
-                <input asp-for="Salary" class="form-control" />
-                <span asp-validation-for="Salary" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Gender" class="control-label"></label>
-                @* <input asp-for="Gender" class="form-control" /> *@
-                <select asp-for="Gender" class="form-control">
-                    <option value="-1">--select Gender--</option>
-                    @foreach (var item in G)
-                    {
-                        <option value="@item.Value">@item.Text</option>
-                    }
-                </select>
-                <span asp-validation-for="Gender" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Role" class="control-label"></label>
-                @* <input asp-for="Role" class="form-control" /> *@
-                <select asp-for="Role" class="form-control">
-                    <option value="-1">--select role--</option>
-                    @foreach(var item in R)
-                    {
-                        <option value="@item.Value">@item.Text</option>
-                    }
-                </select>
-                <span asp-validation-for="Role" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="BranchId" class="control-label"></label>
-                <select asp-for="BranchId" asp-items="branchList" class="form-control">
-                    <option value="-1">--select branch--</option>
-                </select>
-                @* <input asp-for="BranchId" class="form-control" /> *@
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <div asp-validation-summary="All" class="text-danger"></div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
 
-                <span asp-validation-for="BranchId" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="TrackId" class="control-label"></label>
-                @* <input asp-for="TrackId" class="form-control" /> *@
-                <select asp-for="TrackId" asp-items="trackList" class="form-control">
-                    <option value="-1">--select track--</option>
-                </select>
-                <span asp-validation-for="TrackId" class="text-danger"></span>
-            </div>
+                <form asp-action="Register" method="post" enctype="multipart/form-data">
+                    <div class="row">
+                        <!-- Left Column -->
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label asp-for="Username" class="form-label">Username <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="bi bi-person"></i></span>
+                                    <input asp-for="Username" class="form-control" placeholder="Enter username" />
+                                </div>
+                                <span asp-validation-for="Username" class="text-danger small"></span>
+                            </div>
 
-            <div class="form-group">
-                <label asp-for="ProfilePicture" class="control-label"></label>
-                <input asp-for="ProfilePicture" type="file" class="form-control" /> 
-                <span asp-validation-for="ProfilePicture" class="text-danger"></span>
+                            <div class="mb-3">
+                                <label asp-for="Email" class="form-label">Email Address <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="bi bi-envelope"></i></span>
+                                    <input asp-for="Email" class="form-control" placeholder="example@domain.com" />
+                                </div>
+                                <span asp-validation-for="Email" class="text-danger small"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="Password" class="form-label">Password <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="bi bi-lock"></i></span>
+                                    <input asp-for="Password" class="form-control" id="password-field" placeholder="Enter password" />
+                                    <button type="button" class="input-group-text bg-light" id="togglePassword">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
+                                <span asp-validation-for="Password" class="text-danger small"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="ConfirmPassword" class="form-label">Confirm Password <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="bi bi-lock-fill"></i></span>
+                                    <input asp-for="ConfirmPassword" class="form-control" id="confirm-password-field" placeholder="Confirm password" />
+                                    <button type="button" class="input-group-text bg-light" id="toggleConfirmPassword">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
+                                <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <!-- Right Column -->
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label asp-for="Gender" class="form-label">Gender <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="bi bi-gender-ambiguous"></i></span>
+                                    <select asp-for="Gender" class="form-select">
+                                        <option value="-1">--select Gender--</option>
+                                        @foreach (var item in G)
+                                        {
+                                            <option value="@item.Value">@(item.Value == "M" ? "Male" : "Female")</option>
+                                        }
+                                    </select>
+                                </div>
+                                <span asp-validation-for="Gender" class="text-danger small"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="Role" class="form-label">Role <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="bi bi-person-badge"></i></span>
+                                    <select asp-for="Role" class="form-select" id="role-select">
+                                        <option value="-1">--select role--</option>
+                                        @foreach (var item in R)
+                                        {
+                                            <option value="@item.Value">@item.Text</option>
+                                        }
+                                    </select>
+                                </div>
+                                <span asp-validation-for="Role" class="text-danger small"></span>
+                            </div>
+
+                            <div class="mb-3" id="branch-field">
+                                <label asp-for="BranchId" class="form-label">Branch</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="bi bi-building"></i></span>
+                                    <select asp-for="BranchId" asp-items="branchList" class="form-select">
+                                        <option value="-1">--select branch--</option>
+                                    </select>
+                                </div>
+                                <span asp-validation-for="BranchId" class="text-danger small"></span>
+                            </div>
+
+                            <div class="mb-3" id="track-field">
+                                <label asp-for="TrackId" class="form-label">Track</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="bi bi-signpost-split"></i></span>
+                                    <select asp-for="TrackId" asp-items="trackList" class="form-select">
+                                        <option value="-1">--select track--</option>
+                                    </select>
+                                </div>
+                                <span asp-validation-for="TrackId" class="text-danger small"></span>
+                            </div>
+
+                            <div class="mb-3" id="salary-field">
+                                <label asp-for="Salary" class="form-label">Salary</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="bi bi-cash"></i></span>
+                                    <input asp-for="Salary" class="form-control" type="number" placeholder="Enter salary amount" />
+                                </div>
+                                <span asp-validation-for="Salary" class="text-danger small"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="ProfilePicture" class="form-label">Profile Picture</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="bi bi-image"></i></span>
+                            <input asp-for="ProfilePicture" type="file" class="form-control" />
+                        </div>
+                        <span asp-validation-for="ProfilePicture" class="text-danger small"></span>
+                    </div>
+
+                    <button type="submit" class="btn btn-lg w-100 mb-4" style="background-color: var(--iti-red); color: white;">
+                        <i class="bi bi-person-plus-fill me-2"></i> Create Account
+                    </button>
+                </form>
             </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
-        </form>
+        </div>
+
+        <div class="text-center mt-4">
+            <a asp-controller="Home" asp-action="Index" class="text-decoration-none" style="color: var(--iti-blue);">
+                <i class="bi bi-arrow-left me-1"></i> Back to Home
+            </a>
+        </div>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        $(document).ready(function() {
+            // Password toggle visibility
+            $("#togglePassword").on("click", function(e) {
+                e.preventDefault();
+                const passwordField = document.getElementById('password-field');
+                const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordField.setAttribute('type', type);
+
+                // Toggle eye icon
+                const eyeIcon = this.querySelector('i');
+                eyeIcon.classList.toggle('bi-eye');
+                eyeIcon.classList.toggle('bi-eye-slash');
+            });
+
+            // Confirm Password toggle visibility
+            $("#toggleConfirmPassword").on("click", function(e) {
+                e.preventDefault();
+                const confirmPasswordField = document.getElementById('confirm-password-field');
+                const type = confirmPasswordField.getAttribute('type') === 'password' ? 'text' : 'password';
+                confirmPasswordField.setAttribute('type', type);
+
+                // Toggle eye icon
+                const eyeIcon = this.querySelector('i');
+                eyeIcon.classList.toggle('bi-eye');
+                eyeIcon.classList.toggle('bi-eye-slash');
+            });
+
+          
+    </script>
 }
