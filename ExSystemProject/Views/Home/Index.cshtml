@@ -1,8 +1,422 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Home";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="container-fluid p-0">
+    <!-- Hero Section -->
+    <div class="position-relative overflow-hidden text-center bg-light">
+        <div class="container py-5">
+            <img src="~/images/iti2.png" alt="ITI Logo" class="mb-4" style="height: 120px;" onerror="this.src='https://placehold.co/240x120?text=ITI+Logo'">
+            <h1 class="display-5 fw-bold mb-3">ITI Examination System</h1>
+            <p class="lead fw-normal mb-4">A comprehensive platform for managing courses, exams, and educational resources across all ITI branches.</p>
+
+            @if (User.Identity.IsAuthenticated)
+            {
+                <div class="mb-3">
+                    @if (User.IsInRole("superadmin"))
+                    {
+                        <a asp-controller="Admin" asp-action="Index" class="btn btn-iti-red btn-lg px-4">
+                            <i class="bi bi-speedometer2 me-2"></i> Admin Dashboard
+                        </a>
+                    }
+                    else if (User.IsInRole("admin"))
+                    {
+                        <a asp-controller="BranchManager" asp-action="Index" class="btn btn-iti-red btn-lg px-4">
+                            <i class="bi bi-speedometer2 me-2"></i> Branch Dashboard
+                        </a>
+                    }
+                    else if (User.IsInRole("supervisor"))
+                    {
+                        <a asp-controller="Supervisor" asp-action="Index" class="btn btn-iti-red btn-lg px-4">
+                            <i class="bi bi-diagram-3 me-2"></i> Track Management
+                        </a>
+                    }
+                    else if (User.IsInRole("instructor"))
+                    {
+                        <a asp-controller="Instructor" asp-action="Index" class="btn btn-iti-red btn-lg px-4">
+                            <i class="bi bi-mortarboard me-2"></i> My Courses
+                        </a>
+                    }
+                    else if (User.IsInRole("student"))
+                    {
+                        <a asp-controller="Student" asp-action="Courses" class="btn btn-iti-red btn-lg px-4">
+                            <i class="bi bi-journal-bookmark me-2"></i> My Courses
+                        </a>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="mb-3">
+                    <a asp-controller="Account" asp-action="Login" class="btn btn-iti-red btn-lg px-4 me-2">
+                        <i class="bi bi-box-arrow-in-right me-2"></i> Sign In
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="container py-5">
+        <div class="row g-4 py-3">
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body">
+                        <div class="feature-icon d-inline-flex align-items-center justify-content-center bg-primary bg-gradient text-white fs-2 mb-3 p-2 rounded">
+                            <i class="bi bi-mortarboard-fill"></i>
+                        </div>
+                        <h3>Education Management</h3>
+                        <p>Comprehensive tools for course delivery, curriculum planning, and student assessment across all branches.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body">
+                        <div class="feature-icon d-inline-flex align-items-center justify-content-center bg-primary bg-gradient text-white fs-2 mb-3 p-2 rounded">
+                            <i class="bi bi-clipboard-data"></i>
+                        </div>
+                        <h3>Exam Administration</h3>
+                        <p>Create, manage, and grade exams with powerful tools for question banks and automated assessment.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body">
+                        <div class="feature-icon d-inline-flex align-items-center justify-content-center bg-primary bg-gradient text-white fs-2 mb-3 p-2 rounded">
+                            <i class="bi bi-graph-up"></i>
+                        </div>
+                        <h3>Performance Analytics</h3>
+                        <p>Track student progress, examine pass rates, and analyze educational outcomes with detailed reports.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- About ITI Section -->
+    <div class="bg-light py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-7">
+                    <h2 class="fw-bold mb-4" style="color: var(--iti-red);">About Information Technology Institute (ITI)</h2>
+                    <p class="fs-5">Founded in 1993, ITI has been at the forefront of ICT human capacity development for over 30 years. As an affiliate of the Ministry of Communications and Information Technology since 2005, ITI continuously updates its training portfolio to align with global tech trends and national priorities.</p>
+                    <p class="fs-5">Our programs have served thousands of Egyptian youth from diverse academic backgrounds, maintaining an impressive 85% employment rate for graduates.</p>
+
+                    <div class="d-flex mt-4">
+                        <div class="me-4">
+                            <h3 class="fw-bold" style="color: var(--iti-blue);">Mission</h3>
+                            <p>Supporting Egyptian youth to improve their career opportunities by developing their skills and preparing them for highly in-demand jobs.</p>
+                        </div>
+                        <div>
+                            <h3 class="fw-bold" style="color: var(--iti-blue);">Vision</h3>
+                            <p>A Reference Hub in Developing ICT Professional Talents.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-5">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-body">
+                            <h3 class="fw-bold mb-3" style="color: var(--iti-red);">Our Values</h3>
+                            <p class="fst-italic mb-4">"People Develop Countries… We Develop PEOPLE"</p>
+
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <div class="p-3 border rounded text-center">
+                                        <span class="fw-bold">P</span>rofessionalism
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="p-3 border rounded text-center">
+                                        <span class="fw-bold">E</span>lation
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="p-3 border rounded text-center">
+                                        <span class="fw-bold">O</span>penness
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="p-3 border rounded text-center">
+                                        <span class="fw-bold">P</span>assion
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="p-3 border rounded text-center">
+                                        <span class="fw-bold">L</span>oyalty
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="p-3 border rounded text-center">
+                                        <span class="fw-bold">E</span>xtra Mile
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Role-specific Section (displays only when logged in) -->
+    @if (User.Identity.IsAuthenticated)
+    {
+        <div class="container py-5">
+            <h2 class="text-center mb-4 fw-bold" style="color: var(--iti-blue);">Quick Actions</h2>
+
+            @if (User.IsInRole("superadmin"))
+            {
+                <div class="row g-4">
+                    <div class="col-md-3">
+                        <div class="card h-100 shadow-sm border-0">
+                            <div class="card-body text-center">
+                                <i class="bi bi-building fs-1 mb-3" style="color: var(--iti-red);"></i>
+                                <h4>Branches</h4>
+                                <p>Manage all branches and their operations</p>
+                                <a asp-controller="Branch" asp-action="Index" class="btn btn-sm btn-outline-primary mt-2">Access</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card h-100 shadow-sm border-0">
+                            <div class="card-body text-center">
+                                <i class="bi bi-person-badge fs-1 mb-3" style="color: var(--iti-red);"></i>
+                                <h4>Branch Managers</h4>
+                                <p>Manage branch administrators</p>
+                                <a asp-controller="AdminManager" asp-action="Index" class="btn btn-sm btn-outline-primary mt-2">Access</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card h-100 shadow-sm border-0">
+                            <div class="card-body text-center">
+                                <i class="bi bi-mortarboard fs-1 mb-3" style="color: var(--iti-red);"></i>
+                                <h4>Instructors</h4>
+                                <p>View all instructors across branches</p>
+                                <a asp-controller="AdminInstructor" asp-action="Index" class="btn btn-sm btn-outline-primary mt-2">Access</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card h-100 shadow-sm border-0">
+                            <div class="card-body text-center">
+                                <i class="bi bi-speedometer2 fs-1 mb-3" style="color: var(--iti-red);"></i>
+                                <h4>Dashboard</h4>
+                                <p>System-wide analytics and charts</p>
+                                <a asp-controller="Admin" asp-action="Index" class="btn btn-sm btn-outline-primary mt-2">Access</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            else if (User.IsInRole("admin"))
+            {
+                <div class="row g-4">
+                    <div class="col-md-3">
+                        <div class="card h-100 shadow-sm border-0">
+                            <div class="card-body text-center">
+                                <i class="bi bi-diagram-3 fs-1 mb-3" style="color: var(--iti-red);"></i>
+                                <h4>Tracks</h4>
+                                <p>Manage tracks in your branch</p>
+                                <a asp-controller="BranchManagerTrack" asp-action="Index" class="btn btn-sm btn-outline-primary mt-2">Access</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card h-100 shadow-sm border-0">
+                            <div class="card-body text-center">
+                                <i class="bi bi-person-badge-fill fs-1 mb-3" style="color: var(--iti-red);"></i>
+                                <h4>Supervisors</h4>
+                                <p>Manage track supervisors</p>
+                                <a asp-controller="BranchManagerSupervisor" asp-action="Index" class="btn btn-sm btn-outline-primary mt-2">Access</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card h-100 shadow-sm border-0">
+                            <div class="card-body text-center">
+                                <i class="bi bi-book fs-1 mb-3" style="color: var(--iti-red);"></i>
+                                <h4>Courses</h4>
+                                <p>Manage courses in your branch</p>
+                                <a asp-controller="BranchManagerCourse" asp-action="Index" class="btn btn-sm btn-outline-primary mt-2">Access</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card h-100 shadow-sm border-0">
+                            <div class="card-body text-center">
+                                <i class="bi bi-file-earmark-text fs-1 mb-3" style="color: var(--iti-red);"></i>
+                                <h4>Exams</h4>
+                                <p>Manage exams in your branch</p>
+                                <a asp-controller="BranchManagerExam" asp-action="Index" class="btn btn-sm btn-outline-primary mt-2">Access</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            else if (User.IsInRole("supervisor"))
+            {
+                <div class="row g-4">
+                    <div class="col-md-3">
+                        <div class="card h-100 shadow-sm border-0">
+                            <div class="card-body text-center">
+                                <i class="bi bi-mortarboard fs-1 mb-3" style="color: var(--iti-red);"></i>
+                                <h4>Instructors</h4>
+                                <p>Manage instructors in your track</p>
+                                <a href="#" class="btn btn-sm btn-outline-primary mt-2">Access</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card h-100 shadow-sm border-0">
+                            <div class="card-body text-center">
+                                <i class="bi bi-people fs-1 mb-3" style="color: var(--iti-red);"></i>
+                                <h4>Students</h4>
+                                <p>Manage students in your track</p>
+                                <a href="#" class="btn btn-sm btn-outline-primary mt-2">Access</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card h-100 shadow-sm border-0">
+                            <div class="card-body text-center">
+                                <i class="bi bi-book fs-1 mb-3" style="color: var(--iti-red);"></i>
+                                <h4>Courses</h4>
+                                <p>Manage courses in your track</p>
+                                <a href="#" class="btn btn-sm btn-outline-primary mt-2">Access</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card h-100 shadow-sm border-0">
+                            <div class="card-body text-center">
+                                <i class="bi bi-clipboard-data fs-1 mb-3" style="color: var(--iti-red);"></i>
+                                <h4>Reports</h4>
+                                <p>View track performance reports</p>
+                                <a href="#" class="btn btn-sm btn-outline-primary mt-2">Access</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            else if (User.IsInRole("instructor"))
+            {
+                <div class="row g-4">
+                    <div class="col-md-3">
+                        <div class="card h-100 shadow-sm border-0">
+                            <div class="card-body text-center">
+                                <i class="bi bi-book fs-1 mb-3" style="color: var(--iti-red);"></i>
+                                <h4>My Courses</h4>
+                                <p>View and manage your courses</p>
+                                <a asp-controller="Instructor" asp-action="courselist" class="btn btn-sm btn-outline-primary mt-2">Access</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card h-100 shadow-sm border-0">
+                            <div class="card-body text-center">
+                                <i class="bi bi-file-earmark-text fs-1 mb-3" style="color: var(--iti-red);"></i>
+                                <h4>Exams</h4>
+                                <p>Create and manage exams</p>
+                                <a asp-controller="Instructor" asp-action="ExamPage" class="btn btn-sm btn-outline-primary mt-2">Access</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card h-100 shadow-sm border-0">
+                            <div class="card-body text-center">
+                                <i class="bi bi-question-circle fs-1 mb-3" style="color: var(--iti-red);"></i>
+                                <h4>Questions</h4>
+                                <p>Manage your question bank</p>
+                                <a href="#" class="btn btn-sm btn-outline-primary mt-2">Access</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card h-100 shadow-sm border-0">
+                            <div class="card-body text-center">
+                                <i class="bi bi-people fs-1 mb-3" style="color: var(--iti-red);"></i>
+                                <h4>Students</h4>
+                                <p>View your students and their results</p>
+                                <a asp-controller="Instructor" asp-action="Index" class="btn btn-sm btn-outline-primary mt-2">Access</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            else if (User.IsInRole("student"))
+            {
+                <div class="row g-4">
+                    <div class="col-md-3">
+                        <div class="card h-100 shadow-sm border-0">
+                            <div class="card-body text-center">
+                                <i class="bi bi-journal-bookmark fs-1 mb-3" style="color: var(--iti-red);"></i>
+                                <h4>My Courses</h4>
+                                <p>View your enrolled courses</p>
+                                <a href="#" class="btn btn-sm btn-outline-primary mt-2">Access</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card h-100 shadow-sm border-0">
+                            <div class="card-body text-center">
+                                <i class="bi bi-clipboard-check fs-1 mb-3" style="color: var(--iti-red);"></i>
+                                <h4>My Exams</h4>
+                                <p>View upcoming and completed exams</p>
+                                <a href="#" class="btn btn-sm btn-outline-primary mt-2">Access</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card h-100 shadow-sm border-0">
+                            <div class="card-body text-center">
+                                <i class="bi bi-award fs-1 mb-3" style="color: var(--iti-red);"></i>
+                                <h4>Grades</h4>
+                                <p>View your exam results and grades</p>
+                                <a href="#" class="btn btn-sm btn-outline-primary mt-2">Access</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card h-100 shadow-sm border-0">
+                            <div class="card-body text-center">
+                                <i class="bi bi-person-circle fs-1 mb-3" style="color: var(--iti-red);"></i>
+                                <h4>My Profile</h4>
+                                <p>View and update your profile</p>
+                                <a href="#" class="btn btn-sm btn-outline-primary mt-2">Access</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
 </div>
+
+<style>
+    .feature-icon {
+        width: 50px;
+        height: 50px;
+    }
+
+    .bg-primary {
+        background-color: var(--iti-red) !important;
+    }
+
+    .text-primary {
+        color: var(--iti-red) !important;
+    }
+
+    .btn-outline-primary {
+        border-color: var(--iti-red);
+        color: var(--iti-red);
+    }
+
+        .btn-outline-primary:hover {
+            background-color: var(--iti-red);
+            color: white;
+            border-color: var(--iti-red);
+        }
+</style>
