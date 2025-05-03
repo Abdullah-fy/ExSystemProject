@@ -3,10 +3,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ExSystemProject.Repository
 {
-    public class StudentCourseRepo:GenaricRepo<StudentCourse>
+    public class StudentCourseRepo : GenaricRepo<StudentCourse>
     {
         ExSystemTestContext _context;
-        public StudentCourseRepo(ExSystemTestContext context):base(context)
+        public StudentCourseRepo(ExSystemTestContext context) : base(context)
         {
             _context = context;
         }
@@ -15,7 +15,7 @@ namespace ExSystemProject.Repository
         {
             return _context.StudentCourses.Where(a => a.CrsId == crsId).ToList();
         }
-        // Add to StudentCourseRepo class
+
         public bool IsStudentEnrolled(int studentId, int courseId)
         {
             return _context.StudentCourses.Any(sc =>
@@ -28,21 +28,15 @@ namespace ExSystemProject.Repository
         {
             try
             {
-                // Create a new enrollment (StudentCourse)
                 var enrollment = new StudentCourse
                 {
                     StudentId = studentId,
                     CrsId = courseId,
-                    // Convert DateTime.Now to DateOnly
                     EnrolledAt = DateOnly.FromDateTime(DateTime.Now),
                     Isactive = true
-                    // Grade and ispassed will be null by default
                 };
 
-                // Add to context
                 _context.StudentCourses.Add(enrollment);
-
-                // Save changes immediately
                 _context.SaveChanges();
 
                 Console.WriteLine($"Enrolled student {studentId} in course {courseId}");
@@ -50,12 +44,9 @@ namespace ExSystemProject.Repository
             catch (Exception ex)
             {
                 Console.WriteLine($"Error enrolling student: {ex.Message}");
-                throw; // Re-throw to be handled by the controller
+                throw;
             }
         }
-
-
-
 
         public void UnenrollStudent(int studentId, int courseId)
         {
@@ -68,6 +59,7 @@ namespace ExSystemProject.Repository
                 _context.SaveChanges();
             }
         }
+
         public List<StudentCourse> GetAllStudentCoursesByBranch(int branchId)
         {
             return _context.StudentCourses
@@ -77,8 +69,26 @@ namespace ExSystemProject.Repository
                 .ToList();
         }
 
+        public List<StudentCourse> GetStudentCoursesByStudentId(int studentId)
+        {
+            return _context.StudentCourses
+                .Include(sc => sc.Crs)
+                .Where(sc => sc.StudentId == studentId && sc.Isactive == true)
+                .ToList();
+        }
 
+        public List<StudentExam> GetStudentExamsByStudentId(int studentId)
+        {
+            return _context.StudentExams
+                .Include(se => se.Exam)
+                .Include(se => se.Student)
+                .Where(se => se.StudentId == studentId && se.Isactive == true)
+                .ToList();
+        }
 
-
+        internal dynamic GetByStudentId(int id)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

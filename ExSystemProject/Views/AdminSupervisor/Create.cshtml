@@ -1,0 +1,165 @@
+﻿@model ExSystemProject.DTOS.SupervisorDTO
+@{
+    ViewData["Title"] = "Create New Supervisor";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid px-4">
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-person-plus-fill me-2"></i>Create New Supervisor</h5>
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i> Back to List
+            </a>
+        </div>
+
+        <div class="card-body">
+            <form asp-action="Create" method="post">
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="Username" class="form-label">Username</label>
+                            <input asp-for="Username" class="form-control" />
+                            <span asp-validation-for="Username" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="Email" class="form-label">Email</label>
+                            <input asp-for="Email" class="form-control" />
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="Password" class="form-label">Password</label>
+                            <input asp-for="Password" class="form-control" type="password" />
+                            <span asp-validation-for="Password" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="ConfirmPassword" class="form-label">Confirm Password</label>
+                            <input asp-for="ConfirmPassword" class="form-control" type="password" />
+                            <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="Gender" class="form-label">Gender</label>
+                            <select asp-for="Gender" class="form-select">
+                                <option value="">-- Select Gender --</option>
+                                <option value="M">Male</option>
+                                <option value="F">Female</option>
+                            </select>
+                            <span asp-validation-for="Gender" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="BranchId" class="form-label">Branch</label>
+                            <select asp-for="BranchId" class="form-select" asp-items="ViewBag.Branches" id="branchSelect">
+                                <option value="">-- Select Branch --</option>
+                            </select>
+                            <span asp-validation-for="BranchId" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="TrackId" class="form-label">Track</label>
+                            <select asp-for="TrackId" class="form-select" id="trackSelect">
+                                <option value="0">-- All Tracks --</option>
+								@if (ViewBag.Tracks != null)
+								{
+									foreach (var track in ViewBag.Tracks)
+									{
+										<option value="@track.Id">@track.Name</option>
+									}
+								}
+                            </select>
+                            <span asp-validation-for="TrackId" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="IsActive" class="form-label">Status</label>
+                            <div class="form-check form-switch mt-2">
+                                <input asp-for="IsActive" class="form-check-input" type="checkbox" checked />
+                                <label class="form-check-label" for="IsActive">
+                                    <span id="statusBadge" class="badge bg-success">Active</span>
+                                </label>
+                            </div>
+                            <span asp-validation-for="IsActive" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 text-end">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save me-1"></i> Create Supervisor
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        $(document).ready(function() {
+            // Update status badge when checkbox changes
+            $('#IsActive').change(function() {
+                var statusBadge = $('#statusBadge');
+                if ($(this).is(':checked')) {
+                    statusBadge.removeClass('bg-danger').addClass('bg-success').text('Active');
+                } else {
+                    statusBadge.removeClass('bg-success').addClass('bg-danger').text('Inactive');
+                }
+            });
+
+            // Load tracks when branch is changed
+            $('#branchSelect').change(function() {
+                var branchId = $(this).val();
+                var trackSelect = $('#trackSelect');
+
+                // Clear previous 
+                trackSelect.empty();
+                trackSelect.append('<option value="">-- All Tracks --</option>');
+
+                if (branchId) {
+                    $.ajax({
+                        url: '@Url.Action("GetTracksByBranch")',
+                        type: 'GET',
+                        data: { branchId: branchId },
+                        success: function(data) {
+                            $.each(data, function(i, track) {
+                                trackSelect.append($('<option>', {
+                                    value: track.id,
+                                    text: track.name
+                                }));
+                            });
+                        },
+                        error: function() {
+                            console.error('Failed to load tracks');
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+}
