@@ -29,27 +29,32 @@
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             }
-
-            <div class="row mb-4">
-                <div class="col-12">
-                    <form asp-action="Index" method="get" class="row g-3">
-                        <div class="col-md-4">
-                            <label class="form-label">Status</label>
-                            <select name="active" class="form-select" id="statusFilter" onchange="this.form.submit()">
-                                @foreach (var option in new[] {
-                                new { Value = "", Text = "All Supervisors", Selected = ViewContext.HttpContext.Request.Query["active"].ToString() == "" },
-                                new { Value = "true", Text = "Active Only", Selected = ViewContext.HttpContext.Request.Query["active"].ToString() == "True" },
-                                new { Value = "false", Text = "Inactive Only", Selected = ViewContext.HttpContext.Request.Query["active"].ToString() == "False" }
-                                })
-                                {
-                                    <option value="@option.Value" selected="@option.Selected">@option.Text</option>
-                                }
-
-                            </select>
-                        </div>
-                    </form>
-                </div>
+<div class="row mb-4">
+    <div class="col-12">
+        <form asp-action="Index" method="get" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Status</label>
+                <select name="active" class="form-select" id="statusFilter">
+                    @foreach (var option in new[] {
+                    new { Value = "", Text = "All Supervisors", Selected = string.IsNullOrEmpty(ViewContext.HttpContext.Request.Query["active"].ToString()) },
+                    new { Value = "true", Text = "Active Only", Selected = ViewContext.HttpContext.Request.Query["active"].ToString().ToLower() == "true" },
+                    new { Value = "false", Text = "Inactive Only", Selected = ViewContext.HttpContext.Request.Query["active"].ToString().ToLower() == "false" }
+                    })
+                    {
+                        <option value="@option.Value" selected="@option.Selected">@option.Text</option>
+                    }
+                </select>
             </div>
+            @* <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-filter me-1"></i> Filter
+                </button>
+            </div> *@
+        </form>
+    </div>
+</div>
+           
+
 
             @if (!Model.Any())
             {

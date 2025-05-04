@@ -72,7 +72,7 @@
                                 </div>
 
                                 <div class="mb-3">
-                                    <label asp-for="TrackId" class="form-label">Track (Optional)</label>
+                                    <label asp-for="TrackId" class="form-label">Track</label>
                                     <select asp-for="TrackId" class="form-select" id="trackSelect">
                                         <option value="">-- All Tracks --</option>
                                         @if (ViewBag.Tracks != null)
@@ -84,7 +84,6 @@
                                         }
                                     </select>
                                     <span asp-validation-for="TrackId" class="text-danger"></span>
-                                    <small class="text-muted">Leave empty to assign supervisor to all tracks in the branch</small>
                                 </div>
 
                                 <div class="mb-3">

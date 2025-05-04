@@ -134,19 +134,23 @@
 
             // Load tracks when branch is changed
             $('#branchSelect').change(function() {
+                console.log("Branch changed");
                 var branchId = $(this).val();
                 var trackSelect = $('#trackSelect');
 
-                // Clear previous 
+                // Clear previous options
                 trackSelect.empty();
                 trackSelect.append('<option value="">-- All Tracks --</option>');
 
                 if (branchId) {
+                    console.log("Loading tracks for branch ID: " + branchId);
                     $.ajax({
                         url: '@Url.Action("GetTracksByBranch")',
                         type: 'GET',
                         data: { branchId: branchId },
+                        dataType: 'json',
                         success: function(data) {
+                            console.log("Received tracks:", data);
                             $.each(data, function(i, track) {
                                 trackSelect.append($('<option>', {
                                     value: track.id,
@@ -154,12 +158,42 @@
                                 }));
                             });
                         },
-                        error: function() {
-                            console.error('Failed to load tracks');
+                        error: function(xhr, status, error) {
+                            console.error('Failed to load tracks:', error);
+                            console.error('Status:', status);
+                            console.error('Response:', xhr.responseText);
                         }
                     });
                 }
             });
+
+            // Form validation and submit handler
+            $('#createSupervisorForm').on('submit', function(e) {
+                console.log("Form submit triggered");
+
+                // Basic client-side validation
+                var username = $('#Username').val();
+                var email = $('#Email').val();
+                var gender = $('#Gender').val();
+                var branchId = $('#branchSelect').val();
+                var password = $('#Password').val();
+                var confirmPassword = $('#ConfirmPassword').val();
+
+                if (!username || !email || !gender || !branchId || !password || !confirmPassword) {
+                    console.error("Form validation failed - missing required fields");
+                    return true; // Let server-side validation handle this
+                }
+
+                if (password !== confirmPassword) {
+                    e.preventDefault();
+                    alert("Passwords do not match!");
+                    return false;
+                }
+
+                console.log("Form validation passed, submitting...");
+                return true;
+            });
         });
     </script>
+
 }
