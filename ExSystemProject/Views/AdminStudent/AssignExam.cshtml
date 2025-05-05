@@ -46,5 +46,26 @@
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
+
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script>
+            $(document).ready(function () {
+            @if (TempData["SwalMessage"] != null)
+            {
+                <text>
+                            var tempDiv = document.createElement('div');
+                            tempDiv.innerHTML = "@TempData["SwalMessage"]";
+                            var decodedMessage = tempDiv.textContent;
+
+                            Swal.fire({
+                                title: "@(TempData["SwalType"]?.ToString() == "warning" ? "Warning" : "Success")!",
+                                text: decodedMessage,
+                                icon: "@TempData["SwalType"]",
+                                confirmButtonColor: "#a41e22"
+                            });
+                </text>
+            }
+            });
+        </script>
     }
 }

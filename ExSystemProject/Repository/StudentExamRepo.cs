@@ -298,5 +298,15 @@ namespace ExSystemProject.Repository
         {
             throw new NotImplementedException();
         }
+
+
+        public bool ExamAssigned(int studentId, int examId)
+        {
+            return _context.StudentExams
+                .Any(se => se.StudentId == studentId && se.ExamId == examId);
+        }
+
+
     }
 }
+
