@@ -44,17 +44,17 @@ namespace ExSystemProject.Controllers
                 ModelState.AddModelError("", "Invalid User Name Or Password");
                 return View(loginVM);
             }
-            if (!BCrypt.Net.BCrypt.Verify(loginVM.password, user.Upassword))
-            {
-                ModelState.AddModelError("", "Invalid username or password");
-                return View(loginVM);
-            }
-
-            //if(loginVM.password != user.Upassword)
+            //if (!BCrypt.Net.BCrypt.Verify(loginVM.password, user.Upassword))
             //{
-            //    ModelState.AddModelError("", "Invalid User Name Or Password");
+            //    ModelState.AddModelError("", "Invalid username or password");
             //    return View(loginVM);
             //}
+
+            if (loginVM.password != user.Upassword)
+            {
+                ModelState.AddModelError("", "Invalid User Name Or Password");
+                return View(loginVM);
+            }
             var userAssignment = _unit.userAssignmentRepo.getById(user.UserId);
             //var instructor = _unit.instructorRepo.getById(user.UserId);
             //var student = _unit.studentRepo.getById(user.UserId);
