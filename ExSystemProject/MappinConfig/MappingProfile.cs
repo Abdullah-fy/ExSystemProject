@@ -130,7 +130,7 @@ namespace ExSystemProject.MappinConfig
 
             // Track mappings
             CreateMap<Track, TrackDTO>()
-                .ForMember(dest => dest.BranchName,
+                .ForMember(dest => dest.branch_name,
                     opt => opt.MapFrom(src => src.Branch != null ? src.Branch.BranchName : null));
 
             CreateMap<TrackDTO, Track>();

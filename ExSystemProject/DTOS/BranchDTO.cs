@@ -2,9 +2,9 @@
 {
     public class BranchDTO
     {
-        public int BranchId { get; set; }
-        public string BranchName { get; set; }
-        public string Location { get; set; }
-        public bool? Isactive { get; set; }
+        public int branch_id { get; set; }
+        public string branch_name { get; set; }
+        public string location { get; set; }
+        public bool? isactive { get; set; }
     }
 }

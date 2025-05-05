@@ -14,19 +14,39 @@ namespace ExSystemProject.Controllers
     {
         public TrackController(UnitOfWork unitOfWork) : base(unitOfWork) { }
 
-        public IActionResult Index(int page = 1)
+        public IActionResult Index(string searchString, bool activeOnly = false, int page = 1)
         {
-            // Get current user ID using the base controller method
             var userId = GetCurrentUserId();
+            var query = _unitOfWork.trackRepo.GetAllWithBranch().AsQueryable();
 
-            var tracks = _unitOfWork.trackRepo.GetAllWithBranch();
+            // Apply search filter if provided
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                query = query.Where(t =>
+                    t.track_name.Contains(searchString, StringComparison.OrdinalIgnoreCase) ||
+                    t.branch_name.Contains(searchString, StringComparison.OrdinalIgnoreCase));
+            }
+
+            // Apply active filter if checked
+            if (activeOnly)
+            {
+                query = query.Where(t => t.is_active == true);
+            }
+
+            // Pagination
             int pageSize = 6;
+            var totalItems = query.Count();
+            var tracks = query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
 
-            var Branches = tracks.Skip((page - 1) * pageSize).Take(pageSize).ToList();
             ViewBag.CurrentPage = page;
-            ViewBag.TotalPages = (int)Math.Ceiling(tracks.Count() / (double)pageSize);
+            ViewBag.TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+            ViewBag.CurrentFilter = searchString;
+            ViewBag.ActiveOnly = activeOnly;
 
-            return View(Branches);
+            return View(tracks);
         }
 
         [HttpGet]
@@ -115,6 +135,14 @@ namespace ExSystemProject.Controllers
             return View(track);
         }
 
+        // expand 
+        [HttpGet]
+        public IActionResult Details(int id)
+        {
+            ViewBag.StudentCount = _unitOfWork.trackRepo.GetStudentsByTrackId(id).Count();
+            var track = _unitOfWork.trackRepo.GetTrackById(id); 
+            return View(track); 
+        }
 
     }
 }

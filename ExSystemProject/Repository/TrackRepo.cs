@@ -33,13 +33,13 @@ namespace ExSystemProject.Repository
             {
                 trackDTO.Add(new TrackDTO()
                 {
-                    TrackId = track.TrackId,
-                    TrackName = track.TrackName,
-                    TrackDuration = track.TrackDuration,
-                    TrackIntake = track.TrackIntake,
-                    IsActive = track.IsActive,
-                    BranchId = track.BranchId,
-                    BranchName = track.Branch.BranchName
+                    track_id = track.TrackId,
+                    track_name = track.TrackName,
+                    track_duration = track.TrackDuration,
+                    track_intake = track.TrackIntake,
+                   is_active = track.IsActive,
+                    branch_id = track.BranchId,
+                    branch_name = track.Branch.BranchName
                 });
             }
 
@@ -89,6 +89,100 @@ namespace ExSystemProject.Repository
             return context.Tracks
                 .Where(t => t.BranchId == branchId && t.IsActive == true)
                 .Count();
+        }
+        //-------- expand 
+        public TrackDTO GetTrackById(int trackId)
+        {
+            var track = new TrackDTO();
+
+            try
+            {
+                using var command = context.Database.GetDbConnection().CreateCommand();
+                command.CommandText = "sp_GetTrackById";
+                command.CommandType = CommandType.StoredProcedure;
+
+                var param = command.CreateParameter();
+                param.ParameterName = "@track_id";
+                param.Value = trackId;
+                param.DbType = DbType.Int32;
+                command.Parameters.Add(param);
+
+                context.Database.OpenConnection();
+
+                using var reader = command.ExecuteReader();
+                if (reader.Read())
+                {
+                    track = new TrackDTO
+                    {
+                        track_id = reader["track_id"] != DBNull.Value ? Convert.ToInt32(reader["track_id"]) : null,
+                        track_name = reader["track_name"]?.ToString(),
+                        track_duration = reader["track_duration"] != DBNull.Value ? Convert.ToInt32(reader["track_duration"]) : null,
+                        track_intake = reader["track_intake"] != DBNull.Value ? Convert.ToInt32(reader["track_intake"]) : null,
+                        is_active = reader["is_active"] != DBNull.Value ? Convert.ToBoolean(reader["is_active"]) : null,
+                        branch_id = reader["branch_id"] != DBNull.Value ? Convert.ToInt32(reader["branch_id"]) : null,
+                        branch_name = reader["branch_name"]?.ToString()
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log error
+                Console.WriteLine($"Error in GetTrackById: {ex.Message}");
+                throw; // Re-throw for controller handling
+            }
+            finally
+            {
+                context.Database.CloseConnection();
+            }
+
+            return track;
+        }
+
+        // expand 
+
+
+        public IEnumerable<StudentByTrackDTO> GetStudentsByTrackId(int track_id)
+        {
+            var students = new List<StudentByTrackDTO>();
+
+            try
+            {
+                using var command = context.Database.GetDbConnection().CreateCommand();
+                command.CommandText = "sp_GetStudentsByTrackId";
+                command.CommandType = CommandType.StoredProcedure;
+
+                var param = command.CreateParameter();
+                param.ParameterName = "@track_id";
+                param.Value = track_id;
+                param.DbType = DbType.String;
+                command.Parameters.Add(param);
+
+                context.Database.OpenConnection();
+
+                using var reader = command.ExecuteReader();
+                while (reader.Read())
+                {
+                    students.Add(new StudentByTrackDTO
+                    {
+                        Studentid = Convert.ToInt32(reader["Studentid"]),
+                        track_id = reader["track_id"].ToString(),
+                        userid = reader["userid"].ToString(),
+                        EnrollmentDate = Convert.ToDateTime(reader["EnrollmentDate"]),
+                        isActive = Convert.ToBoolean(reader["isActive"])
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in GetStudentsByTrackId: {ex.Message}");
+                throw;
+            }
+            finally
+            {
+                context.Database.CloseConnection();
+            }
+
+            return students;
         }
     }
 }

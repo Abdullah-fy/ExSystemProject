@@ -1,0 +1,99 @@
+﻿@model ExSystemProject.DTOS.TrackDTO
+@{
+    ViewData["Title"] = "Track Details";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3>
+                Track Details
+                <small class="text-muted">@Model.track_name</small>
+            </h3>
+        </div>
+        <div>
+            <a class="btn btn-outline-primary" asp-action="Index">
+                <i class="bi bi-arrow-left"></i> Back to List
+            </a>
+        </div>
+    </div>
+
+    <div class="card shadow">
+        <div class="card-header bg-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Track Information</h5>
+                <span class="badge bg-primary">
+                    <i class="bi bi-people-fill"></i> Students: @ViewBag.StudentCount
+                </span>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <dl class="row">
+                        <dt class="col-sm-4">Track ID</dt>
+                        <dd class="col-sm-8">@Model.track_id</dd>
+
+                        <dt class="col-sm-4">Track Name</dt>
+                        <dd class="col-sm-8">@Model.track_name</dd>
+
+                        <dt class="col-sm-4">Duration</dt>
+                        <dd class="col-sm-8">@Model.track_duration months</dd>
+
+                        <dt class="col-sm-4">Intake Capacity</dt>
+                        <dd class="col-sm-8">@ViewBag.StudentCount</dd>
+                    </dl>
+                </div>
+                <div class="col-md-6">
+                    <dl class="row">
+                        <dt class="col-sm-4">Status</dt>
+                        <dd class="col-sm-8">
+                            @if (Model.is_active == true)
+                            {
+                                <span class="badge bg-success">
+                                    <i class="bi bi-check-circle"></i> Active
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">
+                                    <i class="bi bi-x-circle"></i> Inactive
+                                </span>
+                            }
+                        </dd>
+
+                        <dt class="col-sm-4">Branch</dt>
+                        <dd class="col-sm-8">
+                            <span class="badge bg-secondary">
+                                <i class="bi bi-building"></i> @Model.branch_name
+                            </span>
+                        </dd>
+
+                        <dt class="col-sm-4">Branch ID</dt>
+                        <dd class="col-sm-8">@Model.branch_id</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow mt-4">
+        <div class="card-header bg-white">
+            <h5 class="mb-0">Actions</h5>
+        </div>
+        <div class="card-body">
+            <div class="btn-group" role="group">
+                <a class="btn btn-outline-secondary" asp-action="Students" asp-route-track_id="@Model.track_id">
+                    <i class="bi bi-people-fill"></i> View Students
+                </a>
+                <a class="btn btn-info" asp-action="Edit" asp-route-id="@Model.track_id">
+                    <i class="bi bi-pencil"></i> Edit Track
+                </a>
+                <a class="btn btn-danger" asp-action="Delete" asp-route-id="@Model.track_id">
+                    <i class="bi bi-trash"></i> Delete Track
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

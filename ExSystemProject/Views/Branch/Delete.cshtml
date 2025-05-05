@@ -1,4 +1,4 @@
-﻿@model ExSystemProject.Models.Branch
+﻿@model ExSystemProject.DTOS.BranchDTO;
 @{
     ViewData["Title"] = "Delete Branch";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
@@ -29,16 +29,16 @@
                                 </tr>
                                 <tr>
                                     <th>Branch Name</th>
-                                    <td>@(Model?.BranchName ?? "Not available")</td>
+                                    <td>@(Model?.branch_name ?? "Not available")</td>
                                 </tr>
                                 <tr>
                                     <th>Location</th>
-                                    <td>@(Model?.Location ?? "Not available")</td>
+                                    <td>@(Model?.location ?? "Not available")</td>
                                 </tr>
                                 <tr>
                                     <th>Status</th>
                                     <td>
-                                        @if (Model?.Isactive == true)
+                                        @if (Model?.isactive == true)
                                         {
                                             <span class="badge bg-success">Active</span>
                                         }
@@ -48,10 +48,10 @@
                                         }
                                     </td>
                                 </tr>
-                                <tr>
-                                    <th>Number of Tracks</th>
-                                    <td>@(Model?.Tracks?.Count ?? 0)</td>
-                                </tr>
+                                 <tr> 
+                                     <th>Number of Tracks</th>
+                                    <td>@(ViewBag.tracks?.Count ?? 0)</td>
+                                </tr> 
                             </table>
                         </div>
                     </div>
