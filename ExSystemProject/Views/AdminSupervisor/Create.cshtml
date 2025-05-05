@@ -4,113 +4,158 @@
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<div class="container-fluid px-4">
-    <div class="card mb-4">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <h5 class="mb-0"><i class="bi bi-person-plus-fill me-2"></i>Create New Supervisor</h5>
-            <a asp-action="Index" class="btn btn-outline-secondary">
-                <i class="bi bi-arrow-left me-1"></i> Back to List
-            </a>
-        </div>
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <!-- Title with Underline -->
+            <div class="d-flex align-items-center pb-2 mb-4 border-bottom border-3 border-primary">
+                <h2 class="mb-0"><i class="bi bi-person-plus-fill me-2 text-primary"></i> Create New Supervisor</h2>
+            </div>
 
-        <div class="card-body">
-            <form asp-action="Create" method="post">
-                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
-
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label asp-for="Username" class="form-label">Username</label>
-                            <input asp-for="Username" class="form-control" />
-                            <span asp-validation-for="Username" class="text-danger"></span>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label asp-for="Email" class="form-label">Email</label>
-                            <input asp-for="Email" class="form-control" />
-                            <span asp-validation-for="Email" class="text-danger"></span>
-                        </div>
-                    </div>
+            <!-- Form Card with Shadow -->
+            <div class="card ">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 text-primary">Supervisor Information</h5>
                 </div>
+                <div class="card-body p-4">
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="alert alert-danger mb-3">
+                            <h6 class="alert-heading">Please fix the following errors:</h6>
+                            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                        </div>
+                    }
 
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label asp-for="Password" class="form-label">Password</label>
-                            <input asp-for="Password" class="form-control" type="password" />
-                            <span asp-validation-for="Password" class="text-danger"></span>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label asp-for="ConfirmPassword" class="form-label">Confirm Password</label>
-                            <input asp-for="ConfirmPassword" class="form-control" type="password" />
-                            <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
-                        </div>
-                    </div>
-                </div>
+                    <form asp-action="Create" method="post" id="createSupervisorForm">
+                        @Html.AntiForgeryToken()
 
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label asp-for="Gender" class="form-label">Gender</label>
-                            <select asp-for="Gender" class="form-select">
-                                <option value="">-- Select Gender --</option>
-                                <option value="M">Male</option>
-                                <option value="F">Female</option>
-                            </select>
-                            <span asp-validation-for="Gender" class="text-danger"></span>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label asp-for="BranchId" class="form-label">Branch</label>
-                            <select asp-for="BranchId" class="form-select" asp-items="ViewBag.Branches" id="branchSelect">
-                                <option value="">-- Select Branch --</option>
-                            </select>
-                            <span asp-validation-for="BranchId" class="text-danger"></span>
-                        </div>
-                    </div>
-                </div>
+                        <!-- Add hidden fields for BranchName and TrackName to prevent validation errors -->
+                        <input type="hidden" asp-for="BranchName" id="BranchName" value="" />
+                        <input type="hidden" asp-for="TrackName" id="TrackName" value="" />
 
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label asp-for="TrackId" class="form-label">Track</label>
-                            <select asp-for="TrackId" class="form-select" id="trackSelect">
-                                <option value="0">-- All Tracks --</option>
-								@if (ViewBag.Tracks != null)
-								{
-									foreach (var track in ViewBag.Tracks)
-									{
-										<option value="@track.Id">@track.Name</option>
-									}
-								}
-                            </select>
-                            <span asp-validation-for="TrackId" class="text-danger"></span>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label asp-for="IsActive" class="form-label">Status</label>
-                            <div class="form-check form-switch mt-2">
-                                <input asp-for="IsActive" class="form-check-input" type="checkbox" checked />
-                                <label class="form-check-label" for="IsActive">
-                                    <span id="statusBadge" class="badge bg-success">Active</span>
-                                </label>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="Username" class="form-label">Username <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                        <input asp-for="Username" class="form-control" placeholder="Enter Username" required />
+                                    </div>
+                                    <span asp-validation-for="Username" class="text-danger"></span>
+                                </div>
                             </div>
-                            <span asp-validation-for="IsActive" class="text-danger"></span>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="Email" class="form-label">Email <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                                        <input asp-for="Email" class="form-control" type="email" placeholder="Enter Email" required />
+                                    </div>
+                                    <span asp-validation-for="Email" class="text-danger"></span>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
 
-                <div class="mt-4 text-end">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-save me-1"></i> Create Supervisor
-                    </button>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="Password" class="form-label">Password <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                                        <input asp-for="Password" class="form-control" type="password" placeholder="Enter password" required minlength="6" />
+                                        <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                    </div>
+                                    <span asp-validation-for="Password" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="ConfirmPassword" class="form-label">Confirm Password <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                                        <input asp-for="ConfirmPassword" class="form-control" type="password" placeholder="Confirm password" required minlength="6" />
+                                    </div>
+                                    <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="Gender" class="form-label">Gender <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-gender-ambiguous"></i></span>
+                                        <select asp-for="Gender" class="form-select" required>
+                                            <option value="">-- Select Gender --</option>
+                                            <option value="M">Male</option>
+                                            <option value="F">Female</option>
+                                        </select>
+                                    </div>
+                                    <span asp-validation-for="Gender" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="BranchId" class="form-label">Branch <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-building"></i></span>
+                                        <select asp-for="BranchId" class="form-select" asp-items="ViewBag.Branches" id="branchSelect" required>
+                                            <option value="">-- Select Branch --</option>
+                                        </select>
+                                    </div>
+                                    <span asp-validation-for="BranchId" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="TrackId" class="form-label">Track</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-signpost-split"></i></span>
+                                        <select asp-for="TrackId" class="form-select" id="trackSelect">
+                                            <option value="0">-- All Tracks --</option>
+                                            @if (ViewBag.Tracks != null)
+                                            {
+                                                foreach (var track in ViewBag.Tracks)
+                                                {
+                                                    <option value="@track.Id">@track.Name</option>
+                                                }
+                                            }
+                                        </select>
+                                    </div>
+                                    <span asp-validation-for="TrackId" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="IsActive" class="form-label">Status</label>
+                                    <div class="form-check form-switch mt-2">
+                                        <input asp-for="IsActive" class="form-check-input" type="checkbox" checked />
+                                        <label class="form-check-label" for="IsActive">
+                                            <span id="statusBadge" class="badge bg-success">Active</span>
+                                        </label>
+                                    </div>
+                                    <span asp-validation-for="IsActive" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-between mt-4">
+                            <a asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i> Back to List
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save"></i> Create Supervisor
+                            </button>
+                        </div>
+                    </form>
                 </div>
-            </form>
+            </div>
         </div>
     </div>
 </div>
@@ -119,9 +164,25 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         $(document).ready(function() {
+            console.log("Document ready");
+
+            // Password toggle visibility
+            $('#togglePassword').click(function() {
+                var passwordField = $('#Password');
+                var passwordType = passwordField.attr('type');
+
+                if (passwordType === 'password') {
+                    passwordField.attr('type', 'text');
+                    $(this).find('i').removeClass('bi-eye').addClass('bi-eye-slash');
+                } else {
+                    passwordField.attr('type', 'password');
+                    $(this).find('i').removeClass('bi-eye-slash').addClass('bi-eye');
+                }
+            });
+
             // Update status badge when checkbox changes
             $('#IsActive').change(function() {
                 var statusBadge = $('#statusBadge');
@@ -132,15 +193,23 @@
                 }
             });
 
+            // Trigger status badge update on page load
+            $('#IsActive').trigger('change');
+
             // Load tracks when branch is changed
             $('#branchSelect').change(function() {
                 console.log("Branch changed");
                 var branchId = $(this).val();
+                var branchText = $(this).find("option:selected").text();
+
+                // Set the branch name in the hidden field
+                $('#BranchName').val(branchText);
+
                 var trackSelect = $('#trackSelect');
 
                 // Clear previous options
                 trackSelect.empty();
-                trackSelect.append('<option value="">-- All Tracks --</option>');
+                trackSelect.append('<option value="0">-- All Tracks --</option>');
 
                 if (branchId) {
                     console.log("Loading tracks for branch ID: " + branchId);
@@ -157,6 +226,9 @@
                                     text: track.name
                                 }));
                             });
+
+                            // After loading tracks, update trackName hidden field
+                            updateTrackName();
                         },
                         error: function(xhr, status, error) {
                             console.error('Failed to load tracks:', error);
@@ -167,33 +239,89 @@
                 }
             });
 
-            // Form validation and submit handler
-            $('#createSupervisorForm').on('submit', function(e) {
-                console.log("Form submit triggered");
+            // Function to update track name in hidden field
+            function updateTrackName() {
+                var trackSelect = $('#trackSelect');
+                var selectedTrack = trackSelect.find("option:selected");
 
-                // Basic client-side validation
+                if (selectedTrack.val() == "0") {
+                    $('#TrackName').val("All Tracks");
+                } else {
+                    $('#TrackName').val(selectedTrack.text());
+                }
+            }
+
+            // Update track name when track selection changes
+            $('#trackSelect').change(function() {
+                updateTrackName();
+            });
+
+            // Set initial values for hidden fields
+            if ($('#branchSelect').val()) {
+                $('#BranchName').val($('#branchSelect').find("option:selected").text());
+            }
+
+            // Set TrackName to "All Tracks" initially
+            $('#TrackName').val("All Tracks");
+
+            // Form submission with validation
+            $('#createSupervisorForm').submit(function(e) {
+                // Ensure hidden fields are populated
+                var branchSelect = $('#branchSelect');
+                var trackSelect = $('#trackSelect');
+
+                if (branchSelect.val()) {
+                    $('#BranchName').val(branchSelect.find("option:selected").text());
+                }
+
+                if (trackSelect.val() == "0") {
+                    $('#TrackName').val("All Tracks");
+                } else {
+                    $('#TrackName').val(trackSelect.find("option:selected").text());
+                }
+
+                // Password matching check
+                var password = $('#Password').val();
+                var confirmPassword = $('#ConfirmPassword').val();
+
+                if (password !== confirmPassword) {
+                    e.preventDefault();
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Password Error',
+                        text: 'Passwords do not match!'
+                    });
+                    return false;
+                }
+
+                // Basic validation
                 var username = $('#Username').val();
                 var email = $('#Email').val();
                 var gender = $('#Gender').val();
                 var branchId = $('#branchSelect').val();
-                var password = $('#Password').val();
-                var confirmPassword = $('#ConfirmPassword').val();
 
                 if (!username || !email || !gender || !branchId || !password || !confirmPassword) {
-                    console.error("Form validation failed - missing required fields");
-                    return true; // Let server-side validation handle this
-                }
-
-                if (password !== confirmPassword) {
                     e.preventDefault();
-                    alert("Passwords do not match!");
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Required Fields Missing',
+                        text: 'Please fill in all required fields'
+                    });
                     return false;
                 }
 
-                console.log("Form validation passed, submitting...");
+                // Show loading state
+                Swal.fire({
+                    title: 'Creating supervisor...',
+                    html: 'Please wait',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
                 return true;
             });
         });
     </script>
-
 }

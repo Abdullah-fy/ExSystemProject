@@ -83,6 +83,7 @@ namespace ExSystemProject.Controllers
             return RedirectToAction("Details", "Branch", new { id = ViewBag.BranchId });
         }
 
+
         [HttpGet]
         public IActionResult Edit(int id)
         {
@@ -113,5 +114,7 @@ namespace ExSystemProject.Controllers
 
             return View(track);
         }
+
+
     }
 }

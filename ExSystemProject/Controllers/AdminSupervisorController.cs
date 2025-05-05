@@ -194,13 +194,27 @@ namespace ExSystemProject.Controllers
             {
                 try
                 {
+                    // Update user information first
+                    var user = _unitOfWork.userRepo.getById(supervisorDTO.UserId);
+                    if (user != null)
+                    {
+                        user.Username = supervisorDTO.Username;
+                        user.Email = supervisorDTO.Email;
+                        user.Gender = supervisorDTO.Gender;
+                        user.Isactive = supervisorDTO.IsActive;
+                        _unitOfWork.userRepo.update(user);
+                    }
+
+                    // Then update assignment information
                     _unitOfWork.supervisorRepo.UpdateSupervisor(
                         supervisorDTO.AssignmentId,
                         supervisorDTO.BranchId,
                         supervisorDTO.TrackId,
-                        supervisorDTO.IsActive );
+                        supervisorDTO.IsActive);
 
-                    TempData["Success"] = "Supervisor assignment updated successfully";
+                    _unitOfWork.save();
+
+                    TempData["Success"] = "Supervisor updated successfully";
                     return RedirectToAction(nameof(Index));
                 }
                 catch (Exception ex)
@@ -229,6 +243,7 @@ namespace ExSystemProject.Controllers
             return View(supervisorDTO);
         }
 
+
         // GET: AdminSupervisor/Delete/5
         public IActionResult Delete(int id)
         {
@@ -247,23 +262,49 @@ namespace ExSystemProject.Controllers
         }
 
         // POST: AdminSupervisor/Delete/5
+        // POST: AdminSupervisor/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public IActionResult DeleteConfirmed(int id)
+        public IActionResult DeleteConfirmed(int id, bool reactivate = false)
         {
             try
             {
-                _unitOfWork.supervisorRepo.DeactivateSupervisor(id);
+                var supervisor = _unitOfWork.supervisorRepo.GetSupervisorById(id);
+                if (supervisor == null)
+                {
+                    return NotFound();
+                }
 
-                TempData["Success"] = "Supervisor deactivated successfully";
+                if (reactivate)
+                {
+                    // Reactivate the supervisor
+                    supervisor.Isactive = true;
+                    if (supervisor.User != null)
+                    {
+                        supervisor.User.Isactive = true;
+                        _unitOfWork.userRepo.update(supervisor.User);
+                    }
+                    _unitOfWork.supervisorRepo.update(supervisor);
+                    _unitOfWork.save();
+
+                    TempData["Success"] = "Supervisor reactivated successfully";
+                }
+                else
+                {
+                    // Deactivate the supervisor
+                    _unitOfWork.supervisorRepo.DeactivateSupervisor(id);
+                    TempData["Success"] = "Supervisor deactivated successfully";
+                }
+
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
-                TempData["Error"] = $"Error deactivating supervisor: {ex.Message}";
+                TempData["Error"] = $"Error processing supervisor: {ex.Message}";
                 return RedirectToAction(nameof(Delete), new { id });
             }
         }
+
 
         // GET: AdminSupervisor/GetTracksByBranch/5
         [HttpGet]
