@@ -60,19 +60,19 @@
                                 <span class="input-group-text"><i class="bi bi-building"></i></span>
                                 <select class="form-select" asp-for="BranchId" required>
                                     <option value="0">-- Select Branch --</option>
-                                    @foreach (var item in ViewBag.Branches)
-                                    {
+                                @foreach (var item in ViewBag.Branches)
+                                {
                                         if (item.BranchId == Model.BranchId)
                                         {
                                             <option value="@item.BranchId" selected>@item.BranchName</option>
                                         }
                                         else
                                         {
-                                            <option value="@item.BranchId">@item.BranchName</option>
-                                        }
+                                    <option value="@item.BranchId">@item.BranchName</option>
+                                }
                                     }
-                                </select>
-                            </div>
+                            </select>
+                        </div>
                             <small class="form-text text-muted">Select the branch this track belongs to</small>
                         </div>
 
@@ -84,7 +84,7 @@
                                     <option value="true">Active</option>
                                     <option value="false">Inactive</option>
                                 </select>
-                            </div>
+                        </div>
                             <small class="form-text text-muted">
                                 <i class="bi bi-info-circle"></i> Setting a track to inactive will affect student assignments.
                             </small>

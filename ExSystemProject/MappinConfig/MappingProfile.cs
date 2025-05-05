@@ -17,7 +17,27 @@ namespace ExSystemProject.MappinConfig
             CreateMap<DateTime?, DateOnly?>().ConvertUsing((src, dest) => src.HasValue ? DateOnly.FromDateTime(src.Value) : null);
 
             // Course mappings - explicit mapping for description property
-            
+
+
+            // Update in ExSystemProject/MappinConfig/MappingProfile.cs
+
+            // Add this mapping to the constructor
+            // In your MappingProfile.cs file
+            CreateMap<UserAssignment, SupervisorDTO>()
+                .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.User.Username))
+                .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.User.Email))
+                .ForMember(dest => dest.Gender, opt => opt.MapFrom(src => src.User.Gender))
+                .ForMember(dest => dest.BranchName, opt => opt.MapFrom(src => src.Branch.BranchName))
+                .ForMember(dest => dest.TrackName, opt => opt.MapFrom(src => src.Track.TrackName))
+                .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.Isactive ?? false))
+                .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom(src => src.User.Img));
+
+            // Mapping from DTO to entity
+            CreateMap<SupervisorDTO, UserAssignment>()
+                .ForMember(dest => dest.Isactive, opt => opt.MapFrom(src => src.IsActive))
+                .ForMember(dest => dest.User, opt => opt.Ignore());
+
+
             CreateMap<Course, CourseDTO>()
                 .ForMember(dest => dest.InstructorName,
                     opt => opt.MapFrom(src => src.Ins != null && src.Ins.User != null ?

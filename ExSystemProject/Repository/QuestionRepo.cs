@@ -371,5 +371,21 @@ namespace ExSystemProject.Repository
             }
         }
 
+        // Add this method to QuestionRepo class
+        public List<Question> GetQuestionsByExamId(int examId)
+        {
+            try
+            {
+                return _context.Questions
+                    .Where(q => q.ExamId == examId && q.Isactive == true)
+                    .ToList();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error retrieving questions for exam {examId}: {ex.Message}", ex);
+            }
+        }
+
+
     }
 }

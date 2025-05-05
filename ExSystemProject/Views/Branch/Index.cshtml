@@ -4,13 +4,14 @@
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
+
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h3>
+<h3>
                 Branch Management
                 <small class="text-muted">System Setup</small>
-            </h3>
+</h3>
         </div>
         <div>
             <a class="btn btn-primary" asp-action="Create">
@@ -43,49 +44,49 @@
             </div>
         </div>
         <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-striped table-hover">
-                    <thead class="table-light">
-                        <tr>
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead class="table-light">
+                    <tr>
                             <th scope="col" style="width: 5%">#</th>
                             <th scope="col" style="width: 25%">Branch Name</th>
                             <th scope="col" style="width: 25%">Location</th>
                             <th scope="col" style="width: 10%">Is Active?</th>
                             <th scope="col" style="width: 10%">Tracks</th>
                             <th scope="col" style="width: 25%">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+                    </tr>
+                </thead>
+                <tbody>
                         @if (Model.Any())
                         {
-                            @foreach (var item in Model)
-                            {
-                                <tr>
-                                    <td>@item.BranchId</td>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@item.BranchId</td>
                                     <td>
                                         <span class="fw-medium">@item.BranchName</span>
                                     </td>
-                                    <td>@item.Location</td>
-                                    <td>
-                                        @if (item.Isactive == true)
-                                        {
+                            <td>@item.Location</td>
+                            <td>
+                            @if (item.Isactive == true)
+                            {
                                             <span class="badge bg-success">
                                                 <i class="bi bi-check-circle me-1"></i> Active
                                             </span>
-                                        }
+                            }
                                         else
-                                        {
+                            {
                                             <span class="badge bg-danger">
                                                 <i class="bi bi-x-circle me-1"></i> Inactive
                                             </span>
-                                        }
-                                    </td>
+                            }
+                            </td>
                                     <td>
                                         <span class="badge rounded-pill" style="background-color: var(--iti-blue);">
                                             <i class="bi bi-diagram-3 me-1"></i> @item.Tracks.Count
                                         </span>
                                     </td>
-                                    <td>
+                            <td> 
                                         <div class="btn-group" role="group">
                                             <a class="btn btn-sm btn-outline-secondary" asp-action="Details" asp-route-id="@item.BranchId">
                                                 <i class="bi bi-eye"></i> Details
@@ -110,13 +111,15 @@
                                         <p class="mt-2 mb-0">No branches found.</p>
                                         <a asp-action="Create" class="btn btn-sm btn-primary mt-2">Add your first branch</a>
                                     </div>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
+                            </td>
+                            
+
+                        </tr>
+                    }
+                </tbody>
+            </table>
         </div>
+    </div>
     </div>
 
     <!-- Pagination -->
@@ -154,3 +157,4 @@
         </a>
     </div>
 </div>
+<a class="btn btn-outline-secondary my-3" asp-action="index" asp-controller="Track">All Tracks</a>
