@@ -36,7 +36,7 @@ namespace ExSystemProject.Controllers
             if (std == null || std.Track == null)
                 return NotFound();
 
-            var courses = unitOfWork.studentCourseRepo.GetStudentCoursesAsync(std.StudentId);
+            var courses = await unitOfWork.studentCourseRepo.GetStudentCoursesAsync(std.StudentId);
 
 
             return View(courses);

@@ -91,7 +91,6 @@ namespace ExSystemProject.Repository
         {
             throw new NotImplementedException();
         }
-
         public async Task<List<AllStudentCoursesDTO>> GetStudentCoursesAsync(int studentId)
         {
             var courses = new List<AllStudentCoursesDTO>();
@@ -120,7 +119,7 @@ namespace ExSystemProject.Repository
                         Description = reader.GetString(2),
                         Crs_period = reader.GetInt32(3),
                         EnrolledAt = reader.GetDateTime(4),
-                        Grade = reader.GetString(5)
+                        Grade = reader.IsDBNull(5) ? null : reader.GetString(5) // Handle NULL
                     });
                 }
             }
@@ -139,5 +138,6 @@ namespace ExSystemProject.Repository
 
             return courses;
         }
+
     }
 }

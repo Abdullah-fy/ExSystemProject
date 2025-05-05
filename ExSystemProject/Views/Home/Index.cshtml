@@ -409,7 +409,7 @@
                                 <i class="bi bi-journal-bookmark fs-1 mb-3" style="color: var(--iti-red);"></i>
                                 <h4>My Courses</h4>
                                 <p>View your enrolled courses</p>
-                                <a href="#" class="btn btn-sm btn-outline-primary mt-2">Access</a>
+                                <a asp-action="Getstudentcourses" asp-controller="StudentCourses"  class="btn btn-sm btn-outline-primary mt-2">Access</a>
                             </div>
                         </div>
                     </div>
@@ -419,7 +419,7 @@
                                 <i class="bi bi-clipboard-check fs-1 mb-3" style="color: var(--iti-red);"></i>
                                 <h4>My Exams</h4>
                                 <p>View upcoming and completed exams</p>
-                                <a href="#" class="btn btn-sm btn-outline-primary mt-2">Access</a>
+                                <a asp-controller="StudentExam" asp-action="getassignexamtostudent" class="btn btn-sm btn-outline-primary mt-2">Access</a>
                             </div>
                         </div>
                     </div>
@@ -429,7 +429,7 @@
                                 <i class="bi bi-award fs-1 mb-3" style="color: var(--iti-red);"></i>
                                 <h4>Grades</h4>
                                 <p>View your exam results and grades</p>
-                                <a href="#" class="btn btn-sm btn-outline-primary mt-2">Access</a>
+                                <a asp-action="ResultsofExams" asp-controller="StudentExam" class="btn btn-sm btn-outline-primary mt-2">Access</a>
                             </div>
                         </div>
                     </div>
