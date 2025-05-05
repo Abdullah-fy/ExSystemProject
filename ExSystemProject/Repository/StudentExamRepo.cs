@@ -227,72 +227,117 @@ namespace ExSystemProject.Repository
             }
         }
 
-
-        public List<StudentExamResultsDTO> GetStudentExamResult(int examId, int studentId)
+        public async Task<StudentExamResultsDTO> GetStudentExamResultsAsync(int examId, int? studentId = null)
         {
-            var results = new List<StudentExamResultsDTO>();
+            var result = new StudentExamResultsDTO();
 
             try
             {
-                using (var command = _context.Database.GetDbConnection().CreateCommand())
+                await using var command = _context.Database.GetDbConnection().CreateCommand();
+                command.CommandText = "sp_GetExamResults";
+                command.CommandType = CommandType.StoredProcedure;
+
+                command.Parameters.Add(new SqlParameter("@ExamId", examId));
+                command.Parameters.Add(new SqlParameter("@StudentId", studentId ?? (object)DBNull.Value));
+
+                await _context.Database.OpenConnectionAsync();
+
+                await using var reader = await command.ExecuteReaderAsync();
+
+                if (await reader.ReadAsync())
                 {
-                    command.CommandText = "sp_GetExamResults";
-                    command.CommandType = CommandType.StoredProcedure;
-
-                    var examParam = command.CreateParameter();
-                    examParam.ParameterName = "@ExamId";
-                    examParam.Value = examId;
-                    examParam.DbType = DbType.Int32;
-                    command.Parameters.Add(examParam);
-
-                    var studentParam = command.CreateParameter();
-                    studentParam.ParameterName = "@StudentId";
-                    studentParam.Value = studentId;
-                    studentParam.DbType = DbType.Int32;
-                    command.Parameters.Add(studentParam);
-
-                    _context.Database.OpenConnection();
-
-                    using (var reader = command.ExecuteReader())
-                    {
-                        // Skip the first result set (general exam info)
-                        if (reader.HasRows)
-                        {
-                            reader.Read(); // we could read exam_name, startTime, etc., here if needed
-                        }
-
-                        // Move to second result set (student-specific result)
-                        if (reader.NextResult())
-                        {
-                            while (reader.Read())
-                            {
-                                var dto = new StudentExamResultsDTO
-                                {
-                                    ExamName = reader["exam_name"]?.ToString(),
-                                    StartTime = reader["startTime"] != DBNull.Value ? Convert.ToDateTime(reader["startTime"]) : DateTime.MinValue,
-                                    TotalMarks = reader["TotalMarks"] != DBNull.Value ? Convert.ToInt32(reader["TotalMarks"]) : 0,
-                                    Score = reader["Score"] != DBNull.Value ? Convert.ToInt32(reader["Score"]) : 0,
-                                    Percentage = reader["Percentage"] != DBNull.Value ? Convert.ToInt32(reader["Percentage"]) : 0
-
-                                };
-
-                                results.Add(dto);
-                            }
-                        }
-                    }
+                    result.ExamName = reader.GetString(0);
+                    result.StartTime = reader.GetDateTime(1);
+                    result.TotalMarks = reader.GetInt32(5);
                 }
+
+                if (await reader.NextResultAsync() && await reader.ReadAsync())
+                {
+                    result.Score = reader.GetInt32(2);
+                    result.Percentage = reader.IsDBNull(4) ? null : (float?)reader.GetDouble(4); // Explicit cast
+                    result.Result = reader.IsDBNull(3) ? null : reader.GetString(3);
+                }
+
+                return result;
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error: " + ex.Message);
+                throw new ApplicationException("Error retrieving exam results", ex);
             }
             finally
             {
-                _context.Database.CloseConnection();
+                if (_context.Database.GetDbConnection().State == ConnectionState.Open)
+                {
+                    await _context.Database.CloseConnectionAsync();
+                }
             }
-
-            return results;
         }
+        //public List<StudentExamResultsDTO> GetStudentExamResult(int examId, int studentId)
+        //{
+        //    var results = new List<StudentExamResultsDTO>();
+
+        //    try
+        //    {
+        //        using (var command = _context.Database.GetDbConnection().CreateCommand())
+        //        {
+        //            command.CommandText = "sp_GetExamResults";
+        //            command.CommandType = CommandType.StoredProcedure;
+
+        //            var examParam = command.CreateParameter();
+        //            examParam.ParameterName = "@ExamId";
+        //            examParam.Value = examId;
+        //            examParam.DbType = DbType.Int32;
+        //            command.Parameters.Add(examParam);
+
+        //            var studentParam = command.CreateParameter();
+        //            studentParam.ParameterName = "@StudentId";
+        //            studentParam.Value = studentId;
+        //            studentParam.DbType = DbType.Int32;
+        //            command.Parameters.Add(studentParam);
+
+        //            _context.Database.OpenConnection();
+
+        //            using (var reader = command.ExecuteReader())
+        //            {
+        //                // Skip the first result set (general exam info)
+        //                if (reader.HasRows)
+        //                {
+        //                    reader.Read(); // we could read exam_name, startTime, etc., here if needed
+        //                }
+
+        //                // Move to second result set (student-specific result)
+        //                if (reader.NextResult())
+        //                {
+        //                    while (reader.Read())
+        //                    {
+        //                        var dto = new StudentExamResultsDTO
+        //                        {
+        //                            ExamName = reader["exam_name"]?.ToString(),
+        //                            StartTime = reader["startTime"] != DBNull.Value ? Convert.ToDateTime(reader["startTime"]) : DateTime.MinValue,
+        //                            TotalMarks = reader["TotalMarks"] != DBNull.Value ? Convert.ToInt32(reader["TotalMarks"]) : 0,
+        //                            Score = reader["Score"] != DBNull.Value ? Convert.ToInt32(reader["Score"]) : 0,
+        //                            Percentage = reader["Percentage"] != DBNull.Value ? Convert.ToInt32(reader["Percentage"]) : 0
+
+        //                        };
+
+        //                        results.Add(dto);
+        //                    }
+        //                }
+        //            }
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine("Error: " + ex.Message);
+        //    }
+        //    finally
+        //    {
+        //        _context.Database.CloseConnection();
+        //    }
+
+        //    return results;
+        //}
+
 
         internal dynamic GetByStudentId(int id)
         {
