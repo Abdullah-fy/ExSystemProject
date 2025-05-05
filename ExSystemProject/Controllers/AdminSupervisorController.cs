@@ -7,6 +7,7 @@ using ExSystemProject.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -159,7 +160,8 @@ namespace ExSystemProject.Controllers
                 return NotFound();
             }
 
-            var supervisorDTO = _mapper.Map<SupervisorDTO>(supervisor);
+            // Map to the EditDTO instead
+            var supervisorDTO = _mapper.Map<SupervisorEditDTO>(supervisor);
 
             var branches = _unitOfWork.branchRepo.getAll()
                 .Where(b => b.Isactive == true)
@@ -183,65 +185,77 @@ namespace ExSystemProject.Controllers
         // POST: AdminSupervisor/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Edit(int id, SupervisorDTO supervisorDTO)
+        public IActionResult Edit(int id, SupervisorEditDTO model)
         {
-            if (id != supervisorDTO.AssignmentId)
+            if (id != model.AssignmentId)
             {
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
+            // Basic validation check
+            if (string.IsNullOrEmpty(model.Username) ||
+                string.IsNullOrEmpty(model.Email) ||
+                string.IsNullOrEmpty(model.Gender) ||
+                !model.BranchId.HasValue)
             {
-                try
-                {
-                    // Update user information first
-                    var user = _unitOfWork.userRepo.getById(supervisorDTO.UserId);
-                    if (user != null)
-                    {
-                        user.Username = supervisorDTO.Username;
-                        user.Email = supervisorDTO.Email;
-                        user.Gender = supervisorDTO.Gender;
-                        user.Isactive = supervisorDTO.IsActive;
-                        _unitOfWork.userRepo.update(user);
-                    }
+                // Add error message
+                ModelState.AddModelError("", "Please fill in all required fields");
 
-                    // Then update assignment information
-                    _unitOfWork.supervisorRepo.UpdateSupervisor(
-                        supervisorDTO.AssignmentId,
-                        supervisorDTO.BranchId,
-                        supervisorDTO.TrackId,
-                        supervisorDTO.IsActive);
-
-                    _unitOfWork.save();
-
-                    TempData["Success"] = "Supervisor updated successfully";
-                    return RedirectToAction(nameof(Index));
-                }
-                catch (Exception ex)
-                {
-                    ModelState.AddModelError("", $"Error updating supervisor assignment: {ex.Message}");
-                }
-            }
-
-            // If we got this far, something failed; redisplay form
-            var branches = _unitOfWork.branchRepo.getAll()
-                .Where(b => b.Isactive == true)
-                .ToList();
-
-            ViewBag.Branches = new SelectList(branches, "BranchId", "BranchName", supervisorDTO.BranchId);
-
-            if (supervisorDTO.BranchId.HasValue)
-            {
-                var tracks = _unitOfWork.trackRepo.GetTracksByBranchId(supervisorDTO.BranchId.Value)
+                // Repopulate branch dropdown
+                var branches = _unitOfWork.branchRepo.getAll()
+                    .Where(b => b.Isactive == true)
                     .ToList();
+                ViewBag.Branches = new SelectList(branches, "BranchId", "BranchName", model.BranchId);
 
-                ViewBag.Tracks = new SelectList(tracks, "TrackId", "TrackName", supervisorDTO.TrackId);
+                return View(model);
             }
 
-            ViewData["Title"] = "Edit Supervisor Assignment";
+            try
+            {
+                // 1. Update the User record
+                var user = _unitOfWork.userRepo.getById(model.UserId);
+                if (user != null)
+                {
+                    user.Username = model.Username;
+                    user.Email = model.Email;
+                    user.Gender = model.Gender;
+                    user.Isactive = model.IsActive;
+                    _unitOfWork.userRepo.update(user);
+                }
 
-            return View(supervisorDTO);
+                // 2. Update the UserAssignment record
+                var assignment = _unitOfWork.context.UserAssignments.Find(id);
+                if (assignment != null)
+                {
+                    assignment.BranchId = model.BranchId;
+                    assignment.TrackId = model.TrackId;
+                    assignment.Isactive = model.IsActive;
+                    _unitOfWork.context.UserAssignments.Update(assignment);
+                }
+
+                // Save changes
+                _unitOfWork.save();
+
+                TempData["Success"] = "Supervisor updated successfully";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", $"Error updating supervisor: {ex.Message}");
+
+                // Repopulate branch dropdown
+                var branches = _unitOfWork.branchRepo.getAll()
+                    .Where(b => b.Isactive == true)
+                    .ToList();
+                ViewBag.Branches = new SelectList(branches, "BranchId", "BranchName", model.BranchId);
+
+                return View(model);
+            }
         }
+
+
+
+
 
 
         // GET: AdminSupervisor/Delete/5
