@@ -1,0 +1,44 @@
+﻿@model IEnumerable<ExSystemProject.DTOS.AllStudentCoursesDTO>
+
+@{
+    ViewBag.Title = "Student Courses";
+}
+
+<div class="container mt-4">
+    <h2 class="text-center mb-4">Student Enrolled Courses</h2>
+
+    <table class="table table-bordered table-hover table-striped text-center">
+        <thead class="table-dark">
+            <tr>
+                <th>Course ID</th>
+                <th>Course Name</th>
+                <th>Description</th>
+                <th>Period (hrs)</th>
+                <th>Enrolled At</th>
+                <th>Grade</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model != null && Model.Any())
+            {
+                foreach (var course in Model)
+                {
+                    <tr>
+                        <td>@course.Crs_Id</td>
+                        <td>@course.Crs_Name</td>
+                        <td>@course.Description</td>
+                        <td>@course.Crs_period</td>
+                        <td>@course.EnrolledAt.ToString("yyyy-MM-dd")</td>
+                        <td>@course.Grade</td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="6">No courses found.</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
