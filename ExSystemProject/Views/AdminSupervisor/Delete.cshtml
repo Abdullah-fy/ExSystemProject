@@ -1,0 +1,122 @@
+﻿@model ExSystemProject.DTOS.SupervisorDTO
+@{
+    bool isReactivation = !Model.IsActive;
+    ViewData["Title"] = isReactivation ? "Reactivate Supervisor" : "Deactivate Supervisor";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+
+    var cardBorderClass = isReactivation ? "border-success" : "border-danger";
+    var headerClass = isReactivation ? "bg-success" : "bg-danger";
+    var headerIcon = isReactivation ? "bi-person-check-fill" : "bi-exclamation-triangle-fill";
+    var alertClass = isReactivation ? "alert-success" : "alert-danger";
+    var warningText = isReactivation
+        ? "Are you sure you want to reactivate this supervisor? This will make the account accessible again."
+        : "Are you sure you want to deactivate this supervisor? This action will deactivate the supervisor account.";
+    var buttonClass = isReactivation ? "btn-success" : "btn-danger";
+    var buttonIcon = isReactivation ? "bi-person-check" : "bi-trash";
+    var buttonText = isReactivation ? "Reactivate" : "Deactivate";
+}
+
+<div class="container-fluid px-4">
+    <div class="card shadow @cardBorderClass mb-4">
+        <div class="card-header @headerClass text-white d-flex justify-content-between align-items-center py-3">
+            <h5 class="mb-0"><i class="@headerIcon me-2"></i>@ViewData["Title"]</h5>
+            <a asp-action="Index" class="btn btn-sm btn-outline-light">
+                <i class="bi bi-arrow-left me-1"></i> Back to List
+            </a>
+        </div>
+        <div class="card-body p-4">
+            <div class="alert @alertClass">
+                <h6 class="alert-heading"><i class="bi bi-exclamation-circle-fill me-2"></i>Warning!</h6>
+                <p>@warningText</p>
+            </div>
+
+            <div class="mt-4">
+                <h5 class="@(isReactivation ? "text-success" : "text-danger")">Supervisor Details</h5>
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                      
+                        <tr>
+                            <th>Username</th>
+                            <td>@Model.Username</td>
+                        </tr>
+                        <tr>
+                            <th>Email</th>
+                            <td>@Model.Email</td>
+                        </tr>
+                        <tr>
+                            <th>Gender</th>
+                            <td>@(Model.Gender == "M" ? "Male" : "Female")</td>
+                        </tr>
+                        <tr>
+                            <th>Branch</th>
+                            <td>@Model.BranchName</td>
+                        </tr>
+                        <tr>
+                            <th>Track</th>
+                            <td>@(Model.TrackName ?? "All Tracks")</td>
+                        </tr>
+                        <tr>
+                            <th>Status</th>
+                            <td>
+                                @if (Model.IsActive)
+                                {
+                                    <span class="badge bg-success">Active</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">Inactive</span>
+                                }
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <form asp-action="Delete" method="post" class="mt-4" id="deleteForm">
+                <input type="hidden" asp-for="AssignmentId" />
+                <input type="hidden" name="reactivate" value="@isReactivation.ToString().ToLower()" />
+                <div class="d-flex justify-content-between mt-4">
+                    <a asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Cancel and Return
+                    </a>
+                    <button type="submit" class="btn @buttonClass">
+                        <i class="bi @buttonIcon me-1"></i> @buttonText Supervisor
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        $(document).ready(function() {
+            $('#deleteForm').on('submit', function(e) {
+                e.preventDefault();
+
+                const isReactivating = @Json.Serialize(isReactivation);
+                const action = isReactivating ? "reactivate" : "deactivate";
+                const confirmMessage = isReactivating
+                    ? "You're about to reactivate this supervisor account."
+                    : "You're about to deactivate this supervisor account.";
+                const confirmButtonText = isReactivating ? "Yes, reactivate!" : "Yes, deactivate!";
+                const confirmButtonColor = isReactivating ? '#28a745' : '#dc3545';
+
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: confirmMessage,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: confirmButtonColor,
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: confirmButtonText
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        this.submit();
+                    }
+                });
+            });
+        });
+    </script>
+}

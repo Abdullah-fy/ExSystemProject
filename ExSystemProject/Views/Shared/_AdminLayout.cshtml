@@ -272,6 +272,14 @@
                     <span>Instructors</span>
                 </a>
             </li>
+            <!-- In _AdminLayout.cshtml, add this after the instructors menu item -->
+            <li class="nav-item">
+                <a class="nav-link @(ViewContext.RouteData.Values["controller"].ToString() == "AdminSupervisor" ? "active" : "")" href="/AdminSupervisor">
+                    <i class="bi bi-person-badge"></i>
+                    <span>Supervisors</span>
+                </a>
+            </li>
+
             <li class="nav-item">
                 <a class="nav-link @(ViewContext.RouteData.Values["controller"].ToString() == "AdminManager" ? "active" : "")" href="/AdminManager">
                     <i class="bi bi-person-badge-fill"></i>

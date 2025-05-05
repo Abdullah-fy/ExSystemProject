@@ -133,35 +133,54 @@ namespace ExSystemProject.Repository
                                 UserId = reader.GetInt32(reader.GetOrdinal("userId")),
                                 User = new User
                                 {
-                                    Username = reader.GetString(reader.GetOrdinal("username")),
-                                    Email = reader.GetString(reader.GetOrdinal("email")),
-                                    Gender = reader.GetString(reader.GetOrdinal("gender")),
+                                    UserId = reader.GetInt32(reader.GetOrdinal("userId")),
+                                    Username = reader.IsDBNull(reader.GetOrdinal("username")) ? null : reader.GetString(reader.GetOrdinal("username")),
+                                    Email = reader.IsDBNull(reader.GetOrdinal("email")) ? null : reader.GetString(reader.GetOrdinal("email")),
+                                    Gender = reader.IsDBNull(reader.GetOrdinal("gender")) ? null : reader.GetString(reader.GetOrdinal("gender")),
                                     Img = reader.IsDBNull(reader.GetOrdinal("img")) ? null : reader.GetString(reader.GetOrdinal("img"))
-                                },
-                                Track = reader.IsDBNull(reader.GetOrdinal("track_id")) ? null : new Track
+                                }
+                            };
+
+                            // Only populate Track if track_id is not null
+                            if (!reader.IsDBNull(reader.GetOrdinal("track_id")))
+                            {
+                                instructor.Track = new Track
                                 {
                                     TrackId = reader.GetInt32(reader.GetOrdinal("track_id")),
-                                    TrackName = reader.GetString(reader.GetOrdinal("track_name")),
-                                    BranchId = reader.GetInt32(reader.GetOrdinal("branch_id")),
-                                    Branch = new Branch
+                                    TrackName = reader.IsDBNull(reader.GetOrdinal("track_name")) ? null : reader.GetString(reader.GetOrdinal("track_name")),
+                                    BranchId = reader.IsDBNull(reader.GetOrdinal("branch_id")) ? 0 : reader.GetInt32(reader.GetOrdinal("branch_id"))
+                                };
+
+                                // Only populate Branch if branch_id is not null
+                                if (!reader.IsDBNull(reader.GetOrdinal("branch_id")) &&
+                                    !reader.IsDBNull(reader.GetOrdinal("branch_name")))
+                                {
+                                    instructor.Track.Branch = new Branch
                                     {
                                         BranchId = reader.GetInt32(reader.GetOrdinal("branch_id")),
                                         BranchName = reader.GetString(reader.GetOrdinal("branch_name"))
-                                    }
+                                    };
                                 }
-                            };
+                            }
                         }
                     }
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine($"Error retrieving instructor with ID {instructorId}: {ex.Message}");
+                    // Include more detailed error information for debugging
+                    Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                    if (ex.InnerException != null)
+                    {
+                        Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
+                    }
                     throw;
                 }
             }
 
             return instructor;
         }
+
 
         // Get instructors by track with branch information
         public List<Instructor> GetInstructorsByTrackWithBranch(int trackId, bool? getActive = true)
@@ -404,8 +423,9 @@ namespace ExSystemProject.Repository
                                 CrsPeriod = reader.IsDBNull(reader.GetOrdinal("Crs_period")) ? null : (int?)reader.GetInt32(reader.GetOrdinal("Crs_period")),
                                 InsId = reader.IsDBNull(reader.GetOrdinal("ins_id")) ? null : (int?)reader.GetInt32(reader.GetOrdinal("ins_id")),
                                 Isactive = reader.GetBoolean(reader.GetOrdinal("isactive")),
-                                description = reader.GetString(reader.GetOrdinal("Description")), 
-                                Poster = reader.GetString(reader.GetOrdinal("Poster"))
+                                // Safe handling of potentially NULL fields
+                                description = reader.IsDBNull(reader.GetOrdinal("Description")) ? null : reader.GetString(reader.GetOrdinal("Description")),
+                                Poster = reader.IsDBNull(reader.GetOrdinal("Poster")) ? null : reader.GetString(reader.GetOrdinal("Poster"))
                             };
 
                             courses.Add(course);
@@ -415,12 +435,18 @@ namespace ExSystemProject.Repository
                 catch (Exception ex)
                 {
                     Console.WriteLine($"Error retrieving courses for instructor with ID {insId}: {ex.Message}");
+                    if (ex.InnerException != null)
+                    {
+                        Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
+                    }
+                    Console.WriteLine($"Stack trace: {ex.StackTrace}");
                     throw;
                 }
             }
 
             return courses;
         }
+
 
         // Get instructor courses with student count report
         public dynamic GetInstructorCoursesWithStudentCount(int insId)

@@ -1,0 +1,156 @@
+﻿@model List<QuestionDTO>
+
+@{
+    ViewData["Title"] = "Take Exam";
+    var questionsJson = Json.Serialize(Model);
+}
+
+<div class="alert alert-info mt-3">
+    ⏱ Time Remaining: <span id="timer">--:--</span>
+</div>
+
+<div id="exam-container">
+    <h3 id="question-text"></h3>
+    <ul id="choices-list" class="list-group mt-3"></ul>
+
+    <div class="mt-4">
+        <button id="prevBtn" class="btn btn-secondary" onclick="showPrevious()">Back</button>
+        <button id="nextBtn" class="btn btn-primary" onclick="showNext()">Next</button>
+    </div>
+
+    <div class="mt-4">
+        <button class="btn btn-success" onclick="submitExam()">Submit Exam</button>
+    </div>
+</div>
+
+
+@section Scripts {
+    <script>
+        // Timer functionality
+        let duration = 60 * 60; // 60 minutes in seconds
+        const timerDisplay = document.getElementById("timer");
+        const timerInterval = setInterval(updateTimer, 1000);
+
+        // Question state management
+        const questions = @Html.Raw(questionsJson);
+        let currentIndex = 0;
+
+        // Initialize answers in session storage if not exists
+        if (!sessionStorage.getItem('answers')) {
+            sessionStorage.setItem('answers', JSON.stringify({}));
+        }
+
+        // Initial question load
+        showQuestion(currentIndex);
+
+        function updateTimer() {
+            const minutes = Math.floor(duration / 60);
+            const seconds = duration % 60;
+            timerDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+            if (--duration < 0) {
+                clearInterval(timerInterval);
+                alert("Time is up! Auto-submitting exam.");
+                submitExam();
+            }
+        }
+
+        function showQuestion(index) {
+            const q = questions[index];
+            document.getElementById('question-text').innerText = `Q${index + 1}: ${q.quesText}`;
+
+            const choiceList = document.getElementById('choices-list');
+            choiceList.innerHTML = '';
+
+            // Get saved answers
+            const answers = JSON.parse(sessionStorage.getItem('answers') || '{}');
+            const selectedChoiceId = answers[q.quesId];
+
+            q.choices.forEach(choice => {
+                const li = document.createElement('li');
+                li.className = 'list-group-item';
+                li.innerHTML = `
+                    <label>
+                        <input type="radio" name="q${q.quesId}" value="${choice.choiceId}"
+                            onchange="saveAnswer(${q.quesId}, ${choice.choiceId})"
+                            ${selectedChoiceId == choice.choiceId ? 'checked' : ''} />
+                        ${choice.choiceText}
+                    </label>`;
+                choiceList.appendChild(li);
+            });
+
+            // Update navigation buttons
+            document.getElementById('prevBtn').disabled = (index === 0);
+            document.getElementById('nextBtn').disabled = (index === questions.length - 1);
+        }
+
+        function saveAnswer(quesId, choiceId) {
+            const answers = JSON.parse(sessionStorage.getItem('answers') || '{}');
+            answers[quesId] = choiceId;
+            sessionStorage.setItem('answers', JSON.stringify(answers));
+        }
+
+        function showNext() {
+            if (currentIndex < questions.length - 1) {
+                currentIndex++;
+                showQuestion(currentIndex);
+            }
+        }
+
+        function showPrevious() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                showQuestion(currentIndex);
+            }
+        }
+
+        function submitExam() {
+            const answers = JSON.parse(sessionStorage.getItem('answers') || '{}');
+            const unanswered = questions.filter(q => !answers[q.quesId]);
+
+            if (unanswered.length > 0 && !confirm(`You have ${unanswered.length} unanswered questions. Submit anyway?`)) {
+                return;
+            }
+
+            const payload = questions.map(q => ({
+                studentId: @ViewBag.studentid,
+                examId: @ViewBag.examid ?? 0,
+                questionId: q.quesId,
+                choiceId: answers[q.quesId] || null // Include unanswered questions
+            }));
+
+            fetch('/api/exam/submit-all', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(res => {
+                if (!res.ok) throw new Error('Submission failed');
+                return res.json();
+            })
+            .then(data => {
+                return fetch('/api/exam/deactivate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        studentId: @ViewBag.studentid,
+                        examId: @ViewBag.examid ?? 0
+                    })
+                });
+            })
+            .then(res => {
+                if (!res.ok) throw new Error('Deactivation failed');
+                return res.json();
+            })
+            .then(data => {
+                sessionStorage.removeItem('answers');
+                alert("Exam submitted successfully!");
+                window.location.href = '/Home/Index';
+            })
+            .catch(err => {
+                console.error("Error:", err);
+                alert("An error occurred during submission. Please try again.");
+            });
+        }
+    </script>
+}

@@ -1508,16 +1508,24 @@ BEGIN
 END
 GO
 ---------------------------------------COURSES TABLE STORED PROCEDURES
--- Create a new course
-CREATE PROCEDURE sp_CreateCourse
+-- Step 1: Add missing columns to the Courses table
+ALTER TABLE Courses
+ADD poster VARCHAR(255) NULL,
+    description TEXT NULL
+GO
+
+-- Step 2: Update the CreateCourse stored procedure
+CREATE OR ALTER PROCEDURE sp_CreateCourse
     @crs_name VARCHAR(255),
     @crs_period INT = NULL,
-    @ins_id INT = NULL
+    @ins_id INT = NULL,
+    @poster VARCHAR(255) = NULL,
+    @description TEXT = NULL
 AS
 BEGIN
     BEGIN TRY
-        INSERT INTO Courses (Crs_Name, Crs_period, ins_id)
-        VALUES (@crs_name, @crs_period, @ins_id)
+        INSERT INTO Courses (Crs_Name, Crs_period, ins_id, poster, description)
+        VALUES (@crs_name, @crs_period, @ins_id, @poster, @description)
         
         SELECT c.*, i.Ins_Id, u.username as instructor_name
         FROM Courses c
@@ -1530,14 +1538,84 @@ BEGIN
         RAISERROR(@ErrorMessage, 16, 1)
     END CATCH
 END
-exec sp_CreateCourse @crs_name = 'c#', @crs_period = 2, @ins_id = 1
-exec sp_CreateCourse @crs_name = 'c++', @crs_period = 2, @ins_id = 2
-exec sp_CreateCourse @crs_name = 'html', @crs_period = 2, @ins_id = 3
-exec sp_CreateCourse @crs_name = 'js', @crs_period = 2, @ins_id = 4
-exec sp_CreateCourse @crs_name = 'jquery', @crs_period = 2, @ins_id = 5
-exec sp_CreateCourse @crs_name = 'oop', @crs_period = 2, @ins_id = 6
+GO
 
+-- Step 3: Update the UpdateCourse stored procedure
+CREATE OR ALTER PROCEDURE sp_UpdateCourse
+    @crs_id INT,
+    @crs_name VARCHAR(255),
+    @crs_period INT = NULL,
+    @ins_id INT = NULL,
+    @isactive BIT = 1,
+    @poster VARCHAR(255) = NULL,
+    @description TEXT = NULL
+AS
+BEGIN
+    BEGIN TRY
+        UPDATE Courses
+        SET Crs_Name = @crs_name,
+            Crs_period = @crs_period,
+            ins_id = @ins_id,
+            isactive = @isactive,
+            poster = @poster,
+            description = @description
+        WHERE Crs_Id = @crs_id
 
+        SELECT c.*, u.username as instructor_name
+        FROM Courses c
+        LEFT JOIN Instructor i ON c.ins_id = i.Ins_Id
+        LEFT JOIN Users u ON i.userId = u.userId
+        WHERE c.Crs_Id = @crs_id
+    END TRY
+    BEGIN CATCH
+        DECLARE @ErrorMessage NVARCHAR(4000) = ERROR_MESSAGE()
+        RAISERROR(@ErrorMessage, 16, 1)
+    END CATCH
+END
+GO
+
+-- Step 4: Insert sample courses with the new fields
+EXEC sp_CreateCourse 
+    @crs_name = 'C#', 
+    @crs_period = 2, 
+    @ins_id = 1, 
+    @poster = 'csharp.jpg', 
+    @description = 'Introduction to C# programming'
+
+EXEC sp_CreateCourse 
+    @crs_name = 'C++', 
+    @crs_period = 2, 
+    @ins_id = 2, 
+    @poster = 'cpp.jpg', 
+    @description = 'OOP with C++'
+
+EXEC sp_CreateCourse 
+    @crs_name = 'HTML', 
+    @crs_period = 2, 
+    @ins_id = 3, 
+    @poster = 'html.png', 
+    @description = 'Web fundamentals with HTML5'
+
+EXEC sp_CreateCourse 
+    @crs_name = 'JavaScript', 
+    @crs_period = 2, 
+    @ins_id = 3, 
+    @poster = 'js.jpg', 
+    @description = 'JavaScript programming for web apps'
+
+EXEC sp_CreateCourse 
+    @crs_name = 'jQuery', 
+    @crs_period = 2, 
+    @ins_id = 5, 
+    @poster = 'jquery.png', 
+    @description = 'DOM manipulation and effects with jQuery'
+
+EXEC sp_CreateCourse 
+    @crs_name = 'OOP', 
+    @crs_period = 2, 
+    @ins_id = 5, 
+    @poster = 'oop.jpg', 
+    @description = 'Object-Oriented Programming concepts'
 GO
 -- Get all courses
 CREATE PROCEDURE sp_GetAllCourses
@@ -1634,7 +1712,9 @@ CREATE PROCEDURE sp_UpdateCourse
     @crs_name VARCHAR(255),
     @crs_period INT = NULL,
     @ins_id INT = NULL,
-    @isactive BIT = 1
+    @isactive BIT = 1,
+    @poster VARCHAR(255) = NULL,
+    @description TEXT = NULL
 AS
 BEGIN
     BEGIN TRY
@@ -1642,9 +1722,11 @@ BEGIN
         SET Crs_Name = @crs_name,
             Crs_period = @crs_period,
             ins_id = @ins_id,
-            isactive = @isactive
+            isactive = @isactive,
+            poster = @poster,
+            description = @description
         WHERE Crs_Id = @crs_id
-        
+
         SELECT c.*, u.username as instructor_name
         FROM Courses c
         LEFT JOIN Instructor i ON c.ins_id = i.Ins_Id
@@ -2032,7 +2114,7 @@ Exec sp_SubmitExamAnswers @student_id = 1 , @exam_id =5, @ques_id = 7, @choice_i
 Exec sp_SubmitExamAnswers @student_id = 1 , @exam_id =5, @ques_id = 8, @choice_id = 1
 Exec sp_SubmitExamAnswers @student_id = 1 , @exam_id =5, @ques_id = 9, @choice_id = 1
 Exec sp_SubmitExamAnswers @student_id = 1 , @exam_id =5, @ques_id = 10, @choice_id = 2 
-Exec sp_SubmitExamAnswers @student_id = 1 , @exam_id =5, @ques_id = 11, @choice_id = 1
+Exec sp_SubmitExamAnswers @student_id = 1 , @exam_id =5, @ques_id= 11, @choice_id = 1
 
 GO
 -- Model answer
@@ -2606,7 +2688,7 @@ BEGIN
             SELECT 1
             FROM Student_Course sc
             JOIN Student s ON sc.StudentId = s.StudentId
-            JOIN Users u ON s.UserId = u.UserId
+            JOIN Users u ON s.UserId = u.userId
             WHERE sc.Crs_Id = @Crs_Id AND sc.StudentId = @StudentId
                   AND sc.isactive = 1 AND s.isactive = 1 AND u.isactive = 1
         )
@@ -2786,11 +2868,11 @@ CREATE PROCEDURE sp_GetExamResults
 AS
 BEGIN
     SET NOCOUNT ON
-
+    
     IF NOT EXISTS (SELECT 1 FROM Exam WHERE exam_id = @ExamId)
     BEGIN
         RAISERROR('Exam not found', 16, 1)
-        RETURN;
+        RETURN
     END
     
     SELECT e.exam_name, e.startTime, e.endTime, c.Crs_Name, u.username AS InstructorName, e.TotalMarks, e.passedGrade
@@ -2939,4 +3021,60 @@ BEGIN
     GROUP BY c.Crs_Id, c.isactive
 END
 GO
+
+-- Add this procedure to your SQL file
+CREATE OR ALTER PROCEDURE sp_AssignCourseToInstructor
+    @CourseId INT,
+    @InstructorId INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    -- Verify that both course and instructor exist and are active
+    IF NOT EXISTS (SELECT 1 FROM Courses WHERE Crs_Id = @CourseId AND isactive = 1)
+    BEGIN
+        RAISERROR('Course not found or is not active.', 16, 1);
+        RETURN;
+    END
+    
+    IF NOT EXISTS (SELECT 1 FROM Instructor WHERE Ins_Id = @InstructorId AND isactive = 1)
+    BEGIN
+        RAISERROR('Instructor not found or is not active.', 16, 1);
+        RETURN;
+    END
+    
+    -- Update the course
+    UPDATE Courses 
+    SET ins_id = @InstructorId
+    WHERE Crs_Id = @CourseId;
+    
+END
+go
+
+CREATE OR ALTER PROCEDURE sp_AssignCourseToInstructor
+    @CourseId INT,
+    @InstructorId INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    -- Verify that both course and instructor exist and are active
+    IF NOT EXISTS (SELECT 1 FROM Courses WHERE Crs_Id = @CourseId AND isactive = 1)
+    BEGIN
+        RAISERROR('Course not found or is not active.', 16, 1);
+        RETURN;
+    END
+    
+    IF NOT EXISTS (SELECT 1 FROM Instructor WHERE Ins_Id = @InstructorId AND isactive = 1)
+    BEGIN
+        RAISERROR('Instructor not found or is not active.', 16, 1);
+        RETURN;
+    END
+    
+    -- Update the course
+    UPDATE Courses 
+    SET ins_id = @InstructorId
+    WHERE Crs_Id = @CourseId;
+    
+END
 

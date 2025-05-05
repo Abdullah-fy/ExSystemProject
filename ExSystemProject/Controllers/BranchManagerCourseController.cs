@@ -70,7 +70,7 @@ namespace ExSystemProject.Controllers
         // POST: BranchManagerCourse/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Create(Course course, IFormFile posterFile)
+        public IActionResult Create(Course course)
         {
             if (ModelState.IsValid)
             {
@@ -89,25 +89,9 @@ namespace ExSystemProject.Controllers
 
                 try
                 {
-                    // Handle poster image upload
-                    if (posterFile != null && posterFile.Length > 0)
-                    {
-                        string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "images", "courses");
-                        if (!Directory.Exists(uploadsFolder))
-                        {
-                            Directory.CreateDirectory(uploadsFolder);
-                        }
-
-                        string uniqueFileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(posterFile.FileName);
-                        string filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                        using (var fileStream = new FileStream(filePath, FileMode.Create))
-                        {
-                            posterFile.CopyTo(fileStream);
-                        }
-
-                        course.Poster = uniqueFileName;
-                    }
+                    // Set default values
+                    course.Isactive = true;
+                    // No poster handling at all
 
                     _unitOfWork.courseRepo.CreateCourse(course);
                     TempData["Success"] = "Course created successfully";
@@ -124,6 +108,7 @@ namespace ExSystemProject.Controllers
             ViewBag.Instructors = new SelectList(branchInstructors, "InsId", "User.Username");
             return View(course);
         }
+
 
         // GET: BranchManagerCourse/Edit/5
         public IActionResult Edit(int id)
@@ -147,7 +132,7 @@ namespace ExSystemProject.Controllers
         // POST: BranchManagerCourse/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Edit(int id, Course course, IFormFile posterFile)
+        public IActionResult Edit(int id, Course course)
         {
             if (id != course.CrsId)
             {
@@ -171,35 +156,18 @@ namespace ExSystemProject.Controllers
 
                 try
                 {
-                    // Handle poster image upload
-                    if (posterFile != null && posterFile.Length > 0)
+                    // Get the existing course to preserve any fields not in the form
+                    var existingCourse = _unitOfWork.courseRepo.GetCourseById(id);
+                    if (existingCourse == null)
                     {
-                        string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "images", "courses");
-                        if (!Directory.Exists(uploadsFolder))
-                        {
-                            Directory.CreateDirectory(uploadsFolder);
-                        }
-
-                        // Delete old image if exists
-                        if (!string.IsNullOrEmpty(course.Poster))
-                        {
-                            string oldImagePath = Path.Combine(uploadsFolder, course.Poster);
-                            if (System.IO.File.Exists(oldImagePath))
-                            {
-                                System.IO.File.Delete(oldImagePath);
-                            }
-                        }
-
-                        string uniqueFileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(posterFile.FileName);
-                        string filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                        using (var fileStream = new FileStream(filePath, FileMode.Create))
-                        {
-                            posterFile.CopyTo(fileStream);
-                        }
-
-                        course.Poster = uniqueFileName;
+                        return NotFound();
                     }
+
+                    // Keep the poster from existing course
+                    course.Poster = existingCourse.Poster;
+
+                    // Make sure isActive is not null
+                    course.Isactive = course.Isactive ?? existingCourse.Isactive ?? true;
 
                     _unitOfWork.courseRepo.UpdateCourse(course);
                     TempData["Success"] = "Course updated successfully";
@@ -216,6 +184,7 @@ namespace ExSystemProject.Controllers
             ViewBag.Instructors = new SelectList(branchInstructors, "InsId", "User.Username", course.InsId);
             return View(course);
         }
+
 
         // GET: BranchManagerCourse/Delete/5
         public IActionResult Delete(int id)

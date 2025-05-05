@@ -57,7 +57,7 @@
                     </div>
 
                     <div class="mb-3 form-check">
-                        <input asp-for="Isactive" class="form-check-input" />
+                        <input asp-for="Isactive" class="form-check-input" checked />
                         <label asp-for="Isactive" class="form-check-label">Active</label>
                     </div>
                 </div>
@@ -77,4 +77,22 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        $(document).ready(function() {
+            $('form').submit(function(e) {
+                const mcqCount = parseInt($('#mcqCount').val());
+                const tfCount = parseInt($('#tfCount').val());
+
+                if (mcqCount < 1 || tfCount < 1) {
+                    e.preventDefault();
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Invalid Question Counts',
+                        text: 'Please specify at least 1 question of each type.'
+                    });
+                }
+            });
+        });
+    </script>
 }

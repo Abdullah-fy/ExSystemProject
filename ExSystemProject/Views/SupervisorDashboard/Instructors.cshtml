@@ -1,0 +1,196 @@
+﻿@model IEnumerable<ExSystemProject.Models.Instructor>
+@{
+    ViewData["Title"] = "Instructors Under Supervision";
+    Layout = "_SupervisorLayout";
+}
+
+<div class="card shadow-sm">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+        <h5 class="mb-0 text-primary">
+            <i class="bi bi-person-badge me-2"></i> Instructors
+        </h5>
+        <div>
+            <a class="btn btn-outline-primary btn-sm" href="javascript:window.print()">
+                <i class="bi bi-printer me-1"></i> Print
+            </a>
+            <button type="button" class="btn btn-outline-success btn-sm ms-1" onclick="exportToExcel()">
+                <i class="bi bi-file-excel me-1"></i> Export
+            </button>
+        </div>
+    </div>
+    <div class="card-body">
+        @if (!Model.Any())
+        {
+            <div class="text-center py-5">
+                <div class="display-1 text-muted">
+                    <i class="bi bi-person-badge"></i>
+                </div>
+                <h3 class="mt-4">No Instructors Found</h3>
+                <p class="text-muted">There are no instructors currently under your supervision.</p>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover" id="instructorsTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Gender</th>
+                            <th>Track</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var instructor in Model)
+                        {
+                            <tr>
+                                <td>@instructor.InsId</td>
+                                <td>@instructor.User?.Username</td>
+                                <td>@instructor.User?.Email</td>
+                                <td>@(instructor.User?.Gender == "M" ? "Male" : "Female")</td>
+                                <td>@instructor.Track?.TrackName</td>
+                                <td>
+                                    @if (instructor.Isactive == true)
+                                    {
+                                        <span class="badge bg-success">Active</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">Inactive</span>
+                                    }
+                                </td>
+                                <td>
+                                    <button type="button" class="btn btn-outline-info btn-sm"
+                                            data-bs-toggle="modal" data-bs-target="#instructorModal-@instructor.InsId">
+                                        <i class="bi bi-eye"></i> Details
+                                    </button>
+                                </td>
+                            </tr>
+
+                            <!-- Modal for Instructor Details -->
+                            <div class="modal fade" id="instructorModal-@instructor.InsId" tabindex="-1" aria-labelledby="instructorModalLabel-@instructor.InsId" aria-hidden="true">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="instructorModalLabel-@instructor.InsId">
+                                                Instructor Details: @instructor.User?.Username
+                                            </h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="row">
+                                                <div class="col-md-4 text-center">
+                                                    <img src="@(string.IsNullOrEmpty(instructor.User?.Img) ? "/images/default-avatar.png" : instructor.User.Img)"
+                                                         alt="@instructor.User?.Username" class="rounded-circle img-thumbnail mb-3"
+                                                         style="width: 150px; height: 150px; object-fit: cover;">
+                                                    <h5>@instructor.User?.Username</h5>
+                                                    <p class="text-muted">
+                                                        <i class="bi bi-envelope me-1"></i> @instructor.User?.Email
+                                                    </p>
+                                                </div>
+                                                <div class="col-md-8">
+                                                    <table class="table table-striped">
+                                                        <tbody>
+                                                            <tr>
+                                                                <th>Instructor ID:</th>
+                                                                <td>@instructor.InsId</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <th>Gender:</th>
+                                                                <td>@(instructor.User?.Gender == "M" ? "Male" : "Female")</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <th>Track:</th>
+                                                                <td>@instructor.Track?.TrackName</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <th>Branch:</th>
+                                                                <td>@instructor.Track?.Branch?.BranchName</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <th>Status:</th>
+                                                                <td>
+                                                                    @if (instructor.Isactive == true)
+                                                                    {
+                                                                        <span class="badge bg-success">Active</span>
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <span class="badge bg-danger">Inactive</span>
+                                                                    }
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <th>Courses:</th>
+                                                                <td>
+                                                                    @if (instructor.Courses?.Count > 0)
+                                                                    {
+                                                                        <ul class="mb-0">
+                                                                            @foreach (var course in instructor.Courses)
+                                                                            {
+                                                                                <li>@course.CrsName</li>
+                                                                            }
+                                                                        </ul>
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <span class="text-muted">No courses assigned</span>
+                                                                    }
+                                                                </td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css">
+
+    <script>
+        $(document).ready(function() {
+            $('#instructorsTable').DataTable({
+                "order": [[0, "asc"]],
+                "pageLength": 10
+            });
+        });
+
+        function exportToExcel() {
+            // Create a new workbook
+            var wb = XLSX.utils.book_new();
+
+            // Get the table data (excluding the Actions column)
+            var table = document.getElementById('instructorsTable');
+            var ws = XLSX.utils.table_to_sheet(table, {
+                display: true,
+                raw: true
+            });
+
+            // Add the worksheet to the workbook
+            XLSX.utils.book_append_sheet(wb, ws, 'Instructors');
+
+            // Generate Excel file and trigger download
+            XLSX.writeFile(wb, 'Instructors_Under_Supervision.xlsx');
+        }
+    </script>
+}

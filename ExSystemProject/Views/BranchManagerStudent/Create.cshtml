@@ -1,4 +1,4 @@
-﻿@model StudentViewModel
+﻿@model ExSystemProject.DTOS.StudentDTO
 @{
     ViewData["Title"] = "Add New Student";
     Layout = "~/Views/Shared/_BranchManagerLayout.cshtml";
@@ -14,21 +14,29 @@
         </div>
     </div>
     <div class="card-body">
-        <form asp-action="Create" method="post" enctype="multipart/form-data">
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle me-2"></i> @TempData["Error"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <form asp-action="Create" method="post" id="createForm">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
             <div class="row">
                 <div class="col-md-6">
                     <div class="mb-3">
-                        <label asp-for="username" class="form-label">Username</label>
-                        <input asp-for="username" class="form-control" />
-                        <span asp-validation-for="username" class="text-danger"></span>
+                        <label asp-for="Username" class="form-label">Username <span class="text-danger">*</span></label>
+                        <input asp-for="Username" class="form-control" required />
+                        <span asp-validation-for="Username" class="text-danger"></span>
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="mb-3">
-                        <label asp-for="Email" class="form-label">Email</label>
-                        <input asp-for="Email" class="form-control" type="email" />
+                        <label asp-for="Email" class="form-label">Email <span class="text-danger">*</span></label>
+                        <input asp-for="Email" class="form-control" type="email" required />
                         <span asp-validation-for="Email" class="text-danger"></span>
                     </div>
                 </div>
@@ -37,15 +45,15 @@
             <div class="row">
                 <div class="col-md-6">
                     <div class="mb-3">
-                        <label asp-for="password" class="form-label">Password</label>
-                        <input asp-for="password" class="form-control" type="password" />
-                        <span asp-validation-for="password" class="text-danger"></span>
+                        <label for="Password" class="form-label">Password <span class="text-danger">*</span></label>
+                        <input type="password" id="Password" name="Password" class="form-control" required minlength="6" />
+                        <input type="hidden" id="PasswordBackup" name="PasswordBackup" />
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="mb-3">
-                        <label asp-for="Gender" class="form-label">Gender</label>
-                        <select asp-for="Gender" class="form-select">
+                        <label asp-for="Gender" class="form-label">Gender <span class="text-danger">*</span></label>
+                        <select asp-for="Gender" class="form-select" required>
                             <option value="">-- Select Gender --</option>
                             <option value="M">Male</option>
                             <option value="F">Female</option>
@@ -58,32 +66,67 @@
             <div class="row">
                 <div class="col-md-6">
                     <div class="mb-3">
-                        <label asp-for="TrackId" class="form-label">Track</label>
-                        <select asp-for="TrackId" class="form-select" asp-items="Model.tracks">
+                        <label asp-for="TrackId" class="form-label">Track <span class="text-danger">*</span></label>
+                        <select asp-for="TrackId" class="form-select" asp-items="ViewBag.Tracks" required>
                             <option value="">-- Select Track --</option>
                         </select>
                         <span asp-validation-for="TrackId" class="text-danger"></span>
                     </div>
                 </div>
-                <div class="col-md-6">
-                    <div class="mb-3">
-                        <label asp-for="Image" class="form-label">Profile Image</label>
-                        <input asp-for="Image" class="form-control" type="file" accept="image/*" />
-                        <span asp-validation-for="Image" class="text-danger"></span>
-                    </div>
-                </div>
             </div>
 
             <div class="mt-4">
-                <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-person-plus me-1"></i> Create Student
-                </button>
-                <a asp-action="Index" class="btn btn-outline-secondary ms-2">Cancel</a>
+                <button type="submit" class="btn btn-primary">Create Student</button>
+                <a asp-action="Index" class="btn btn-secondary ms-2">Cancel</a>
             </div>
         </form>
     </div>
 </div>
 
 @section Scripts {
-    @await Html.PartialAsync("_ValidationScriptsPartial")
+    <script>
+        $(document).ready(function() {
+            // Toggle password visibility
+            $("#togglePassword").on("click", function() {
+                var passwordField = $("#Password");
+                var fieldType = passwordField.attr("type");
+
+                if (fieldType === "password") {
+                    passwordField.attr("type", "text");
+                    $(this).find("i").removeClass("bi-eye").addClass("bi-eye-slash");
+                } else {
+                    passwordField.attr("type", "password");
+                    $(this).find("i").removeClass("bi-eye-slash").addClass("bi-eye");
+                }
+            });
+
+            // Form validation
+            $("#createForm").on("submit", function(e) {
+                const password = $("#Password").val();
+
+                if (password.length < 6) {
+                    e.preventDefault();
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Password Too Short',
+                        text: 'Password must be at least 6 characters long',
+                        confirmButtonColor: '#a41e22'
+                    });
+                    return false;
+                }
+
+                return true;
+            });
+
+            // Update hidden backup whenever password changes
+            $("#Password").on("input", function() {
+                $("#PasswordBackup").val($(this).val());
+            });
+
+            // Before form submission, ensure password is backed up
+            $("#createForm").on("submit", function() {
+                $("#PasswordBackup").val($("#Password").val());
+            });
+        });
+    </script>
 }

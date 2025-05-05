@@ -1,0 +1,29 @@
+﻿@model List<ExSystemProject.DTOS.StudentExamResultsDTO>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Exam Name</th>
+            <th>Start Time</th>
+            <th>Total Marks</th>
+            <th>Score</th>
+            <th>Percentage</th>
+            <th>Result</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var result in Model)
+        {
+            <tr>
+                <td>@result.ExamName</td>
+                <td>@result.StartTime.ToString("g")</td>
+                <td>@result.TotalMarks</td>
+                <td>@result.Score</td>
+                <td>@(result.Percentage?.ToString("0.00") ?? "N/A")%</td>
+                <td style="color:@(result.Result == "Pass" ? "green" : "red")">
+                    @result.Result
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

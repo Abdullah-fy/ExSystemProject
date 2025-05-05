@@ -1,4 +1,4 @@
-﻿@model StudentEditViewModel
+﻿@model ExSystemProject.DTOS.StudentDTO
 @{
     ViewData["Title"] = "Edit Student";
     Layout = "~/Views/Shared/_BranchManagerLayout.cshtml";
@@ -50,7 +50,7 @@
                 <div class="col-md-6">
                     <div class="mb-3">
                         <label asp-for="TrackId" class="form-label">Track</label>
-                        <select asp-for="TrackId" class="form-select" asp-items="Model.Tracks">
+                        <select asp-for="TrackId" class="form-select" asp-items="ViewBag.Tracks">
                             <option value="">-- Select Track --</option>
                         </select>
                         <span asp-validation-for="TrackId" class="text-danger"></span>
@@ -58,9 +58,17 @@
                 </div>
             </div>
 
-            <div class="mb-3 form-check">
-                <input asp-for="IsActive" class="form-check-input" />
-                <label asp-for="IsActive" class="form-check-label">Active</label>
+            <div class="mb-3">
+                <label class="form-label d-block">Status</label>
+                <div class="form-check form-switch">
+                    <input type="checkbox" class="form-check-input" role="switch" id="examStatusSwitch"
+                           name="Isactive" value="true" @(Model.Isactive == true ? "checked" : "") />
+                    <label class="form-check-label" for="examStatusSwitch">
+                        <span id="statusText" class="ms-2">
+                            @(Model.Isactive == true ? "Active" : "Inactive")
+                        </span>
+                    </label>
+                </div>
             </div>
 
             <div class="mt-4">
@@ -75,4 +83,30 @@
 
 @section Scripts {
     @await Html.PartialAsync("_ValidationScriptsPartial")
+    <script>
+        $(document).ready(function() {
+            // Update status text when switch changes
+            $('#examStatusSwitch').change(function() {
+                var isChecked = $(this).is(':checked');
+                if(isChecked) {
+                    $('#statusText').text('Active').removeClass('text-danger').addClass('text-success');
+                } else {
+                    $('#statusText').text('Inactive').removeClass('text-success').addClass('text-danger');
+                }
+            });
+
+            // Set initial state
+            var initialState = @Json.Serialize(Model.Isactive ?? true);
+            $('#examStatusSwitch').prop('checked', initialState).trigger('change');
+
+            // Form validation
+            $('form').on('submit', function(e) {
+                // Ensure the status is properly included in the form data
+                var isActive = $('#examStatusSwitch').is(':checked');
+                if ($('input[name="Isactive"]').length === 0) {
+                    $(this).append('<input type="hidden" name="Isactive" value="' + isActive + '" />');
+                }
+            });
+        });
+    </script>
 }

@@ -1,0 +1,272 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Supervisor Dashboard</title>
+    <link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="~/css/site.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+    <style>
+        :root {
+            --iti-red: #a41e22;
+            --iti-blue: #1e3a47;
+            --iti-light-gray: #f5f5f5;
+        }
+
+        /* Supervisor specific styles */
+        .supervisor-sidebar {
+            background-color: var(--iti-blue);
+            color: #fff;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 250px;
+            display: flex;
+            flex-direction: column;
+            padding-top: 20px;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            transition: all 0.3s;
+            overflow-y: auto;
+        }
+
+        .supervisor-sidebar-header {
+            padding: 0 15px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .supervisor-logo {
+            height: 50px;
+            margin-right: 10px;
+            filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.3));
+        }
+
+        .supervisor-sidebar .supervisor-brand {
+            color: white;
+            font-size: 1.3rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+            .supervisor-sidebar .supervisor-brand:hover {
+                transform: scale(1.03);
+            }
+
+            .supervisor-sidebar .supervisor-brand span {
+                text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+            }
+
+        .supervisor-sidebar .nav-item {
+            margin-bottom: 5px;
+        }
+
+        .supervisor-sidebar .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 10px 15px;
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+
+            .supervisor-sidebar .nav-link:hover {
+                color: white;
+                background: rgba(255, 255, 255, 0.1);
+            }
+
+            .supervisor-sidebar .nav-link.active {
+                color: white;
+                background-color: var(--iti-red);
+            }
+
+            .supervisor-sidebar .nav-link i {
+                margin-right: 10px;
+                width: 20px;
+                text-align: center;
+            }
+
+        .supervisor-sidebar .nav-heading {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            padding: 10px 15px;
+            margin-top: 15px;
+        }
+
+        .supervisor-content {
+            margin-left: 250px;
+            padding: 20px;
+            min-height: 100vh;
+            background-color: var(--iti-light-gray);
+            transition: all 0.3s;
+        }
+
+        .supervisor-topbar {
+            background-color: white;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            padding: 10px 20px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .supervisor-content .card {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: none;
+            margin-bottom: 20px;
+        }
+
+        .supervisor-content .card-header {
+            background-color: white;
+            border-bottom: 2px solid var(--iti-red);
+            font-weight: 600;
+        }
+
+        .supervisor-content .btn-primary {
+            background-color: var(--iti-red);
+            border-color: var(--iti-red);
+        }
+
+            .supervisor-content .btn-primary:hover {
+                background-color: #901a1e;
+                border-color: #901a1e;
+            }
+
+        .supervisor-content .btn-outline-primary {
+            color: var(--iti-red);
+            border-color: var(--iti-red);
+        }
+
+            .supervisor-content .btn-outline-primary:hover {
+                background-color: var(--iti-red);
+                color: white;
+            }
+
+        /* Responsive adjustments */
+        @@media (max-width: 992px) {
+            .supervisor-sidebar {
+                width: 70px;
+            }
+
+                .supervisor-sidebar .supervisor-brand span,
+                .supervisor-sidebar .nav-link span,
+                .supervisor-sidebar .nav-heading {
+                    display: none;
+                }
+
+                .supervisor-sidebar .nav-link i {
+                    margin-right: 0;
+                }
+
+            .supervisor-content {
+                margin-left: 70px;
+            }
+        }
+    </style>
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+    <div class="supervisor-sidebar">
+        <div class="supervisor-sidebar-header">
+            <a class="supervisor-brand" href="/SupervisorDashboard">
+                <img src="~/images/iti2.png" alt="ITI Logo" class="supervisor-logo" onerror="this.src='https://placehold.co/100x50?text=ITI+Logo&bg=1e3a47&fc=ffffff'">
+                <span>Supervisor</span>
+            </a>
+        </div>
+
+        <ul class="nav flex-column flex-grow-1">
+            <li class="nav-item">
+                <a class="nav-link @(ViewContext.RouteData.Values["action"].ToString() == "Index" ? "active" : "")" href="/SupervisorDashboard">
+                    <i class="bi bi-speedometer2"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+
+            <div class="nav-heading">Management</div>
+            <li class="nav-item">
+                <a class="nav-link @(ViewContext.RouteData.Values["action"].ToString() == "Students" ? "active" : "")" href="/SupervisorDashboard/Students">
+                    <i class="bi bi-people"></i>
+                    <span>Students</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @(ViewContext.RouteData.Values["action"].ToString() == "Instructors" ? "active" : "")" href="/SupervisorDashboard/Instructors">
+                    <i class="bi bi-person-badge"></i>
+                    <span>Instructors</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @(ViewContext.RouteData.Values["action"].ToString() == "Courses" ? "active" : "")" href="/SupervisorDashboard/Courses">
+                    <i class="bi bi-book"></i>
+                    <span>Courses</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @(ViewContext.RouteData.Values["action"].ToString() == "Exams" ? "active" : "")" href="/SupervisorDashboard/Exams">
+                    <i class="bi bi-file-earmark-text"></i>
+                    <span>Exams</span>
+                </a>
+            </li>
+        </ul>
+
+        <ul class="nav flex-column mt-auto">
+            <li class="nav-item">
+                <a class="nav-link" href="/">
+                    <i class="bi bi-box-arrow-left"></i>
+                    <span>Back to Site</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <form method="post" action="/Account/Logout">
+                    <button type="submit" class="nav-link border-0 bg-transparent">
+                        <i class="bi bi-door-open"></i>
+                        <span>Logout</span>
+                    </button>
+                </form>
+            </li>
+        </ul>
+    </div>
+
+    <div class="supervisor-content">
+        <div class="supervisor-topbar">
+            <div>
+                <h4 class="mb-0">@ViewData["Title"]</h4>
+            </div>
+            <div class="d-flex align-items-center">
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-person-circle me-1"></i> Supervisor
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                        <li><a class="dropdown-item" href="#">Profile</a></li>
+                        <li><a class="dropdown-item" href="#">Settings</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form method="post" action="/Account/Logout">
+                                <button type="submit" class="dropdown-item">Logout</button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <main role="main">
+            @RenderBody()
+        </main>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

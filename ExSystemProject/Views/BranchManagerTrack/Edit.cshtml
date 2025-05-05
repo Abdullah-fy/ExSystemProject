@@ -51,10 +51,19 @@
 
                 <div class="col-md-6">
                     <div class="form-group mb-3">
-                        <label asp-for="IsActive" class="form-label d-block">Status</label>
+                        <label class="form-label d-block">Status</label>
                         <div class="form-check form-switch">
-                            <input asp-for="IsActive" class="form-check-input" type="checkbox" />
-                            <label class="form-check-label" for="IsActive">Active</label>
+                            @{
+                                bool isActiveValue = Model.IsActive.HasValue && Model.IsActive.Value;
+                            }
+                            <input type="checkbox" class="form-check-input" id="IsActiveCheckbox"
+                                   name="IsActiveCheckbox" @(isActiveValue ? "checked" : "") />
+                            <input type="hidden" name="IsActive" id="IsActiveHidden" value="@(isActiveValue ? "true" : "false")" />
+                            <label class="form-check-label" for="IsActiveCheckbox">
+                                <span id="activeStatusLabel" class="@(isActiveValue ? "text-success" : "text-danger")">
+                                    @(isActiveValue ? "Active" : "Inactive")
+                                </span>
+                            </label>
                         </div>
                         <small class="form-text text-muted">Changing status will affect instructors and students in this track</small>
                     </div>
@@ -81,4 +90,19 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+    <script>
+        $(document).ready(function() {
+            // Handle checkbox state change
+            $('#IsActiveCheckbox').change(function() {
+                var isChecked = $(this).is(':checked');
+                $('#IsActiveHidden').val(isChecked ? 'true' : 'false');
+
+                // Update the status label
+                $('#activeStatusLabel')
+                    .removeClass(isChecked ? 'text-danger' : 'text-success')
+                    .addClass(isChecked ? 'text-success' : 'text-danger')
+                    .text(isChecked ? 'Active' : 'Inactive');
+            });
+        });
+    </script>
 }
