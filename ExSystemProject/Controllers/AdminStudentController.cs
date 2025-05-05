@@ -381,6 +381,13 @@ namespace ExSystemProject.Controllers
 
             try
             {
+                bool ExamAssigned = _unitOfWork.studentExamRepo.ExamAssigned(studentId, examId);
+                if (ExamAssigned)
+                {
+                    TempData["SwalType"] = "warning";
+                    TempData["SwalMessage"] = "Exam already assigned.";
+                    return RedirectToAction(nameof(Details), new { id = studentId });
+                }
                 // Assign exam to student using stored procedure
                 _unitOfWork.studentRepo.AssignExamToStudent(examId, studentId);
 

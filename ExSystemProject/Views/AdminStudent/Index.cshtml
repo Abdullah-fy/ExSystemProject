@@ -57,12 +57,11 @@
         </form>
 
 
-
         @if (ViewBag.BranchId != null)
         {
             <div class="alert alert-info">
                 <i class="bi bi-filter"></i> Filtered by Branch: <strong>@ViewBag.BranchName</strong>
-                <a asp-action="Index" class="float-end">Clear Filter</a>
+                <a asp-action="Index" asp-route-trackId="@ViewBag.TrackId" asp-route-activeOnly="@ViewBag.ActiveOnly" class="float-end">Clear Branch Filter</a>
             </div>
         }
 
@@ -70,9 +69,10 @@
         {
             <div class="alert alert-info">
                 <i class="bi bi-filter"></i> Filtered by Track: <strong>@ViewBag.TrackName</strong>
-                <a asp-action="Index" class="float-end">Clear Filter</a>
+                <a asp-action="Index" asp-route-branchId="@ViewBag.BranchId" asp-route-activeOnly="@ViewBag.ActiveOnly" class="float-end">Clear Track Filter</a>
             </div>
         }
+
 
         @if (TempData["SuccessMessage"] != null)
         {
