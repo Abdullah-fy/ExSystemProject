@@ -56,12 +56,12 @@
                                 <span class="input-group-text"><i class="bi bi-building"></i></span>
                                 <select class="form-select" asp-for="BranchId" required>
                                     <option value="0">-- Select Branch --</option>
-                                    @foreach (var item in ViewBag.Branches)
-                                    {
-                                        <option value="@item.BranchId">@item.BranchName</option>
-                                    }
-                                </select>
-                            </div>
+                                @foreach (var item in ViewBag.Branches)
+                                {
+                                    <option value="@item.BranchId">@item.BranchName</option>
+                                }
+                             </select> 
+                        </div> 
                             <small class="form-text text-muted">Select the branch this track belongs to</small>
                         </div>
 
@@ -82,6 +82,7 @@
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     }
+
                 </div>
             </div>
         </div>

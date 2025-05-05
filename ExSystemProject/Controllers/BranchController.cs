@@ -26,6 +26,8 @@ namespace ExSystemProject.Controllers
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = (int)Math.Ceiling(branches.Count() / (double)pageSize);
 
+
+
             return View(Branches);
         }
 
@@ -56,6 +58,7 @@ namespace ExSystemProject.Controllers
             }
 
             return View();
+            
         }
 
         [HttpGet]
@@ -81,7 +84,7 @@ namespace ExSystemProject.Controllers
             ViewBag.id = id;
             return View();
         }
-
+        
         public IActionResult ConfirmDelete(int id)
         {
             // Get current user ID using the base controller method
@@ -121,5 +124,7 @@ namespace ExSystemProject.Controllers
 
             return View(branch);
         }
+
+
     }
 }

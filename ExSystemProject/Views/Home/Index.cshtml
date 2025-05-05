@@ -31,6 +31,12 @@
                             <i class="bi bi-diagram-3 me-2"></i> Track Management
                         </a>
                     }
+                  @*   else if (User.IsInRole("supervisor"))
+                    {
+                        <a asp-controller="SupervisorDashboard" asp-action="Index" class="btn btn-iti-red btn-lg px-4">
+                            <i class="bi bi-diagram-3 me-2"></i> Supervisor Dashboard
+                        </a>
+                    } *@
                     else if (User.IsInRole("instructor"))
                     {
                         <a asp-controller="Instructor" asp-action="Index" class="btn btn-iti-red btn-lg px-4">
@@ -256,7 +262,7 @@
                     </div>
                 </div>
             }
-            else if (User.IsInRole("supervisor"))
+          @*   else if (User.IsInRole("supervisor"))
             {
                 <div class="row g-4">
                     <div class="col-md-3">
@@ -300,7 +306,55 @@
                         </div>
                     </div>
                 </div>
+            } *@
+
+
+            else if (User.IsInRole("supervisor"))
+            {
+                <div class="row g-4">
+                    <div class="col-md-3">
+                        <div class="card h-100 shadow-sm border-0">
+                            <div class="card-body text-center">
+                                <i class="bi bi-mortarboard fs-1 mb-3" style="color: var(--iti-red);"></i>
+                                <h4>Instructors</h4>
+                                <p>Manage instructors in your track</p>
+                                <a asp-controller="SupervisorDashboard" asp-action="Instructors" class="btn btn-sm btn-outline-primary mt-2">Access</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card h-100 shadow-sm border-0">
+                            <div class="card-body text-center">
+                                <i class="bi bi-people fs-1 mb-3" style="color: var(--iti-red);"></i>
+                                <h4>Students</h4>
+                                <p>Manage students in your track</p>
+                                <a asp-controller="SupervisorDashboard" asp-action="Students" class="btn btn-sm btn-outline-primary mt-2">Access</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card h-100 shadow-sm border-0">
+                            <div class="card-body text-center">
+                                <i class="bi bi-book fs-1 mb-3" style="color: var(--iti-red);"></i>
+                                <h4>Courses</h4>
+                                <p>Manage courses in your track</p>
+                                <a asp-controller="SupervisorDashboard" asp-action="Courses" class="btn btn-sm btn-outline-primary mt-2">Access</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card h-100 shadow-sm border-0">
+                            <div class="card-body text-center">
+                                <i class="bi bi-file-earmark-text fs-1 mb-3" style="color: var(--iti-red);"></i>
+                                <h4>Exams</h4>
+                                <p>View and manage exams</p>
+                                <a asp-controller="SupervisorDashboard" asp-action="Exams" class="btn btn-sm btn-outline-primary mt-2">Access</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             }
+
             else if (User.IsInRole("instructor"))
             {
                 <div class="row g-4">

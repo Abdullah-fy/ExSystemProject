@@ -294,9 +294,9 @@ namespace ExSystemProject.Repository
             return results;
         }
 
-
-
-
-
+        internal dynamic GetByStudentId(int id)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

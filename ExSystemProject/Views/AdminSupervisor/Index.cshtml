@@ -1,0 +1,133 @@
+﻿@model IEnumerable<ExSystemProject.DTOS.SupervisorDTO>
+@{
+    ViewData["Title"] = "Supervisors Management";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid px-4">
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-people-fill me-2"></i>Supervisors Management</h5>
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="bi bi-plus-lg"></i> Add New Supervisor
+            </a>
+        </div>
+
+        <div class="card-body">
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="bi bi-check-circle me-2"></i> @TempData["Success"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle me-2"></i> @TempData["Error"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+<div class="row mb-4">
+    <div class="col-12">
+        <form asp-action="Index" method="get" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Status</label>
+                <select name="active" class="form-select" id="statusFilter">
+                    @foreach (var option in new[] {
+                    new { Value = "", Text = "All Supervisors", Selected = string.IsNullOrEmpty(ViewContext.HttpContext.Request.Query["active"].ToString()) },
+                    new { Value = "true", Text = "Active Only", Selected = ViewContext.HttpContext.Request.Query["active"].ToString().ToLower() == "true" },
+                    new { Value = "false", Text = "Inactive Only", Selected = ViewContext.HttpContext.Request.Query["active"].ToString().ToLower() == "false" }
+                    })
+                    {
+                        <option value="@option.Value" selected="@option.Selected">@option.Text</option>
+                    }
+                </select>
+            </div>
+            @* <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-filter me-1"></i> Filter
+                </button>
+            </div> *@
+        </form>
+    </div>
+</div>
+           
+
+
+            @if (!Model.Any())
+            {
+                <div class="alert alert-info">
+                    <h5 class="alert-heading">No supervisors found!</h5>
+                    <p>There are no supervisors matching your criteria. Click the "Add New Supervisor" button to create one.</p>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Branch</th>
+                                <th>Track</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var supervisor in Model)
+                            {
+                                <tr>
+                                    <td>@supervisor.AssignmentId</td>
+                                    <td>@supervisor.Username</td>
+                                    <td>@supervisor.Email</td>
+                                    <td>@supervisor.BranchName</td>
+                                    <td>@(supervisor.TrackName ?? "All Tracks")</td>
+                                    <td>
+                                        @if (supervisor.IsActive == true)
+                                        {
+                                            <span class="badge bg-success">Active</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger">Inactive</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a asp-action="Details" asp-route-id="@supervisor.AssignmentId" class="btn btn-sm btn-outline-info">
+                                                <i class="bi bi-info-circle"></i>
+                                            </a>
+                                            <a asp-action="Edit" asp-route-id="@supervisor.AssignmentId" class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <a asp-action="Delete" asp-route-id="@supervisor.AssignmentId" class="btn btn-sm btn-outline-danger">
+                                                <i class="bi bi-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Auto-submit form when status filter changes
+            $('#statusFilter').change(function() {
+                $(this).closest('form').submit();
+            });
+        });
+    </script>
+}

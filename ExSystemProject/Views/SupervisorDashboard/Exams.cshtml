@@ -1,0 +1,172 @@
+﻿@model IEnumerable<ExSystemProject.Models.Exam>
+@{
+    ViewData["Title"] = "Exams Under Supervision";
+    Layout = "_SupervisorLayout";
+}
+
+<div class="card shadow-sm">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+        <h5 class="mb-0 text-primary">
+            <i class="bi bi-file-earmark-text me-2"></i> Exams
+        </h5>
+        <div>
+            <a class="btn btn-outline-primary btn-sm" href="javascript:window.print()">
+                <i class="bi bi-printer me-1"></i> Print
+            </a>
+            <button type="button" class="btn btn-outline-success btn-sm ms-1" onclick="exportToExcel()">
+                <i class="bi bi-file-excel me-1"></i> Export
+            </button>
+        </div>
+    </div>
+    <div class="card-body">
+        @if (!Model.Any())
+        {
+            <div class="text-center py-5">
+                <div class="display-1 text-muted">
+                    <i class="bi bi-file-earmark-text"></i>
+                </div>
+                <h3 class="mt-4">No Exams Found</h3>
+                <p class="text-muted">There are no exams currently under your supervision.</p>
+            </div>
+        }
+        else
+        {
+            <div class="mb-4">
+                <div class="btn-group" role="group" aria-label="Filter exams">
+                    <button type="button" class="btn btn-outline-secondary active" data-filter="all">All</button>
+                    <button type="button" class="btn btn-outline-primary" data-filter="upcoming">Upcoming</button>
+                    <button type="button" class="btn btn-outline-success" data-filter="active">Active</button>
+                    <button type="button" class="btn btn-outline-secondary" data-filter="completed">Completed</button>
+                    <button type="button" class="btn btn-outline-danger" data-filter="inactive">Inactive</button>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover" id="examsTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Exam Name</th>
+                            <th>Course</th>
+                            <th>Instructor</th>
+                            <th>Start Time</th>
+                            <th>End Time</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var exam in Model)
+                        {
+                            string examStatus = "";
+                            string statusClass = "";
+
+                            if (exam.Isactive != true)
+                            {
+                                examStatus = "inactive";
+                                statusClass = "bg-danger";
+                            }
+                            else if (exam.StartTime > DateTime.Now)
+                            {
+                                examStatus = "upcoming";
+                                statusClass = "bg-primary";
+                            }
+                            else if (exam.StartTime <= DateTime.Now && exam.EndTime >= DateTime.Now)
+                            {
+                                examStatus = "active";
+                                statusClass = "bg-success";
+                            }
+                            else
+                            {
+                                examStatus = "completed";
+                                statusClass = "bg-secondary";
+                            }
+
+                            <tr data-exam-status="@examStatus">
+                                <td>@exam.ExamId</td>
+                                <td>@exam.ExamName</td>
+                                <td>@exam.Crs?.CrsName</td>
+                                <td>@exam.Ins?.User?.Username</td>
+                                <td>@exam.StartTime?.ToString("yyyy-MM-dd HH:mm")</td>
+                                <td>@exam.EndTime?.ToString("yyyy-MM-dd HH:mm")</td>
+                                <td>
+                                    <span class="badge @statusClass">
+                                        @(examStatus.Substring(0, 1).ToUpper() + examStatus.Substring(1))
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a asp-action="ExamDetails" asp-route-id="@exam.ExamId" class="btn btn-outline-info btn-sm">
+                                            <i class="bi bi-eye"></i> Details
+                                        </a>
+                                        @if (examStatus == "upcoming" && exam.Isactive != true)
+                                        {
+                                            <a asp-action="ApproveExam" asp-route-id="@exam.ExamId" class="btn btn-outline-success btn-sm">
+                                                <i class="bi bi-check-circle"></i> Approve
+                                            </a>
+                                        }
+                                        @if (examStatus == "upcoming" && exam.Isactive == true)
+                                        {
+                                            <a asp-action="RejectExam" asp-route-id="@exam.ExamId" class="btn btn-outline-danger btn-sm">
+                                                <i class="bi bi-x-circle"></i> Reject
+                                            </a>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css">
+
+    <script>
+        $(document).ready(function() {
+            var table = $('#examsTable').DataTable({
+                "order": [[0, "desc"]],
+                "pageLength": 10
+            });
+
+            // Filter buttons
+            $('.btn-group[role="group"] button').on('click', function() {
+                var filterValue = $(this).data('filter');
+
+                // Update active button
+                $('.btn-group[role="group"] button').removeClass('active');
+                $(this).addClass('active');
+
+                if (filterValue === 'all') {
+                    table.search('').columns().search('').draw();
+                } else {
+                    table.column(6).search(filterValue).draw();
+                }
+            });
+        });
+
+        function exportToExcel() {
+            // Create a new workbook
+            var wb = XLSX.utils.book_new();
+
+            // Get the table data (excluding the Actions column)
+            var table = document.getElementById('examsTable');
+            var ws = XLSX.utils.table_to_sheet(table, {
+                display: true,
+                raw: true
+            });
+
+            // Add the worksheet to the workbook
+            XLSX.utils.book_append_sheet(wb, ws, 'Exams');
+
+            // Generate Excel file and trigger download
+            XLSX.writeFile(wb, 'Exams_Under_Supervision.xlsx');
+        }
+    </script>
+}
