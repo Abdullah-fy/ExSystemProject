@@ -31,28 +31,39 @@ namespace ExSystemProject.Controllers
 
             List<Student> students;
 
-            if (branchId.HasValue)
+            if (branchId.HasValue && trackId.HasValue)
             {
-                // Get students for a specific branch using stored procedure
+                Track track = _unitOfWork.trackRepo.getById(trackId.Value);
+                Branch branch = _unitOfWork.branchRepo.getById(branchId.Value);
+                // Get students for a specific branch and track
+                students = _unitOfWork.studentRepo.GetStudentsByBranchAndTrackName(branch.BranchName, track.TrackName, activeOnly);
+                ViewBag.BranchId = branchId;
+                ViewBag.BranchName = _unitOfWork.branchRepo.getById(branchId.Value)?.BranchName;
+                ViewBag.TrackId = trackId;
+                ViewBag.TrackName = _unitOfWork.trackRepo.getById(trackId.Value)?.TrackName;
+            }
+            else if (branchId.HasValue)
+            {
+                // Get students for a specific branch
                 students = _unitOfWork.studentRepo.GetStudentsByBranchId(branchId.Value, activeOnly);
                 ViewBag.BranchId = branchId;
                 ViewBag.BranchName = _unitOfWork.branchRepo.getById(branchId.Value)?.BranchName;
             }
             else if (trackId.HasValue)
             {
-                // Get students for a specific track using stored procedure
+                // Get students for a specific track
                 students = _unitOfWork.studentRepo.GetStudentsByTrackId(trackId.Value, activeOnly);
                 ViewBag.TrackId = trackId;
                 ViewBag.TrackName = _unitOfWork.trackRepo.getById(trackId.Value)?.TrackName;
             }
             else
             {
-                // Get all students using stored procedure
+                // Get all students
                 students = _unitOfWork.studentRepo.GetAllStudents(activeOnly);
             }
 
             var branches = _unitOfWork.branchRepo.getAll();
-            var tracks = _unitOfWork.trackRepo.getAll();
+            var tracks = _unitOfWork.trackRepo.GetDistictTracks();
 
             ViewBag.Branches = new SelectList(branches, "BranchId", "BranchName", branchId);
             ViewBag.Tracks = new SelectList(tracks, "TrackId", "TrackName", trackId);

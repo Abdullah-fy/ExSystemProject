@@ -20,6 +20,13 @@ namespace ExSystemProject.Repository
             return context.Tracks.Where(s => s.IsActive == true).ToList();
         }
 
+        public List<Track> GetDistictTracks()
+        {
+            return context.Tracks
+         .GroupBy(t => t.TrackName)  // Group by the unique identifier (TrackId)
+         .Select(g => g.First())  // Select the first occurrence from each group
+         .ToList();
+        }
         public bool Exists(int id)
         {
             return context.Tracks.Any(e => e.TrackId == id);
