@@ -16,22 +16,49 @@
                 <span>All Exams</span>
             }
         </h5>
-        <div>
-            <a asp-action="GenerateRandomExam" class="btn btn-outline-primary me-2">
-                <i class="bi bi-magic"></i> Generate Random Exam
-            </a>
-            <a asp-action="Create" asp-route-courseId="@ViewBag.CourseId" class="btn btn-primary">
-                <i class="bi bi-plus-lg"></i> Create New Exam
-            </a>
-            @if (ViewBag.CourseId != null)
-            {
-                <a asp-controller="AdminCourse" asp-action="Details" asp-route-id="@ViewBag.CourseId" class="btn btn-outline-secondary ms-2">
-                    <i class="bi bi-arrow-left"></i> Back to Course
-                </a>
-            }
-        </div>
     </div>
     <div class="card-body">
+        <!-- Filter Form -->
+        <form method="get" asp-action="Index" id="filterForm">
+            <div class="row mb-3">
+                <!-- Status Filter -->
+                <div class="col-md-3">
+                    <label class="form-label">Status</label>
+                    <select name="isActive" class="form-select" onchange="submitFilterForm()">
+                        <option value="">All Statuses</option>
+                        <option value="true" selected="@(ViewBag.IsActive == true)">Active</option>
+                        <option value="false" selected="@(ViewBag.IsActive == false)">Inactive</option>
+                    </select>
+                </div>
+                <!-- Course Filter -->
+                <div class="col-md-3">
+                    <label class="form-label">Course</label>
+                    <select name="courseId" class="form-select" onchange="submitFilterForm()">
+                        <option value="">All Courses</option>
+                        @foreach (var course in ViewBag.Courses)
+                        {
+                            <option value="@course.Value" selected="@(course.Value == ViewBag.CourseId?.ToString())">@course.Text</option>
+                        }
+                    </select>
+                </div>
+                <!-- Instructor Filter -->
+                <div class="col-md-3">
+                    <label class="form-label">Instructor</label>
+                    <select name="insId" class="form-select" onchange="submitFilterForm()">
+                        <option value="">All Instructors</option>
+                        @foreach (var instructor in ViewBag.Instructors)
+                        {
+                            <option value="@instructor.Value" selected="@(instructor.Value == ViewBag.InsId?.ToString())">@instructor.Text</option>
+                        }
+                    </select>
+                </div>
+            </div>
+            <!-- Hidden inputs for pagination -->
+            <input type="hidden" name="pageNumber" value="1" />
+            <input type="hidden" name="pageSize" value="@ViewBag.PageSize" />
+            <button type="button" class="btn btn-outline-secondary" onclick="resetFilter()">Reset</button>
+        </form>
+
         @if (Model != null && Model.Any())
         {
             <div class="table-responsive">
@@ -70,14 +97,8 @@
                                 </td>
                                 <td>
                                     <div class="btn-group" role="group">
-                                        <a asp-action="Edit" asp-route-id="@exam.ExamId" class="btn btn-sm btn-outline-primary">
-                                            <i class="bi bi-pencil"></i> Edit
-                                        </a>
                                         <a asp-action="Details" asp-route-id="@exam.ExamId" class="btn btn-sm btn-outline-info">
                                             <i class="bi bi-info-circle"></i> Details
-                                        </a>
-                                        <a asp-action="Delete" asp-route-id="@exam.ExamId" class="btn btn-sm btn-outline-danger">
-                                            <i class="bi bi-trash"></i> Delete
                                         </a>
                                         <a asp-controller="AdminQuestionBank" asp-action="Index" asp-route-examId="@exam.ExamId" class="btn btn-sm btn-outline-secondary">
                                             <i class="bi bi-question-circle"></i> Questions
@@ -89,6 +110,29 @@
                     </tbody>
                 </table>
             </div>
+            <!-- Pagination Controls -->
+            @if (ViewBag.TotalPages > 0)
+            {
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item @(ViewBag.CurrentPage == 1 ? "disabled" : "")">
+                            <a class="page-link" asp-action="Index" asp-route-pageNumber="@(ViewBag.CurrentPage - 1)" asp-route-pageSize="@ViewBag.PageSize" asp-route-isActive="@ViewBag.IsActive" asp-route-courseId="@ViewBag.CourseId" asp-route-insId="@ViewBag.InsId">Previous</a>
+                        </li>
+                        @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                        {
+                            <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                                <a class="page-link" asp-action="Index" asp-route-pageNumber="@i" asp-route-pageSize="@ViewBag.PageSize" asp-route-isActive="@ViewBag.IsActive" asp-route-courseId="@ViewBag.CourseId" asp-route-insId="@ViewBag.InsId">@i</a>
+                            </li>
+                        }
+                        <li class="page-item @(ViewBag.CurrentPage == ViewBag.TotalPages ? "disabled" : "")">
+                            <a class="page-link" asp-action="Index" asp-route-pageNumber="@(ViewBag.CurrentPage + 1)" asp-route-pageSize="@ViewBag.PageSize" asp-route-isActive="@ViewBag.IsActive" asp-route-courseId="@ViewBag.CourseId" asp-route-insId="@ViewBag.InsId">Next</a>
+                        </li>
+                    </ul>
+                </nav>
+                <div class="text-muted text-center">
+                    Showing page @ViewBag.CurrentPage of @ViewBag.TotalPages (Total exams: @ViewBag.TotalExams)
+                </div>
+            }
         }
         else
         {
@@ -99,3 +143,15 @@
         }
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        function submitFilterForm() {
+            document.getElementById('filterForm').submit();
+        }
+
+        function resetFilter() {
+            window.location.href = '@Url.Action("Index")';
+        }
+    </script>
+}

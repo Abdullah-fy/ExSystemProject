@@ -14,21 +14,28 @@
                 <div class="mb-3">
                     <label asp-for="MCQCount" class="form-label"></label>
                     <input asp-for="MCQCount" type="number" class="form-control" />
+                    <span asp-validation-for="MCQCount" class="text-danger"></span>
                 </div>
 
                 <div class="mb-3">
                     <label asp-for="TFCount" class="form-label"></label>
                     <input asp-for="TFCount" type="number" class="form-control" />
+                    <span asp-validation-for="TFCount" class="text-danger"></span>
+
                 </div>
 
                 <div class="mb-3">
                     <label asp-for="StartTime" class="form-label"></label>
                     <input asp-for="StartTime" type="datetime-local" class="form-control" />
+                    <span asp-validation-for="StartTime" class="text-danger"></span>
+
                 </div>
 
                 <div class="mb-3">
                     <label asp-for="EndTime" class="form-label"></label>
                     <input asp-for="EndTime" type="datetime-local" class="form-control" />
+                    <span asp-validation-for="EndTime" class="text-danger"></span>
+
                 </div>
 
                 <button type="submit" class="btn btn-primary">Generate Exam</button>
