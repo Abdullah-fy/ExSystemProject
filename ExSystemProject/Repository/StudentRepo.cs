@@ -321,11 +321,9 @@ namespace ExSystemProject.Repository
 
         //        using (var command = _context.Database.GetDbConnection().CreateCommand())
         //        {
-<<<<<<< HEAD
         //            command.CommandText = "EXEC sp_GetStudentsByBranchIdWithBranch @branch_id, @ActiveOnly";
-=======
+
         //            command.CommandText = "EXEC sp_GetStudentsByBranchId @branch_id, @ActiveOnly";
->>>>>>> ff5be714d89f8dbc9d138e366920433c8e0422e5
         //            command.Parameters.Add(parameters[0]);
         //            command.Parameters.Add(parameters[1]);
         //            command.CommandType = CommandType.Text;
@@ -377,19 +375,11 @@ namespace ExSystemProject.Repository
         //        return new List<Student>();
         //    }
         //}
-<<<<<<< HEAD
-=======
 
->>>>>>> ff5be714d89f8dbc9d138e366920433c8e0422e5
         public List<Student> GetStudentsByBranchId(int branchId, bool? activeStudents = true)
         {
-            var students = _context.Students
-                .Include(s => s.User)
-                .Include(s => s.Track)
-                    .ThenInclude(t => t.Branch)
-                .Where(s => s.Track.BranchId == branchId);
-
-<<<<<<< HEAD
+            try
+            {
                 // Use direct SQL query with parameters to get results
                 var parameters = new[]
                 {
@@ -417,7 +407,6 @@ namespace ExSystemProject.Repository
                                 StudentId = result.GetInt32(result.GetOrdinal("StudentId")),
                                 EnrollmentDate = result.GetDateTime(result.GetOrdinal("EnrollmentDate")),
                                 Isactive = result.GetBoolean(result.GetOrdinal("IsActive")),
-                                // Removed TrackId since it's not in the result set
                                 User = new User
                                 {
                                     Username = result.GetString(result.GetOrdinal("username")),
@@ -450,12 +439,6 @@ namespace ExSystemProject.Repository
                 Console.WriteLine($"Error in GetStudentsByBranchId: {ex.Message}");
                 return new List<Student>();
             }
-=======
-            if (activeStudents.HasValue)
-                students = students.Where(s => s.Isactive == activeStudents.Value);
-
-            return students.ToList();
->>>>>>> ff5be714d89f8dbc9d138e366920433c8e0422e5
         }
         public Student CreateStudent(Student student)
         {
