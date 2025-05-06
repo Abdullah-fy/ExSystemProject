@@ -300,6 +300,79 @@ namespace ExSystemProject.Repository
             }
         }
 
+        //public List<Student> GetStudentsByBranchId(int branchId, bool? activeStudents = true)
+        //{
+        //    try
+        //    {
+        //        // First check if branch exists
+        //        var branch = _context.Branches.Find(branchId);
+        //        if (branch == null)
+        //            return new List<Student>();
+
+        //        // Use direct SQL query with parameters to get results
+        //        var parameters = new[]
+        //        {
+        //            new SqlParameter("@branch_id", SqlDbType.Int) { Value = branchId },
+        //            new SqlParameter("@ActiveOnly", SqlDbType.Bit) { Value = activeStudents ?? true }
+        //        };
+
+        //        // Execute stored procedure and map results
+        //        var students = new List<Student>();
+
+        //        using (var command = _context.Database.GetDbConnection().CreateCommand())
+        //        {
+        //            command.CommandText = "EXEC sp_GetStudentsByBranchIdWithBranch @branch_id, @ActiveOnly";
+        //            command.Parameters.Add(parameters[0]);
+        //            command.Parameters.Add(parameters[1]);
+        //            command.CommandType = CommandType.Text;
+
+        //            _context.Database.OpenConnection();
+
+        //            using (var result = command.ExecuteReader())
+        //            {
+        //                while (result.Read())
+        //                {
+        //                    var student = new Student
+        //                    {
+        //                        StudentId = result["StudentId"] != DBNull.Value ? (int)result["StudentId"] : 0,
+        //                        EnrollmentDate = result["EnrollmentDate"] != DBNull.Value ? (DateTime)result["EnrollmentDate"] : null,
+        //                        Isactive = result["IsActive"] != DBNull.Value ? (bool)result["IsActive"] : false,
+        //                        TrackId = result["track_id"] != DBNull.Value ? (int)result["track_id"] : null,
+        //                        User = new User
+        //                        {
+        //                            Username = result["username"]?.ToString(),
+        //                            Email = result["email"]?.ToString(),
+        //                            Gender = result["gender"]?.ToString()
+        //                        },
+        //                        Track = new Track
+        //                        {
+        //                            TrackName = result["track_name"]?.ToString(),
+        //                            BranchId = result["branch_id"] != DBNull.Value ? (int)result["branch_id"] : 0
+        //                        }
+        //                    };
+
+        //                    if (result["branch_name"] != DBNull.Value)
+        //                    {
+        //                        student.Track.Branch = new Branch
+        //                        {
+        //                            BranchName = result["branch_name"]?.ToString()
+        //                        };
+        //                    }
+
+        //                    students.Add(student);
+        //                }
+        //            }
+        //        }
+
+        //        return students;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        // Log the exception if possible
+        //        Console.WriteLine($"Error in GetStudentsByBranchId: {ex.Message}");
+        //        return new List<Student>();
+        //    }
+        //}
         public List<Student> GetStudentsByBranchId(int branchId, bool? activeStudents = true)
         {
             try
@@ -312,18 +385,17 @@ namespace ExSystemProject.Repository
                 // Use direct SQL query with parameters to get results
                 var parameters = new[]
                 {
-                    new SqlParameter("@branch_id", SqlDbType.Int) { Value = branchId },
-                    new SqlParameter("@ActiveOnly", SqlDbType.Bit) { Value = activeStudents ?? true }
-                };
+            new SqlParameter("@branch_id", SqlDbType.Int) { Value = branchId },
+            new SqlParameter("@ActiveOnly", SqlDbType.Bit) { Value = activeStudents ?? true }
+        };
 
                 // Execute stored procedure and map results
                 var students = new List<Student>();
 
                 using (var command = _context.Database.GetDbConnection().CreateCommand())
                 {
-                    command.CommandText = "EXEC sp_GetStudentsByBranchIdWithBranch @branch_id, @ActiveOnly";
-                    command.Parameters.Add(parameters[0]);
-                    command.Parameters.Add(parameters[1]);
+                    command.CommandText = "EXEC sp_GetStudentsByBranchId @branch_id, @ActiveOnly";
+                    command.Parameters.AddRange(parameters);
                     command.CommandType = CommandType.Text;
 
                     _context.Database.OpenConnection();
@@ -334,30 +406,28 @@ namespace ExSystemProject.Repository
                         {
                             var student = new Student
                             {
-                                StudentId = result["StudentId"] != DBNull.Value ? (int)result["StudentId"] : 0,
-                                EnrollmentDate = result["EnrollmentDate"] != DBNull.Value ? (DateTime)result["EnrollmentDate"] : null,
-                                Isactive = result["IsActive"] != DBNull.Value ? (bool)result["IsActive"] : false,
-                                TrackId = result["track_id"] != DBNull.Value ? (int)result["track_id"] : null,
+                                StudentId = result.GetInt32(result.GetOrdinal("StudentId")),
+                                EnrollmentDate = result.GetDateTime(result.GetOrdinal("EnrollmentDate")),
+                                Isactive = result.GetBoolean(result.GetOrdinal("IsActive")),
+                                // Removed TrackId since it's not in the result set
                                 User = new User
                                 {
-                                    Username = result["username"]?.ToString(),
-                                    Email = result["email"]?.ToString(),
-                                    Gender = result["gender"]?.ToString()
+                                    Username = result.GetString(result.GetOrdinal("username")),
+                                    Email = result.GetString(result.GetOrdinal("email")),
+                                    Gender = result.GetString(result.GetOrdinal("gender")),
+                                    Img = result["ProfileImage"] != DBNull.Value ?
+                                        result.GetString(result.GetOrdinal("ProfileImage")) : null
                                 },
                                 Track = new Track
                                 {
-                                    TrackName = result["track_name"]?.ToString(),
-                                    BranchId = result["branch_id"] != DBNull.Value ? (int)result["branch_id"] : 0
+                                    TrackName = result.GetString(result.GetOrdinal("track_name")),
+                                    BranchId = branchId,
+                                    Branch = new Branch
+                                    {
+                                        BranchName = result.GetString(result.GetOrdinal("branch_name"))
+                                    }
                                 }
                             };
-
-                            if (result["branch_name"] != DBNull.Value)
-                            {
-                                student.Track.Branch = new Branch
-                                {
-                                    BranchName = result["branch_name"]?.ToString()
-                                };
-                            }
 
                             students.Add(student);
                         }
@@ -373,7 +443,6 @@ namespace ExSystemProject.Repository
                 return new List<Student>();
             }
         }
-
         public Student CreateStudent(Student student)
         {
             var parameters = new[]

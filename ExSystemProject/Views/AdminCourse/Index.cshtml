@@ -1,21 +1,60 @@
-﻿@model IEnumerable<ExSystemProject.DTOS.CourseDTO>
+﻿@model CourseListViewModel
 @{
     ViewData["Title"] = "Course Management";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
 <div class="card">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="mb-0">Course List</h5>
-        <a asp-action="Create" class="btn btn-primary">
-            <i class="bi bi-plus-lg"></i> Add New Course
-        </a>
-    </div>
+    @* <div class="card-header d-flex justify-content-between align-items-center"> *@
+    @*     <h5 class="mb-0">Course List</h5> *@
+    @*     <a asp-action="Create" class="btn btn-primary"> *@
+    @*         <i class="bi bi-plus-lg"></i> Add New Course *@
+    @*     </a> *@
+    @* </div> *@
     <div class="card-body">
-        @if (Model != null && Model.Any())
+        <form method="get" asp-action="Index" id="filterForm">
+            <div class="row mb-3">
+                <!-- Status Filter -->
+                <div class="col-md-4">
+                    <label class="form-label">Status</label>
+                    <select name="isActive" class="form-select" onchange="submitFilterForm()">
+                        <option value="">All Statuses</option>
+                        <option value="true" selected="@(Model.IsActive == true)">Active</option>
+                        <option value="false" selected="@(Model.IsActive == false)">Inactive</option>
+                    </select>
+                </div>
+                <!-- Branch Filter -->
+                <div class="col-md-4">
+                    <label class="form-label">Branch</label>
+                    <select name="branchId" class="form-select" id="branchFilter" onchange="resetTrackAndSubmit()">
+                        <option value="">All Branches</option>
+                        @foreach (var branch in Model.Branches)
+                        {
+                            <option value="@branch.Value" selected="@(branch.Value == Model.BranchId.ToString())">@branch.Text</option>
+                        }
+                    </select>
+                </div>
+                <!-- Track Filter -->
+                <div class="col-md-4">
+                    <label class="form-label">Track</label>
+                    <select name="trackId" class="form-select" id="trackFilter" onchange="submitFilterForm()"
+                    @(Model.BranchId == null ? "disabled" : "")>
+                        <option value="">All Tracks</option>
+                        @foreach (var track in Model.Tracks)
+                        {
+                            <option value="@track.Value" selected="@(track.Value == Model.TrackId.ToString())">@track.Text</option>
+                        }
+                    </select>
+                </div>
+            </div>
+            <input type="hidden" name="pageNumber" value="1" />
+            <button type="button" class="btn btn-outline-secondary" onclick="resetFilter()">Reset</button>
+        </form>
+        @if (Model.Courses != null && Model.Courses.Any())
         {
             <div class="table-responsive">
                 <table class="table table-striped table-hover">
+                    <!-- Table headers remain the same -->
                     <thead>
                         <tr>
                             <th>ID</th>
@@ -24,13 +63,16 @@
                             <th>Duration (Hours)</th>
                             <th>Instructor</th>
                             <th>Status</th>
-                            <th>Actions</th>
+                            <th>Branch</th>
+                            <th>Track</th>
+                            @* <th>Actions</th> *@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var course in Model)
+                        @foreach (var course in Model.Courses)
                         {
                             <tr>
+                                <!-- Table rows remain the same -->
                                 <td>@course.CrsId</td>
                                 <td>@course.CrsName</td>
                                 <td>
@@ -55,26 +97,73 @@
                                         <span class="badge bg-danger">Inactive</span>
                                     }
                                 </td>
-                                <td>
-                                    <div class="btn-group" role="group">
-                                        <a asp-action="Edit" asp-route-id="@course.CrsId" class="btn btn-sm btn-outline-primary">
-                                            <i class="bi bi-pencil"></i> Edit
-                                        </a>
-                                        <a asp-action="Details" asp-route-id="@course.CrsId" class="btn btn-sm btn-outline-info">
-                                            <i class="bi bi-info-circle"></i> Details
-                                        </a>
-                                        <a asp-action="Delete" asp-route-id="@course.CrsId" class="btn btn-sm btn-outline-danger">
-                                            <i class="bi bi-trash"></i> Delete
-                                        </a>
-                                        <a asp-controller="AdminExam" asp-action="Index" asp-route-courseId="@course.CrsId" class="btn btn-sm btn-outline-secondary">
-                                            <i class="bi bi-file-earmark-text"></i> Exams
-                                        </a>
-                                    </div>
-                                </td>
+                                <td>@(course.BranchName ?? "Not Assigned")</td>
+                                <td>@(course.TrackName ?? "Not Assigned")</td>
+                                @* <td> *@
+                                @*     <div class="btn-group" role="group"> *@
+                                @*         <a asp-action="Edit" asp-route-id="@course.CrsId" class="btn btn-sm btn-outline-primary"> *@
+                                @*             <i class="bi bi-pencil"></i> Edit *@
+                                @*         </a> *@
+                                @*         <a asp-action="Details" asp-route-id="@course.CrsId" class="btn btn-sm btn-outline-info"> *@
+                                @*             <i class="bi bi-info-circle"></i> Details *@
+                                @*         </a> *@
+                                @*         <a asp-action="Delete" asp-route-id="@course.CrsId" class="btn btn-sm btn-outline-danger"> *@
+                                @*             <i class="bi bi-trash"></i> Delete *@
+                                @*         </a> *@
+                                @*         <a asp-controller="AdminExam" asp-action="Index" asp-route-courseId="@course.CrsId" class="btn btn-sm btn-outline-secondary"> *@
+                                @*             <i class="bi bi-file-earmark-text"></i> Exams *@
+                                @*         </a> *@
+                                @*     </div> *@
+                                @* </td> *@
                             </tr>
                         }
                     </tbody>
                 </table>
+            </div>
+
+            <!-- Pagination -->
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item @(Model.CurrentPage == 1 ? "disabled" : "")">
+                        <!-- Update all pagination links like this -->
+                        <a class="page-link"
+                           asp-action="Index"
+                           asp-route-pageNumber="@(Model.CurrentPage - 1)"
+                           asp-route-isActive="@Model.IsActive"
+                           asp-route-branchId="@Model.BranchId"
+                           asp-route-trackId="@Model.TrackId">
+                            Previous
+                        </a>
+                    </li>
+
+                    @for (int i = 1; i <= Model.TotalPages; i++)
+                    {
+                        <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                            <a class="page-link"
+                               asp-action="Index"
+                               asp-route-pageNumber="@i"
+                               asp-route-isActive="@Model.IsActive"
+                               asp-route-branchId="@Model.BranchId"
+                               asp-route-trackId="@Model.TrackId">@i</a>
+                        </li>
+                    }
+
+                    <li class="page-item @(Model.CurrentPage == Model.TotalPages ? "disabled" : "")">
+                        <!-- Update ALL pagination links like this example: -->
+                        <a class="page-link"
+                           asp-action="Index"
+                           asp-route-pageNumber="@(Model.CurrentPage - 1)"
+                           asp-route-isActive="@Model.IsActive"
+                           asp-route-branchId="@Model.BranchId"
+                           asp-route-trackId="@Model.TrackId">
+                            Previous
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <div class="text-muted text-center">
+                Showing page @Model.CurrentPage of @Model.TotalPages (Total items: @(Model.TotalPages * Model.PageSize))
             </div>
         }
         else
@@ -86,26 +175,41 @@
         }
     </div>
 </div>
+
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        function submitFilterForm() {
+            document.getElementById('filterForm').submit();
+        }
+
+        function resetTrackAndSubmit() {
+            // Reset track filter when branch changes
+            document.getElementById('trackFilter').value = '';
+            submitFilterForm();
+        }
+
+        function resetFilter() {
+            window.location.href = '@Url.Action("Index")';
+        }
+
         $(document).ready(function() {
         @if (TempData["Success"] != null && ((bool)TempData["Success"]))
         {
             <text>
-                                // Create a temporary div to decode HTML entities
-                                var tempDiv = document.createElement('div');
-                                tempDiv.innerHTML = "@TempData["Message"]";
-                                var decodedMessage = tempDiv.textContent;
+                        var tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = "@TempData["Message"]";
+                        var decodedMessage = tempDiv.textContent;
 
-                                Swal.fire({
-                                    title: "Success!",
-                                    text: decodedMessage,
-                                    icon: "success",
-                                    confirmButtonColor: "#a41e22"
-                                });
+                        Swal.fire({
+                            title: "Success!",
+                            text: decodedMessage,
+                            icon: "success",
+                            confirmButtonColor: "#a41e22"
+                        });
             </text>
         }
         });
     </script>
+}
 }

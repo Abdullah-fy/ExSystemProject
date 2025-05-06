@@ -17,7 +17,25 @@ namespace ExSystemProject.Repository
             _context = context;
         }
 
-        
+        public IEnumerable<Course> GetAllCourses(bool? isActive = null, int? branchId = null, int? trackId = null)
+        {
+            var query = _context.Courses
+                .Include(c => c.Ins)
+                .ThenInclude(i => i.Track)
+                .ThenInclude(t => t.Branch)
+                .Include(c => c.Ins)
+                .ThenInclude(i => i.User)
+                .AsQueryable();
+
+            if (isActive.HasValue)
+                query = query.Where(c => c.Isactive == isActive.Value);
+            if (branchId.HasValue)
+                query = query.Where(c => c.Ins != null && c.Ins.Track != null && c.Ins.Track.BranchId == branchId.Value);
+            if (trackId.HasValue)
+                query = query.Where(c => c.Ins != null && c.Ins.TrackId == trackId.Value);
+
+            return query;
+        }
 
         // Call stored procedure to create a course
         public void CreateCourse(Course course)

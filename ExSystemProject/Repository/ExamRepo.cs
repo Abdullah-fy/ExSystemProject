@@ -15,7 +15,30 @@ namespace ExSystemProject.Repository
         {
             _context = context;
         }
+        public IEnumerable<Exam> GetAllExams(bool? isActive = null, int? courseId = null, int? insId = null)
+        {
+            var query = _context.Exams
+                .Include(e => e.Crs)
+                .Include(e => e.Ins)
+                .AsQueryable();
 
+            if (isActive.HasValue)
+            {
+                query = query.Where(e => e.Isactive == isActive.Value);
+            }
+
+            if (courseId.HasValue)
+            {
+                query = query.Where(e => e.CrsId == courseId.Value);
+            }
+
+            if (insId.HasValue)
+            {
+                query = query.Where(e => e.InsId == insId.Value);
+            }
+
+            return query.ToList();
+        }
         // Call stored procedure to create a blank exam
         public int CreateBlankExam(Exam exam)
         {

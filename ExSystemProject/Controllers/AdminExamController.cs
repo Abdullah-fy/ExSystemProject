@@ -22,29 +22,73 @@ namespace ExSystemProject.Controllers
         }
 
         // GET: AdminExam
-        public IActionResult Index(int? courseId = null)
+        //public IActionResult Index(int? courseId = null)
+        //{
+        //    var userId = GetCurrentUserId();
+
+        //    List<Exam> exams;
+
+        //    if (courseId.HasValue)
+        //    {
+        //        // Get exams for a specific course
+        //        exams = _unitOfWork.courseRepo.GetExamsByCourseId(courseId.Value);
+        //        ViewBag.CourseId = courseId;
+        //        ViewBag.CourseName = _unitOfWork.courseRepo.GetCourseById(courseId.Value)?.CrsName;
+        //    }
+        //    else
+        //    {
+        //        // Get all exams
+        //        exams = _unitOfWork.examRepo.GetAllExams();
+        //    }
+
+        //    var examDTOs = _mapper.Map<List<ExamDTO>>(exams);
+        //    return View(examDTOs);
+        //}
+        public IActionResult Index(int? courseId = null, bool? isActive = null, int? insId = null, int pageNumber = 1, int pageSize = 10)
         {
             var userId = GetCurrentUserId();
 
-            List<Exam> exams;
+            // Get exams with filters
+            var query = _unitOfWork.examRepo.GetAllExams(isActive, courseId, insId);
 
+            // Count total exams for pagination
+            var totalExams = query.Count();
+
+            // Apply pagination
+            var paginatedExams = query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+
+            var examDTOs = _mapper.Map<List<ExamDTO>>(paginatedExams);
+
+            // Set ViewBag properties for filters and pagination
+            ViewBag.CourseId = courseId;
             if (courseId.HasValue)
             {
-                // Get exams for a specific course
-                exams = _unitOfWork.courseRepo.GetExamsByCourseId(courseId.Value);
-                ViewBag.CourseId = courseId;
                 ViewBag.CourseName = _unitOfWork.courseRepo.GetCourseById(courseId.Value)?.CrsName;
             }
-            else
-            {
-                // Get all exams
-                exams = _unitOfWork.examRepo.GetAllExams();
-            }
+            ViewBag.IsActive = isActive;
+            ViewBag.InsId = insId;
+            ViewBag.CurrentPage = pageNumber;
+            ViewBag.TotalPages = (int)Math.Ceiling(totalExams / (double)pageSize);
+            ViewBag.PageSize = pageSize;
+            ViewBag.TotalExams = totalExams;
 
-            var examDTOs = _mapper.Map<List<ExamDTO>>(exams);
+            // Populate filter dropdowns
+            ViewBag.Courses = new SelectList(
+                _unitOfWork.courseRepo.GetAllCourses(isActive: null, branchId: null, trackId: null),
+                "CrsId",
+                "CrsName",
+                courseId
+            );
+
+            ViewBag.Instructors = new SelectList(
+                _unitOfWork.instructorRepo.getAll(),
+                "InsId",
+                "User.Username",
+                insId
+            );
+
             return View(examDTOs);
         }
-
         // GET: AdminExam/Details/5
         public IActionResult Details(int id)
         {

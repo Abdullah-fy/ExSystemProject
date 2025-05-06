@@ -22,16 +22,39 @@ namespace ExSystemProject.Controllers
         }
 
         // GET: AdminCourse
-        public IActionResult Index()
+        //public IActionResult Index()
+        //{
+        //    var userId = GetCurrentUserId();
+
+        //    // Pass null to get both active and inactive courses
+        //    var courses = _unitOfWork.courseRepo.GetAllCourses(null);
+        //    var courseDTOs = _mapper.Map<List<CourseDTO>>(courses);
+        //    return View(courseDTOs);
+        //}
+        public IActionResult Index(bool? isActive = null, int? branchId = null, int? trackId = null, int pageNumber = 1, int pageSize = 10)
         {
-            var userId = GetCurrentUserId();
+            var courses = _unitOfWork.courseRepo.GetAllCourses(isActive, branchId, trackId);
+            var paginatedCourses = courses.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+            var courseDTOs = _mapper.Map<List<CourseNewDTO>>(paginatedCourses);
 
-            // Pass null to get both active and inactive courses
-            var courses = _unitOfWork.courseRepo.GetAllCourses(null);
-            var courseDTOs = _mapper.Map<List<CourseDTO>>(courses);
-            return View(courseDTOs);
+            var branches = _unitOfWork.branchRepo.GetAllActive();
+            var tracks = branchId.HasValue ? _unitOfWork.trackRepo.GetActiveTracksByBranchId(branchId.Value) : new List<Track>();
+
+            var viewModel = new CourseListViewModel
+            {
+                Courses = courseDTOs,
+                CurrentPage = pageNumber,
+                TotalPages = (int)Math.Ceiling(courses.Count() / (double)pageSize),
+                PageSize = pageSize,
+                IsActive = isActive,
+                BranchId = branchId,
+                TrackId = trackId,
+                Branches = new SelectList(branches, "BranchId", "BranchName", branchId),
+                Tracks = new SelectList(tracks, "TrackId", "TrackName", trackId)
+            };
+
+            return View(viewModel);
         }
-
         // GET: AdminCourse/Details/5
         public IActionResult Details(int id)
         {
@@ -66,6 +89,29 @@ namespace ExSystemProject.Controllers
         }
 
         // POST: AdminCourse/Create
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //public IActionResult Create(CourseDTO courseDTO)
+        //{
+        //    var userId = GetCurrentUserId();
+
+        //    if (ModelState.IsValid)
+        //    {
+        //        var course = _mapper.Map<Course>(courseDTO);
+
+        //        // Using the enhanced repository method to create a course
+        //        _unitOfWork.courseRepo.CreateCourse(course);
+
+        //        TempData["Success"] = true;
+        //        TempData["Message"] = $"Course '{courseDTO.CrsName}' has been created successfully.";
+
+        //        return RedirectToAction(nameof(Index));
+        //    }
+
+        //    var instructors = _unitOfWork.instructorRepo.getAll();
+        //    ViewBag.Instructors = new SelectList(instructors, "InsId", "User.Username");
+        //    return View(courseDTO);
+        //}
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Create(CourseDTO courseDTO)
@@ -75,13 +121,10 @@ namespace ExSystemProject.Controllers
             if (ModelState.IsValid)
             {
                 var course = _mapper.Map<Course>(courseDTO);
-
-                // Using the enhanced repository method to create a course
                 _unitOfWork.courseRepo.CreateCourse(course);
 
                 TempData["Success"] = true;
                 TempData["Message"] = $"Course '{courseDTO.CrsName}' has been created successfully.";
-
                 return RedirectToAction(nameof(Index));
             }
 

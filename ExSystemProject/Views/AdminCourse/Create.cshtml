@@ -9,18 +9,18 @@
         <h5 class="mb-0">Create New Course</h5>
     </div>
     <div class="card-body">
-        <form asp-action="Create" method="post">
+        <form asp-action="Create" method="post" id="courseForm">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
             <div class="mb-3">
                 <label asp-for="CrsName" class="form-label">Course Name</label>
-                <input asp-for="CrsName" class="form-control" required />
+                <input asp-for="CrsName" class="form-control" />
                 <span asp-validation-for="CrsName" class="text-danger"></span>
             </div>
 
             <div class="mb-3">
                 <label asp-for="CrsPeriod" class="form-label">Duration (Hours)</label>
-                <input asp-for="CrsPeriod" class="form-control" type="number" min="1" />
+                <input asp-for="CrsPeriod" class="form-control" type="number" />
                 <span asp-validation-for="CrsPeriod" class="text-danger"></span>
             </div>
 
@@ -59,11 +59,14 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         $(document).ready(function() {
-            $('form').submit(function(e) {
-                if ($(this).valid()) {
-                    e.preventDefault();
-                    var form = this;
+            // Initialize unobtrusive validation
+            $.validator.unobtrusive.parse("#courseForm");
 
+            $('#courseForm').submit(function(e) {
+                e.preventDefault();
+                var form = $(this);
+
+                if (form.valid()) {
                     Swal.fire({
                         title: "Creating course...",
                         html: "Please wait",
@@ -71,12 +74,10 @@
                         didOpen: () => {
                             Swal.showLoading();
                             setTimeout(() => {
-                                form.submit();
+                                form[0].submit();
                             }, 800);
                         }
                     });
-
-                    return false;
                 }
             });
         });
