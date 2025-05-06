@@ -321,11 +321,8 @@ namespace ExSystemProject.Repository
 
         //        using (var command = _context.Database.GetDbConnection().CreateCommand())
         //        {
-<<<<<<< HEAD
         //            command.CommandText = "EXEC sp_GetStudentsByBranchIdWithBranch @branch_id, @ActiveOnly";
-=======
         //            command.CommandText = "EXEC sp_GetStudentsByBranchId @branch_id, @ActiveOnly";
->>>>>>> ff5be714d89f8dbc9d138e366920433c8e0422e5
         //            command.Parameters.Add(parameters[0]);
         //            command.Parameters.Add(parameters[1]);
         //            command.CommandType = CommandType.Text;
@@ -377,10 +374,81 @@ namespace ExSystemProject.Repository
         //        return new List<Student>();
         //    }
         //}
-<<<<<<< HEAD
-=======
 
->>>>>>> ff5be714d89f8dbc9d138e366920433c8e0422e5
+        //public List<Student> GetStudentsByBranchId(int branchId, bool? activeStudents = true)
+        //{
+        //    var students = _context.Students
+        //        .Include(s => s.User)
+        //        .Include(s => s.Track)
+        //            .ThenInclude(t => t.Branch)
+        //        .Where(s => s.Track.BranchId == branchId).ToList();
+
+        //        // Use direct SQL query with parameters to get results
+        //        var parameters = new[]
+        //        {
+        //            new SqlParameter("@branch_id", SqlDbType.Int) { Value = branchId },
+        //            new SqlParameter("@ActiveOnly", SqlDbType.Bit) { Value = activeStudents ?? true }
+        //        };
+
+        //        // Execute stored procedure and map results
+        //        //var students = new List<Student>();
+
+        //        using (var command = _context.Database.GetDbConnection().CreateCommand())
+        //        {
+        //            command.CommandText = "EXEC sp_GetStudentsByBranchId @branch_id, @ActiveOnly";
+        //            command.Parameters.AddRange(parameters);
+        //            command.CommandType = CommandType.Text;
+
+        //            _context.Database.OpenConnection();
+
+        //            using (var result = command.ExecuteReader())
+        //            {
+        //                while (result.Read())
+        //                {
+        //                    var student = new Student
+        //                    {
+        //                        StudentId = result.GetInt32(result.GetOrdinal("StudentId")),
+        //                        EnrollmentDate = result.GetDateTime(result.GetOrdinal("EnrollmentDate")),
+        //                        Isactive = result.GetBoolean(result.GetOrdinal("IsActive")),
+        //                        // Removed TrackId since it's not in the result set
+        //                        User = new User
+        //                        {
+        //                            Username = result.GetString(result.GetOrdinal("username")),
+        //                            Email = result.GetString(result.GetOrdinal("email")),
+        //                            Gender = result.GetString(result.GetOrdinal("gender")),
+        //                            Img = result["ProfileImage"] != DBNull.Value ?
+        //                                result.GetString(result.GetOrdinal("ProfileImage")) : null
+        //                        },
+        //                        Track = new Track
+        //                        {
+        //                            TrackName = result.GetString(result.GetOrdinal("track_name")),
+        //                            BranchId = branchId,
+        //                            Branch = new Branch
+        //                            {
+        //                                BranchName = result.GetString(result.GetOrdinal("branch_name"))
+        //                            }
+        //                        }
+        //                    };
+
+        //                    students.Add(student);
+        //                }
+        //            }
+        //        }
+
+        //        return students;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        // Log the exception if possible
+        //        Console.WriteLine($"Error in GetStudentsByBranchId: {ex.Message}");
+        //        return new List<Student>();
+        //    }
+
+        //    if (activeStudents.HasValue)
+        //        students = students.Where(s => s.Isactive == activeStudents.Value);
+
+        //    return students.ToList();
+        //}
         public List<Student> GetStudentsByBranchId(int branchId, bool? activeStudents = true)
         {
             var students = _context.Students
@@ -389,73 +457,10 @@ namespace ExSystemProject.Repository
                     .ThenInclude(t => t.Branch)
                 .Where(s => s.Track.BranchId == branchId);
 
-<<<<<<< HEAD
-                // Use direct SQL query with parameters to get results
-                var parameters = new[]
-                {
-            new SqlParameter("@branch_id", SqlDbType.Int) { Value = branchId },
-            new SqlParameter("@ActiveOnly", SqlDbType.Bit) { Value = activeStudents ?? true }
-        };
-
-                // Execute stored procedure and map results
-                var students = new List<Student>();
-
-                using (var command = _context.Database.GetDbConnection().CreateCommand())
-                {
-                    command.CommandText = "EXEC sp_GetStudentsByBranchId @branch_id, @ActiveOnly";
-                    command.Parameters.AddRange(parameters);
-                    command.CommandType = CommandType.Text;
-
-                    _context.Database.OpenConnection();
-
-                    using (var result = command.ExecuteReader())
-                    {
-                        while (result.Read())
-                        {
-                            var student = new Student
-                            {
-                                StudentId = result.GetInt32(result.GetOrdinal("StudentId")),
-                                EnrollmentDate = result.GetDateTime(result.GetOrdinal("EnrollmentDate")),
-                                Isactive = result.GetBoolean(result.GetOrdinal("IsActive")),
-                                // Removed TrackId since it's not in the result set
-                                User = new User
-                                {
-                                    Username = result.GetString(result.GetOrdinal("username")),
-                                    Email = result.GetString(result.GetOrdinal("email")),
-                                    Gender = result.GetString(result.GetOrdinal("gender")),
-                                    Img = result["ProfileImage"] != DBNull.Value ?
-                                        result.GetString(result.GetOrdinal("ProfileImage")) : null
-                                },
-                                Track = new Track
-                                {
-                                    TrackName = result.GetString(result.GetOrdinal("track_name")),
-                                    BranchId = branchId,
-                                    Branch = new Branch
-                                    {
-                                        BranchName = result.GetString(result.GetOrdinal("branch_name"))
-                                    }
-                                }
-                            };
-
-                            students.Add(student);
-                        }
-                    }
-                }
-
-                return students;
-            }
-            catch (Exception ex)
-            {
-                // Log the exception if possible
-                Console.WriteLine($"Error in GetStudentsByBranchId: {ex.Message}");
-                return new List<Student>();
-            }
-=======
             if (activeStudents.HasValue)
                 students = students.Where(s => s.Isactive == activeStudents.Value);
 
             return students.ToList();
->>>>>>> ff5be714d89f8dbc9d138e366920433c8e0422e5
         }
         public Student CreateStudent(Student student)
         {
