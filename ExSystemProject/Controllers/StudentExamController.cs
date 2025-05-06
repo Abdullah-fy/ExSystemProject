@@ -41,7 +41,7 @@ namespace ExSystemProject.Controllers
 
             List<GetAssignExamToStudentDTO> listo = unitOfWork.studentExamRepo.GetAssignExamToStudent(std.StudentId);
 
-
+           
             return View(listo);
         }
 

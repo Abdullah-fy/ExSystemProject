@@ -27,19 +27,23 @@ else
         <tbody>
             @foreach (var item in Model)
             {
-                var isExamStarted = item.StartTime <= now;
+                var isExamActive = now >= item.StartTime && now <= item.EndTime;
                 <tr>
                     <td>@Html.DisplayFor(modelItem => item.ExamName)</td>
                     <td>@Html.DisplayFor(modelItem => item.StartTime)</td>
                     <td>@Html.DisplayFor(modelItem => item.EndTime)</td>
                     <td>
-                        @if (isExamStarted)
+                        @if (isExamActive)
                         {
                             <a asp-action="JoinExam" asp-route-examId="@item.ExamID" class="btn btn-primary btn-sm">Join Exam</a>
                         }
-                        else
+                        else if (now < item.StartTime)
                         {
                             <button class="btn btn-secondary btn-sm" disabled>Not Started Yet</button>
+                        }
+                        else
+                        {
+                        <button class="btn btn-danger btn-sm" disabled>Exam Ended</button>
                         }
                     </td>
                 </tr>

@@ -23,7 +23,6 @@
     </div>
 </div>
 
-
 @section Scripts {
     <script>
         // Timer functionality
@@ -34,6 +33,7 @@
         // Question state management
         const questions = @Html.Raw(questionsJson);
         let currentIndex = 0;
+        let examSubmitted = false;
 
         // Initialize answers in session storage if not exists
         if (!sessionStorage.getItem('answers')) {
@@ -42,6 +42,28 @@
 
         // Initial question load
         showQuestion(currentIndex);
+
+        // Prevent navigation away from exam page
+        window.addEventListener('beforeunload', function(e) {
+            if (!examSubmitted) {
+                e.preventDefault();
+                e.returnValue = 'Are you sure you want to leave? Your exam will be submitted automatically!';
+                return e.returnValue;
+            }
+        });
+
+        // Prevent back button navigation
+        history.pushState(null, null, location.href);
+        window.onpopstate = function(event) {
+            if (!examSubmitted) {
+                const confirmLeave = confirm("Warning: Going back will submit your exam immediately. Are you sure?");
+                if (confirmLeave) {
+                    submitExam();
+                } else {
+                    history.pushState(null, null, location.href);
+                }
+            }
+        };
 
         function updateTimer() {
             const minutes = Math.floor(duration / 60);
@@ -105,10 +127,13 @@
         }
 
         function submitExam() {
+            examSubmitted = true; // Mark exam as submitted
+
             const answers = JSON.parse(sessionStorage.getItem('answers') || '{}');
             const unanswered = questions.filter(q => !answers[q.quesId]);
 
             if (unanswered.length > 0 && !confirm(`You have ${unanswered.length} unanswered questions. Submit anyway?`)) {
+                examSubmitted = false;
                 return;
             }
 
@@ -150,6 +175,7 @@
             .catch(err => {
                 console.error("Error:", err);
                 alert("An error occurred during submission. Please try again.");
+                examSubmitted = false;
             });
         }
     </script>
