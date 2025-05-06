@@ -31,61 +31,37 @@
             </div>
         }
 
-        <div class="row mb-4">
-            <div class="col-md-12">
-                <form asp-action="Index" method="get" class="row g-3">
-                    <div class="col-md-3">
-                        <label class="form-label">Branch</label>
-                        <select name="branchId" class="form-select" asp-items="ViewBag.Branches" onchange="this.form.submit()">
-                            <option value="">-- All Branches --</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Track</label>
-                        <select name="trackId" class="form-select" asp-items="ViewBag.Tracks" onchange="this.form.submit()">
-                            <option value="">-- All Tracks --</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Status</label>
-                        <select name="activeOnly" class="form-select" onchange="this.form.submit()">
-                            @if (ViewBag.ActiveOnly == true)
-                            {
-                                <option value="true" selected="selected">Active Only</option>
-                            }
-                            else
-                            {
-                                <option value="true">Active Only</option>
-                            }
-
-                            @if (ViewBag.ActiveOnly == false)
-                            {
-                                <option value="false" selected="selected">Inactive Only</option>
-                            }
-                            else
-                            {
-                                <option value="false">Inactive Only</option>
-                            }
-
-                            @if (ViewBag.ActiveOnly == null)
-                            {
-                                <option value="" selected="selected">All</option>
-                            }
-                            else
-                            {
-                                <option value="">All</option>
-                            }
-                        </select>
-                    </div>
-                </form>
+        <form asp-action="Index" method="get" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Branch</label>
+                <select name="branchId" class="form-select" asp-items="ViewBag.Branches" onchange="this.form.submit()">
+                    <option value="">-- All Branches --</option>
+                </select>
             </div>
-        </div>
+
+            <div class="col-md-3">
+                <label class="form-label">Track</label>
+                <select name="trackId" class="form-select" asp-items="ViewBag.Tracks" onchange="this.form.submit()">
+                    <option value="">-- All Tracks --</option>
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label">Status</label>
+                <select name="activeOnly" class="form-select" onchange="this.form.submit()">
+                    <option value="" selected="@(ViewBag.ActiveOnly == null)">All</option>
+                    <option value="true" selected="@(ViewBag.ActiveOnly == true)">Active Only</option>
+                    <option value="false" selected="@(ViewBag.ActiveOnly == false)">Inactive Only</option>
+                </select>
+            </div>
+        </form>
+
 
         @if (ViewBag.BranchId != null)
         {
             <div class="alert alert-info">
                 <i class="bi bi-filter"></i> Filtered by Branch: <strong>@ViewBag.BranchName</strong>
-                <a asp-action="Index" class="float-end">Clear Filter</a>
+                <a asp-action="Index" asp-route-trackId="@ViewBag.TrackId" asp-route-activeOnly="@ViewBag.ActiveOnly" class="float-end">Clear Branch Filter</a>
             </div>
         }
 
@@ -93,9 +69,10 @@
         {
             <div class="alert alert-info">
                 <i class="bi bi-filter"></i> Filtered by Track: <strong>@ViewBag.TrackName</strong>
-                <a asp-action="Index" class="float-end">Clear Filter</a>
+                <a asp-action="Index" asp-route-branchId="@ViewBag.BranchId" asp-route-activeOnly="@ViewBag.ActiveOnly" class="float-end">Clear Track Filter</a>
             </div>
         }
+
 
         @if (TempData["SuccessMessage"] != null)
         {

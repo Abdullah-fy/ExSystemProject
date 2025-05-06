@@ -88,36 +88,26 @@ namespace ExSystemProject.Controllers
             return Ok(new { message = "Exam deactivated successfully." });
         }
 
-        public IActionResult ResultsofExams()
+        public async Task<IActionResult> ResultsofExams()
         {
             var userclaim = User.FindFirst(s => s.Type == ClaimTypes.NameIdentifier);
-            // checking first if student login or not 
             if (userclaim == null || string.IsNullOrEmpty(userclaim.Value))
-                return Unauthorized(); // should redirect to login page 
+                return Unauthorized();
 
             var userid = userclaim.Value;
-
-            //var trackid = Request.Cookies["TrackId"];
-
-            //if (string.IsNullOrEmpty(trackid))
-            //    return Unauthorized(); // or redirect to login
-
-
             var std = unitOfWork.studentRepo.Getstd(Convert.ToInt32(userid));
             if (std == null || std.Track == null)
                 return NotFound();
+
             var exams = unitOfWork.studentExamRepo.GetAssignExamToStudent(std.StudentId);
             var results = new List<StudentExamResultsDTO>();
 
             foreach (var exam in exams)
             {
-                var result = unitOfWork.studentExamRepo.GetStudentExamResult(std.StudentId, exam.ExamID);
-                if (result != null)
+                var examResults = await unitOfWork.studentExamRepo.GetStudentExamResultsAsync(exam.ExamID, std.StudentId);
+                if (examResults != null)
                 {
-                    foreach (var res in result)
-                    {
-                        results.Add(res);
-                    }
+                    results.AddRange(examResults);
                 }
             }
 

@@ -29,94 +29,50 @@
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             }
-            
-            <div class="row mb-4">
-                <div class="col-12">
-                    <form asp-action="Index" method="get" class="row g-3">
-                        <div class="col-md-3">
-                            <label class="form-label">Branch</label>
-                            <select name="branchId" class="form-select" id="branchFilter" onchange="loadTracksByBranch()">
-                                <option value="">-- All Branches --</option>
-                                @foreach (var branch in ViewBag.Branches)
-                                {
-                                    @if (ViewBag.SelectedBranch != null && int.Parse(branch.Value) == ViewBag.SelectedBranch)
-                                    {
-                                        <option value="@branch.Value" selected>@branch.Text</option>
-                                    }
-                                    else
-                                    {
-                                        <option value="@branch.Value">@branch.Text</option>
-                                    }
-                                }
-                            </select>
-                        </div>
-                        
-                        <div class="col-md-3">
-                            <label class="form-label">Track</label>
-                            <select name="trackId" class="form-select" id="trackFilter">
-                                <option value="">-- All Tracks --</option>
-                                @if (ViewBag.Tracks != null)
-                                {
-                                    foreach (var track in ViewBag.Tracks)
-                                    {
-                                        @if (ViewBag.SelectedTrack != null && int.Parse(track.Value) == ViewBag.SelectedTrack)
-                                        {
-                                            <option value="@track.Value" selected>@track.Text</option>
-                                        }
-                                        else
-                                        {
-                                            <option value="@track.Value">@track.Text</option>
-                                        }
-                                    }
-                                }
-                            </select>
-                        </div>
-                        
-                        <div class="col-md-3">
-                            <label class="form-label">Status</label>
-                            <select name="activeOnly" class="form-select">
-                                @if (ViewBag.ActiveOnly == true)
-                                {
-                                    <option value="true" selected="selected">Active Only</option>
-                                }
-                                else
-                                {
-                                    <option value="true">Active Only</option>
-                                }
 
-                                @if (ViewBag.ActiveOnly == false)
-                                {
-                                    <option value="false" selected="selected">Inactive Only</option>
-                                }
-                                else
-                                {
-                                    <option value="false">Inactive Only</option>
-                                }
-
-                                @if (ViewBag.ActiveOnly == null)
-                                {
-                                    <option value="" selected="selected">All</option>
-                                }
-                                else
-                                {
-                                    <option value="">All</option>
-                                }
-
-                            </select>
-                        </div>
-                        
-                        <div class="col-md-3">
-                            <label class="form-label">Search</label>
-                            <div class="input-group">
-                                <input type="text" class="form-control" name="searchString" value="@ViewBag.SearchString" placeholder="Search name, email...">
-                                <button class="btn btn-primary" type="submit">
-                                    <i class="bi bi-search"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </form>
+            <form asp-action="Index" method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Branch</label>
+                    <select name="branchId" class="form-select" asp-items="ViewBag.Branches" onchange="this.form.submit()">
+                        <option value="">-- All Branches --</option>
+                    </select>
                 </div>
-            </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Track</label>
+                    <select name="trackId" class="form-select" asp-items="ViewBag.Tracks" onchange="this.form.submit()">
+                        <option value="">-- All Tracks --</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Status</label>
+                    <select name="activeOnly" class="form-select" onchange="this.form.submit()">
+                        <option value="" selected="@(ViewBag.ActiveOnly == null)">All</option>
+                        <option value="true" selected="@(ViewBag.ActiveOnly == true)">Active Only</option>
+                        <option value="false" selected="@(ViewBag.ActiveOnly == false)">Inactive Only</option>
+                    </select>
+                </div>
+            </form>
+
+
+            @if (ViewBag.BranchId != null)
+            {
+                <div class="alert alert-info">
+                    <i class="bi bi-filter"></i> Filtered by Branch: <strong>@ViewBag.BranchName</strong>
+                    <a asp-action="Index" asp-route-trackId="@ViewBag.TrackId" asp-route-activeOnly="@ViewBag.ActiveOnly" class="float-end">Clear Branch Filter</a>
+                </div>
+            }
+
+            @if (ViewBag.TrackId != null)
+            {
+                <div class="alert alert-info">
+                    <i class="bi bi-filter"></i> Filtered by Track: <strong>@ViewBag.TrackName</strong>
+                    <a asp-action="Index" asp-route-branchId="@ViewBag.BranchId" asp-route-activeOnly="@ViewBag.ActiveOnly" class="float-end">Clear Track Filter</a>
+                </div>
+            }
+
+
 
             @if (TempData["SuccessMessage"] != null)
             {

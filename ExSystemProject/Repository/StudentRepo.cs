@@ -321,7 +321,11 @@ namespace ExSystemProject.Repository
 
         //        using (var command = _context.Database.GetDbConnection().CreateCommand())
         //        {
+<<<<<<< HEAD
         //            command.CommandText = "EXEC sp_GetStudentsByBranchIdWithBranch @branch_id, @ActiveOnly";
+=======
+        //            command.CommandText = "EXEC sp_GetStudentsByBranchId @branch_id, @ActiveOnly";
+>>>>>>> ff5be714d89f8dbc9d138e366920433c8e0422e5
         //            command.Parameters.Add(parameters[0]);
         //            command.Parameters.Add(parameters[1]);
         //            command.CommandType = CommandType.Text;
@@ -373,15 +377,19 @@ namespace ExSystemProject.Repository
         //        return new List<Student>();
         //    }
         //}
+<<<<<<< HEAD
+=======
+
+>>>>>>> ff5be714d89f8dbc9d138e366920433c8e0422e5
         public List<Student> GetStudentsByBranchId(int branchId, bool? activeStudents = true)
         {
-            try
-            {
-                // First check if branch exists
-                var branch = _context.Branches.Find(branchId);
-                if (branch == null)
-                    return new List<Student>();
+            var students = _context.Students
+                .Include(s => s.User)
+                .Include(s => s.Track)
+                    .ThenInclude(t => t.Branch)
+                .Where(s => s.Track.BranchId == branchId);
 
+<<<<<<< HEAD
                 // Use direct SQL query with parameters to get results
                 var parameters = new[]
                 {
@@ -442,6 +450,12 @@ namespace ExSystemProject.Repository
                 Console.WriteLine($"Error in GetStudentsByBranchId: {ex.Message}");
                 return new List<Student>();
             }
+=======
+            if (activeStudents.HasValue)
+                students = students.Where(s => s.Isactive == activeStudents.Value);
+
+            return students.ToList();
+>>>>>>> ff5be714d89f8dbc9d138e366920433c8e0422e5
         }
         public Student CreateStudent(Student student)
         {
@@ -770,6 +784,25 @@ namespace ExSystemProject.Repository
                 Console.WriteLine($"Error in GetStudentsByDepartmentWithBranch: {ex.Message}");
                 return new List<Student>();
             }
+        }
+
+
+        public List<Student> GetStudentsByBranchAndTrackName(string branchName, string trackName, bool? activeStudents = true)
+        {
+            var students = _context.Students
+                .Include(s => s.User)
+                .Include(s => s.Track)
+                    .ThenInclude(t => t.Branch)
+                .Where(s =>
+                    s.Track.TrackName == trackName &&
+                    s.Track.Branch.BranchName == branchName);
+
+            if (activeStudents.HasValue)
+            {
+                students = students.Where(s => s.Isactive == activeStudents.Value);
+            }
+
+            return students.ToList();
         }
 
 

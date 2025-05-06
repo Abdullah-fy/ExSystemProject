@@ -24,64 +24,53 @@ namespace ExSystemProject.Controllers
         }
 
         // GET: AdminInstructor
-        public IActionResult Index(int? branchId = null, int? trackId = null, string searchString = null, bool? activeOnly = true)
+        public IActionResult Index(int? branchId = null, int? trackId = null, bool? activeOnly = null)
         {
             var userId = GetCurrentUserId();
 
             List<Instructor> instructors;
 
-            // Apply filters
             if (branchId.HasValue && trackId.HasValue)
             {
+                Track track = _unitOfWork.trackRepo.getById(trackId.Value);
+                Branch branch = _unitOfWork.branchRepo.getById(branchId.Value);
+
                 instructors = _unitOfWork.instructorRepo.GetInstructorsByTrackWithBranch(trackId.Value, activeOnly);
+
+                ViewBag.BranchId = branchId;
+                ViewBag.BranchName = branch?.BranchName;
+                ViewBag.TrackId = trackId;
+                ViewBag.TrackName = track?.TrackName;
             }
             else if (branchId.HasValue)
             {
                 instructors = _unitOfWork.instructorRepo.GetInstructorsByBranchWithBranch(branchId.Value, activeOnly);
+                ViewBag.BranchId = branchId;
+                ViewBag.BranchName = _unitOfWork.branchRepo.getById(branchId.Value)?.BranchName;
+            }
+            else if (trackId.HasValue)
+            {
+                instructors = _unitOfWork.instructorRepo.GetInstructorsByTrackId(trackId.Value, activeOnly);
+                ViewBag.TrackId = trackId;
+                ViewBag.TrackName = _unitOfWork.trackRepo.getById(trackId.Value)?.TrackName;
             }
             else
             {
                 instructors = _unitOfWork.instructorRepo.GetAllInstructorsWithBranch(activeOnly);
             }
 
-            // Apply search filter if provided
-            if (!string.IsNullOrEmpty(searchString))
-            {
-                instructors = instructors.Where(i =>
-                    i.User.Username.Contains(searchString, StringComparison.OrdinalIgnoreCase) ||
-                    i.User.Email.Contains(searchString, StringComparison.OrdinalIgnoreCase) ||
-                    (i.Track != null && i.Track.TrackName.Contains(searchString, StringComparison.OrdinalIgnoreCase))
-                ).ToList();
-            }
+            // Dropdowns for filters
+            var branches = _unitOfWork.branchRepo.getAll();
+            var tracks = _unitOfWork.trackRepo.GetDistictTracks();
 
-            // Map to DTOs
-            var instructorDTOs = _mapper.Map<List<InstructorDTO>>(instructors);
-
-            // Get branches for filtering
-            ViewBag.Branches = _unitOfWork.branchRepo.getAll().Select(b => new SelectListItem
-            {
-                Text = b.BranchName,
-                Value = b.BranchId.ToString()
-            }).ToList();
-
-            // Get tracks for the selected branch
-            if (branchId.HasValue)
-            {
-                ViewBag.Tracks = _unitOfWork.trackRepo.GetTracksByBranchId(branchId.Value).Select(t => new SelectListItem
-                {
-                    Text = t.TrackName,
-                    Value = t.TrackId.ToString()
-                }).ToList();
-            }
-
-            // Set filter values for the view
-            ViewBag.SelectedBranch = branchId;
-            ViewBag.SelectedTrack = trackId;
-            ViewBag.SearchString = searchString;
+            ViewBag.Branches = new SelectList(branches, "BranchId", "BranchName", branchId);
+            ViewBag.Tracks = new SelectList(tracks, "TrackId", "TrackName", trackId);
             ViewBag.ActiveOnly = activeOnly;
 
+            var instructorDTOs = _mapper.Map<List<InstructorDTO>>(instructors);
             return View(instructorDTOs);
         }
+
 
         // GET: AdminInstructor/Details/5
         public IActionResult Details(int id)

@@ -127,12 +127,12 @@
             </div>
         }
 
-        <h6 class="border-bottom pb-2 mt-4 mb-3">
-            Assigned Exams
-            <a asp-action="AssignExam" asp-route-id="@Model.StudentId" class="btn btn-sm btn-outline-primary float-end">
-                <i class="bi bi-plus"></i> Assign New Exam
-            </a>
-        </h6>
+        @* <h6 class="border-bottom pb-2 mt-4 mb-3"> *@
+        @*     Assigned Exams *@
+        @*     <a asp-action="AssignExam" asp-route-id="@Model.StudentId" class="btn btn-sm btn-outline-primary float-end"> *@
+        @*         <i class="bi bi-plus"></i> Assign New Exam *@
+        @*     </a> *@
+        @* </h6> *@
 
         @if (Model.StudentExams != null && Model.StudentExams.Any())
         {
@@ -181,7 +181,7 @@
             </div>
         }
     </div>
-    <div class="card-footer text-end">
+    <div class="card-footer text-start">
         <a asp-action="AssignExam" asp-route-id="@Model.StudentId" class="btn btn-outline-primary">
             <i class="bi bi-file-earmark-text"></i> Assign Exam
         </a>

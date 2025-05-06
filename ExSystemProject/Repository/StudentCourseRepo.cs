@@ -1,5 +1,6 @@
 ﻿using ExSystemProject.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Data;
 
 namespace ExSystemProject.Repository
 {
@@ -90,5 +91,53 @@ namespace ExSystemProject.Repository
         {
             throw new NotImplementedException();
         }
+        public async Task<List<AllStudentCoursesDTO>> GetStudentCoursesAsync(int studentId)
+        {
+            var courses = new List<AllStudentCoursesDTO>();
+
+            try
+            {
+                using var command = _context.Database.GetDbConnection().CreateCommand();
+                command.CommandText = "GetStudentCourses";
+                command.CommandType = CommandType.StoredProcedure;
+
+                var studentParam = command.CreateParameter();
+                studentParam.ParameterName = "@student_id";
+                studentParam.Value = studentId;
+                studentParam.DbType = DbType.Int32;
+                command.Parameters.Add(studentParam);
+
+                await _context.Database.OpenConnectionAsync();
+
+                using var reader = await command.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    courses.Add(new AllStudentCoursesDTO
+                    {
+                        Crs_Id = reader.GetInt32(0),
+                        Crs_Name = reader.GetString(1),
+                        Description = reader.GetString(2),
+                        Crs_period = reader.GetInt32(3),
+                        EnrolledAt = reader.GetDateTime(4),
+                        Grade = reader.IsDBNull(5) ? null : reader.GetString(5) // Handle NULL
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error retrieving student courses: {ex.Message}");
+                throw;
+            }
+            finally
+            {
+                if (_context.Database.GetDbConnection().State == ConnectionState.Open)
+                {
+                    await _context.Database.CloseConnectionAsync();
+                }
+            }
+
+            return courses;
+        }
+
     }
 }
