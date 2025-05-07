@@ -40,6 +40,20 @@ namespace ExSystemProject.Repository
             return query.ToList();
         }
         // Call stored procedure to create a blank exam
+
+        public ExamDTO getexambyid(int examid)
+        {
+            var exam = _context.Exams.FirstOrDefault(s=> s.ExamId == examid);
+            ExamDTO ee = new()
+            {
+                ExamId = exam.ExamId,
+                ExamName = exam.ExamName,
+                StartTime = exam.StartTime,
+                EndTime = exam.EndTime
+            };
+            return ee; 
+            
+        }
         public int CreateBlankExam(Exam exam)
         {
             // Required parameters

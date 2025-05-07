@@ -3,6 +3,14 @@
 @{
     ViewData["Title"] = "Take Exam";
     var questionsJson = Json.Serialize(Model);
+
+    // Calculate exam duration in seconds (difference between start and end)
+    // Default to 60 minutes (3600 seconds) if not available
+    var examDurationSeconds = 60 * 60; // Default value
+    if (ViewBag.startexam != null && ViewBag.endexam != null)
+    {
+        examDurationSeconds = (int)(ViewBag.endexam - ViewBag.startexam).TotalSeconds;
+    }
 }
 
 <div class="alert alert-info mt-3">
@@ -27,7 +35,7 @@
 @section Scripts {
     <script>
         // Timer functionality
-        let duration = 60 * 60; // 60 minutes in seconds
+        let duration = @examDurationSeconds; // Using calculated duration or default
         const timerDisplay = document.getElementById("timer");
         const timerInterval = setInterval(updateTimer, 1000);
 
@@ -60,7 +68,23 @@
             if (!examSubmitted) {
                 const confirmLeave = confirm("Going back will submit your exam with current answers. Are you sure?");
                 if (confirmLeave) {
-                    submitExam(true);
+                    // Check if any answers exist
+                    const answers = JSON.parse(sessionStorage.getItem('answers') || '{}');
+                    const hasAnswers = Object.keys(answers).length > 0;
+
+                    if (!hasAnswers) {
+                        // If no answers, create a payload with null choiceIds
+                        const payload = questions.map(q => ({
+                            studentId: @ViewBag.studentid,
+                            examId: @ViewBag.examid ?? 0,
+                            questionId: q.quesId,
+                            choiceId: null
+                        }));
+
+                        submitExamWithPayload(payload, true);
+                    } else {
+                        submitExam(true);
+                    }
                 } else {
                     history.pushState(null, null, location.href);
                 }
@@ -139,21 +163,15 @@
             }
         }
 
-        function submitExam(forceSubmit = false) {
+        function submitExamWithPayload(payload, forceSubmit = false) {
             if (examSubmitted) return;
 
             examSubmitted = true;
             const submitBtn = document.getElementById('submitBtn');
-            submitBtn.disabled = true;
-            submitBtn.innerText = 'Submitting...';
-
-            const answers = JSON.parse(sessionStorage.getItem('answers') || '{}');
-            const payload = questions.map(q => ({
-                studentId: @ViewBag.studentid,
-                examId: @ViewBag.examid ?? 0,
-                questionId: q.quesId,
-                choiceId: answers[q.quesId] || null
-            }));
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerText = 'Submitting...';
+            }
 
             fetch('/api/exam/submit-all', {
                 method: 'POST',
@@ -184,10 +202,24 @@
                 console.error("Error:", err);
                 alert("An error occurred during submission. Please try again.");
                 examSubmitted = false;
-                submitBtn.disabled = false;
-                submitBtn.innerText = 'Submit Exam';
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = 'Submit Exam';
+                }
                 updateAnsweredCount();
             });
+        }
+
+        function submitExam(forceSubmit = false) {
+            const answers = JSON.parse(sessionStorage.getItem('answers') || '{}');
+            const payload = questions.map(q => ({
+                studentId: @ViewBag.studentid,
+                examId: @ViewBag.examid ?? 0,
+                questionId: q.quesId,
+                choiceId: answers[q.quesId] || null
+            }));
+
+            submitExamWithPayload(payload, forceSubmit);
         }
     </script>
 }
