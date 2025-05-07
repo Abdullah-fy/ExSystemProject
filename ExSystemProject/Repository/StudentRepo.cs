@@ -322,6 +322,7 @@ namespace ExSystemProject.Repository
         //        using (var command = _context.Database.GetDbConnection().CreateCommand())
         //        {
         //            command.CommandText = "EXEC sp_GetStudentsByBranchIdWithBranch @branch_id, @ActiveOnly";
+
         //            command.CommandText = "EXEC sp_GetStudentsByBranchId @branch_id, @ActiveOnly";
         //            command.Parameters.Add(parameters[0]);
         //            command.Parameters.Add(parameters[1]);
@@ -374,6 +375,7 @@ namespace ExSystemProject.Repository
         //        return new List<Student>();
         //    }
         //}
+
 
         //public List<Student> GetStudentsByBranchId(int branchId, bool? activeStudents = true)
         //{
