@@ -116,10 +116,10 @@ namespace ExSystemProject.Repository
                     {
                         Crs_Id = reader.GetInt32(0),
                         Crs_Name = reader.GetString(1),
-                        Description = reader.GetString(2),
+                        Description = reader.IsDBNull(2) ? null : reader.GetString(2),
                         Crs_period = reader.GetInt32(3),
                         EnrolledAt = reader.GetDateTime(4),
-                        Grade = reader.IsDBNull(5) ? null : reader.GetString(5) // Handle NULL
+                        Grade = reader.IsDBNull(5) ? null : reader.GetInt32(5).ToString()
                     });
                 }
             }
