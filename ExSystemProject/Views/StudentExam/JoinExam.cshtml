@@ -7,6 +7,7 @@
 
 <div class="alert alert-info mt-3">
     ⏱ Time Remaining: <span id="timer">--:--</span>
+    <span class="float-right">Answered: <span id="answered-count">0</span>/<span id="total-questions">@Model.Count</span></span>
 </div>
 
 <div id="exam-container">
@@ -19,7 +20,7 @@
     </div>
 
     <div class="mt-4">
-        <button id="submitBtn" class="btn btn-success" onclick="submitExam()">Submit Exam</button>
+        <button id="submitBtn" class="btn btn-success" onclick="submitExam()" disabled>Submit Exam</button>
     </div>
 </div>
 
@@ -42,13 +43,13 @@
 
         // Initial question load
         showQuestion(currentIndex);
+        updateAnsweredCount();
 
         // Prevent navigation away from exam page
         window.addEventListener('beforeunload', function(e) {
             if (!examSubmitted) {
                 e.preventDefault();
                 e.returnValue = 'Your exam progress will be submitted if you leave.';
-                submitExam(true); // Force submit on page close
                 return e.returnValue;
             }
         });
@@ -59,7 +60,7 @@
             if (!examSubmitted) {
                 const confirmLeave = confirm("Going back will submit your exam with current answers. Are you sure?");
                 if (confirmLeave) {
-                    submitExam(true); // Force submit on back button
+                    submitExam(true);
                 } else {
                     history.pushState(null, null, location.href);
                 }
@@ -74,7 +75,7 @@
             if (--duration < 0) {
                 clearInterval(timerInterval);
                 alert("Time is up! Auto-submitting exam.");
-                submitExam(true); // Force submit on timeout
+                submitExam(true);
             }
         }
 
@@ -95,7 +96,7 @@
                 li.innerHTML = `
                     <label>
                         <input type="radio" name="q${q.quesId}" value="${choice.choiceId}"
-                            onchange="saveAnswer(${q.quesId}, ${choice.choiceId})"
+                            onchange="handleAnswerChange(${q.quesId}, ${choice.choiceId})"
                             ${selectedChoiceId == choice.choiceId ? 'checked' : ''} />
                         ${choice.choiceText}
                     </label>`;
@@ -107,10 +108,21 @@
             document.getElementById('nextBtn').disabled = (index === questions.length - 1);
         }
 
-        function saveAnswer(quesId, choiceId) {
+        function handleAnswerChange(quesId, choiceId) {
             const answers = JSON.parse(sessionStorage.getItem('answers') || '{}');
             answers[quesId] = choiceId;
             sessionStorage.setItem('answers', JSON.stringify(answers));
+            updateAnsweredCount();
+        }
+
+        function updateAnsweredCount() {
+            const answers = JSON.parse(sessionStorage.getItem('answers') || '{}');
+            const answeredCount = questions.filter(q => answers[q.quesId]).length;
+            document.getElementById('answered-count').textContent = answeredCount;
+            document.getElementById('total-questions').textContent = questions.length;
+
+            // Enable submit button only when all questions are answered
+            document.getElementById('submitBtn').disabled = answeredCount !== questions.length;
         }
 
         function showNext() {
@@ -122,17 +134,8 @@
 
         function showPrevious() {
             if (currentIndex > 0) {
-                const confirmBack = confirm("Going back will reset your answers for this question. Continue?");
-                if (confirmBack) {
-                    // Reset answer for current question
-                    const currentQuesId = questions[currentIndex].quesId;
-                    const answers = JSON.parse(sessionStorage.getItem('answers') || '{}');
-                    answers[currentQuesId] = null;
-                    sessionStorage.setItem('answers', JSON.stringify(answers));
-
-                    currentIndex--;
-                    showQuestion(currentIndex);
-                }
+                currentIndex--;
+                showQuestion(currentIndex);
             }
         }
 
@@ -145,17 +148,6 @@
             submitBtn.innerText = 'Submitting...';
 
             const answers = JSON.parse(sessionStorage.getItem('answers') || '{}');
-            const unanswered = questions.filter(q => !answers[q.quesId]);
-
-            if (!forceSubmit && unanswered.length > 0) {
-                if (!confirm(`You have ${unanswered.length} unanswered questions. Submit anyway?`)) {
-                    examSubmitted = false;
-                    submitBtn.disabled = false;
-                    submitBtn.innerText = 'Submit Exam';
-                    return;
-                }
-            }
-
             const payload = questions.map(q => ({
                 studentId: @ViewBag.studentid,
                 examId: @ViewBag.examid ?? 0,
@@ -194,6 +186,7 @@
                 examSubmitted = false;
                 submitBtn.disabled = false;
                 submitBtn.innerText = 'Submit Exam';
+                updateAnsweredCount();
             });
         }
     </script>
