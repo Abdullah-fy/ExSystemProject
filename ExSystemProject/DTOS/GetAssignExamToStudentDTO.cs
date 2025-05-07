@@ -7,5 +7,6 @@
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
         public DateOnly ExamDate { get; set; }
+        public bool isactive { get; set; }
     }
 }

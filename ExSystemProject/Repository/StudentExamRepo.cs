@@ -67,11 +67,10 @@ namespace ExSystemProject.Repository
                                 StartTime = reader["startTime"] != DBNull.Value ? Convert.ToDateTime(reader["startTime"]) : DateTime.MinValue,
                                 EndTime = reader["endTime"] != DBNull.Value ? Convert.ToDateTime(reader["endTime"]) : DateTime.MinValue,
                                 ExamDate = reader["examination_date"] != DBNull.Value
-         ? DateOnly.FromDateTime(Convert.ToDateTime(reader["examination_date"]))
-         : DateOnly.MinValue
+                                    ? DateOnly.FromDateTime(Convert.ToDateTime(reader["examination_date"]))
+                                    : DateOnly.MinValue,
+                                isactive = reader["isactive"] != DBNull.Value && Convert.ToBoolean(reader["isactive"])
                             };
-
-
                             exams.Add(exam);
                         }
                     }
@@ -88,7 +87,6 @@ namespace ExSystemProject.Repository
 
             return exams;
         }
-
         public List<QuestionDTO> GetExamQuestionsAndChoices(int examId)
         {
             var questionsDict = new Dictionary<int, QuestionDTO>();

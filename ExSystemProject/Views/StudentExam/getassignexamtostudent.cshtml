@@ -41,9 +41,13 @@ else
                         {
                             <button class="btn btn-secondary btn-sm" disabled>Not Started Yet</button>
                         }
+                        else if(!item.isactive)
+                        {
+                            <button class="btn btn-danger btn-sm" disabled>Exam Ended</button>
+                        }
                         else
                         {
-                        <button class="btn btn-danger btn-sm" disabled>Exam Ended</button>
+                            <button class="btn btn-danger btn-sm" disabled>Exam Ended</button>
                         }
                     </td>
                 </tr>
