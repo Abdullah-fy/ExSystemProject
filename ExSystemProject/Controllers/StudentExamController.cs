@@ -58,7 +58,7 @@ namespace ExSystemProject.Controllers
 
             //if (string.IsNullOrEmpty(trackid))
             //    return Unauthorized(); // or redirect to login
-
+            // hello 
 
             var std = unitOfWork.studentRepo.Getstd(Convert.ToInt32(userid));
             if (std == null || std.Track == null)
