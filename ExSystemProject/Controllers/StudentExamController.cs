@@ -65,6 +65,10 @@ namespace ExSystemProject.Controllers
                 return NotFound();
             var questions = unitOfWork.studentExamRepo.GetExamQuestionsAndChoices(examid);
             ViewBag.examid = examid;
+            // get exam by id to know duration 
+            var examm = unitOfWork.examRepo.getexambyid(examid); 
+            ViewBag.startexam = examm.StartTime; 
+            ViewBag.endexam = examm.EndTime; 
             ViewBag.studentid = std.StudentId;
             return View(questions);
         }
