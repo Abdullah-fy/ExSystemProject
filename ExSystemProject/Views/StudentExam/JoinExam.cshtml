@@ -19,7 +19,7 @@
     </div>
 
     <div class="mt-4">
-        <button class="btn btn-success" onclick="submitExam()">Submit Exam</button>
+        <button id="submitBtn" class="btn btn-success" onclick="submitExam()">Submit Exam</button>
     </div>
 </div>
 
@@ -47,18 +47,19 @@
         window.addEventListener('beforeunload', function(e) {
             if (!examSubmitted) {
                 e.preventDefault();
-                e.returnValue = 'Are you sure you want to leave? Your exam will be submitted automatically!';
+                e.returnValue = 'Your exam progress will be submitted if you leave.';
+                submitExam(true); // Force submit on page close
                 return e.returnValue;
             }
         });
 
-        // Prevent back button navigation
+        // Handle browser back button
         history.pushState(null, null, location.href);
         window.onpopstate = function(event) {
             if (!examSubmitted) {
-                const confirmLeave = confirm("Warning: Going back will submit your exam immediately. Are you sure?");
+                const confirmLeave = confirm("Going back will submit your exam with current answers. Are you sure?");
                 if (confirmLeave) {
-                    submitExam();
+                    submitExam(true); // Force submit on back button
                 } else {
                     history.pushState(null, null, location.href);
                 }
@@ -73,7 +74,7 @@
             if (--duration < 0) {
                 clearInterval(timerInterval);
                 alert("Time is up! Auto-submitting exam.");
-                submitExam();
+                submitExam(true); // Force submit on timeout
             }
         }
 
@@ -121,27 +122,45 @@
 
         function showPrevious() {
             if (currentIndex > 0) {
-                currentIndex--;
-                showQuestion(currentIndex);
+                const confirmBack = confirm("Going back will reset your answers for this question. Continue?");
+                if (confirmBack) {
+                    // Reset answer for current question
+                    const currentQuesId = questions[currentIndex].quesId;
+                    const answers = JSON.parse(sessionStorage.getItem('answers') || '{}');
+                    answers[currentQuesId] = null;
+                    sessionStorage.setItem('answers', JSON.stringify(answers));
+
+                    currentIndex--;
+                    showQuestion(currentIndex);
+                }
             }
         }
 
-        function submitExam() {
-            examSubmitted = true; // Mark exam as submitted
+        function submitExam(forceSubmit = false) {
+            if (examSubmitted) return;
+
+            examSubmitted = true;
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerText = 'Submitting...';
 
             const answers = JSON.parse(sessionStorage.getItem('answers') || '{}');
             const unanswered = questions.filter(q => !answers[q.quesId]);
 
-            if (unanswered.length > 0 && !confirm(`You have ${unanswered.length} unanswered questions. Submit anyway?`)) {
-                examSubmitted = false;
-                return;
+            if (!forceSubmit && unanswered.length > 0) {
+                if (!confirm(`You have ${unanswered.length} unanswered questions. Submit anyway?`)) {
+                    examSubmitted = false;
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = 'Submit Exam';
+                    return;
+                }
             }
 
             const payload = questions.map(q => ({
                 studentId: @ViewBag.studentid,
                 examId: @ViewBag.examid ?? 0,
                 questionId: q.quesId,
-                choiceId: answers[q.quesId] || null // Include unanswered questions
+                choiceId: answers[q.quesId] || null
             }));
 
             fetch('/api/exam/submit-all', {
@@ -165,9 +184,6 @@
             })
             .then(res => {
                 if (!res.ok) throw new Error('Deactivation failed');
-                return res.json();
-            })
-            .then(data => {
                 sessionStorage.removeItem('answers');
                 alert("Exam submitted successfully!");
                 window.location.href = '/Home/Index';
@@ -176,6 +192,8 @@
                 console.error("Error:", err);
                 alert("An error occurred during submission. Please try again.");
                 examSubmitted = false;
+                submitBtn.disabled = false;
+                submitBtn.innerText = 'Submit Exam';
             });
         }
     </script>
