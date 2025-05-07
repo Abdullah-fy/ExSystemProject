@@ -33,17 +33,17 @@ else
                     <td>@Html.DisplayFor(modelItem => item.StartTime)</td>
                     <td>@Html.DisplayFor(modelItem => item.EndTime)</td>
                     <td>
-                        @if (isExamActive)
+                        @if (!item.isactive)
                         {
-                            <a asp-action="JoinExam" asp-route-examId="@item.ExamID" class="btn btn-primary btn-sm">Join Exam</a>
+                            <button class="btn btn-danger btn-sm" disabled>Exam Terminated</button>
                         }
                         else if (now < item.StartTime)
                         {
                             <button class="btn btn-secondary btn-sm" disabled>Not Started Yet</button>
                         }
-                        else if(!item.isactive)
+                        else if (isExamActive)
                         {
-                            <button class="btn btn-danger btn-sm" disabled>Exam Ended</button>
+                            <a asp-action="JoinExam" asp-route-examId="@item.ExamID" class="btn btn-primary btn-sm">Join Exam</a>
                         }
                         else
                         {

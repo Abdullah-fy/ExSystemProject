@@ -33,7 +33,7 @@ namespace ExSystemProject.Controllers
 
             //if (string.IsNullOrEmpty(trackid))
             //    return Unauthorized(); // or redirect to login
-
+            
 
             var std = unitOfWork.studentRepo.Getstd(Convert.ToInt32(userid));
             if (std == null || std.Track == null)
@@ -65,10 +65,6 @@ namespace ExSystemProject.Controllers
                 return NotFound();
             var questions = unitOfWork.studentExamRepo.GetExamQuestionsAndChoices(examid);
             ViewBag.examid = examid;
-            // get exam by id to know duration 
-            var examm = unitOfWork.examRepo.getexambyid(examid); 
-            ViewBag.startexam = examm.StartTime; 
-            ViewBag.endexam = examm.EndTime; 
             ViewBag.studentid = std.StudentId;
             return View(questions);
         }
