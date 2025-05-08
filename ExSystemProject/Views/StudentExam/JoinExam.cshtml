@@ -163,6 +163,29 @@
             }
         }
 
+                function submitExam(forceSubmit = false) {
+            const answers = JSON.parse(sessionStorage.getItem('answers') || {};
+
+            // Build payload - only include answered questions
+            const payload = questions
+                .filter(q => answers[q.quesId] != null) // Only answered questions
+                .map(q => ({
+                    studentId: @ViewBag.studentid,
+                    examId: @ViewBag.examid ?? 0,
+                    questionId: q.quesId,
+                    choiceId: answers[q.quesId]
+                }));
+
+            // Case 1: No answers at all - call empty exam API
+            if (payload.length === 0) {
+                submitEmptyExam();
+                return;
+            }
+
+            // Case 2: Some answers - call normal submit API
+            submitExamWithPayload(payload, forceSubmit);
+        }
+
         function submitExamWithPayload(payload, forceSubmit = false) {
             if (examSubmitted) return;
 
@@ -183,19 +206,8 @@
                 return res.json();
             })
             .then(data => {
-                return fetch('/api/exam/deactivate', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        studentId: @ViewBag.studentid,
-                        examId: @ViewBag.examid ?? 0
-                    })
-                });
-            })
-            .then(res => {
-                if (!res.ok) throw new Error('Deactivation failed');
                 sessionStorage.removeItem('answers');
-                alert("Exam submitted successfully!");
+                alert(data.message || "Exam submitted successfully!");
                 window.location.href = '/Home/Index';
             })
             .catch(err => {
@@ -206,20 +218,52 @@
                     submitBtn.disabled = false;
                     submitBtn.innerText = 'Submit Exam';
                 }
-                updateAnsweredCount();
             });
         }
 
-        function submitExam(forceSubmit = false) {
-            const answers = JSON.parse(sessionStorage.getItem('answers') || '{}');
-            const payload = questions.map(q => ({
-                studentId: @ViewBag.studentid,
-                examId: @ViewBag.examid ?? 0,
-                questionId: q.quesId,
-                choiceId: answers[q.quesId] || null
-            }));
 
-            submitExamWithPayload(payload, forceSubmit);
+
+
+
+        function submitEmptyExam() {
+            if (examSubmitted) return;
+
+            examSubmitted = true;
+            const submitBtn = document.getElementById('submitBtn');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerText = 'Submitting...';
+            }
+
+            fetch('/api/exam/submit-empty', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    studentId: @ViewBag.studentid,
+                    examId: @ViewBag.examid ?? 0
+                })
+            })
+            .then(res => {
+                if (!res.ok) throw new Error('Submission failed');
+                return res.json();
+            })
+            .then(data => {
+                sessionStorage.removeItem('answers');
+                alert(data.message || "Exam submitted with score 0");
+                window.location.href = '/Home/Index';
+            })
+            .catch(err => {
+                console.error("Error:", err);
+                alert("An error occurred during submission. Please try again.");
+                examSubmitted = false;
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = 'Submit Exam';
+                }
+            });
         }
+
+
+
     </script>
 }

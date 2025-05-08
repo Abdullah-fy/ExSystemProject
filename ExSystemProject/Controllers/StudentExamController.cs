@@ -70,15 +70,51 @@ namespace ExSystemProject.Controllers
         }
 
 
+        //[HttpPost("api/exam/submit-all")]
+        //public IActionResult SubmitAnswers([FromBody] List<SubmitAnswerDTO> answers)
+        //{
+        //    foreach (var answer in answers)
+        //    {
+        //        unitOfWork.studentExamRepo.SubmitExamAnswer(answer);
+        //    }
+
+        //    return Ok(new { message = "All answers submitted successfully." });
+        //}
         [HttpPost("api/exam/submit-all")]
         public IActionResult SubmitAnswers([FromBody] List<SubmitAnswerDTO> answers)
         {
-            foreach (var answer in answers)
+            try
             {
-                unitOfWork.studentExamRepo.SubmitExamAnswer(answer);
-            }
+                // Get student and exam IDs from the first answer (they should be the same for all)
+                int studentId = answers.FirstOrDefault()?.StudentId ?? 0;
+                int examId = answers.FirstOrDefault()?.ExamId ?? 0;
 
-            return Ok(new { message = "All answers submitted successfully." });
+                if (studentId == 0 || examId == 0)
+                {
+                    return BadRequest("Missing student or exam information");
+                }
+
+                // Filter out null answers and submit only answered questions
+                var answeredQuestions = answers.Where(a => a.ChoiceId != null).ToList();
+
+                foreach (var answer in answeredQuestions)
+                {
+                    unitOfWork.studentExamRepo.SubmitExamAnswer(answer);
+                }
+
+                // Deactivate the exam regardless of how many answers were submitted
+                unitOfWork.studentExamRepo.DeactivateStudentExam(studentId, examId);
+
+                return Ok(new
+                {
+                    message = $"Submitted {answeredQuestions.Count} answers successfully",
+                    submittedCount = answeredQuestions.Count
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error submitting answers: " + ex.Message });
+            }
         }
 
         [HttpPost("api/exam/deactivate")]
@@ -113,5 +149,28 @@ namespace ExSystemProject.Controllers
 
             return View(results);
         }
+
+
+        [HttpPost("api/exam/submit-empty")]
+        public IActionResult SubmitEmptyExam([FromBody] EmptyExamSubmissionDTO request)
+        {
+            try
+            {
+                // Submit empty exam with score 0
+                string result = unitOfWork.studentExamRepo.SubmitEmptyExam(request.StudentId, request.ExamId);
+
+                // Deactivate the exam
+                unitOfWork.studentExamRepo.DeactivateStudentExam(request.StudentId, request.ExamId);
+
+                return Ok(new { message = result });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error submitting empty exam: " + ex.Message });
+            }
+        }
+
+        // Add this DTO class somewhere in your project
+       
     }
 }

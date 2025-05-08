@@ -350,6 +350,40 @@ namespace ExSystemProject.Repository
         }
 
 
+        public string SubmitEmptyExam(int studentId, int examId)
+        {
+            string resultMessage = "";
+
+            try
+            {
+                using var command = _context.Database.GetDbConnection().CreateCommand();
+                command.CommandText = "sp_SubmitEmptyExam";
+                command.CommandType = CommandType.StoredProcedure;
+
+                command.Parameters.Add(new SqlParameter("@student_id", studentId));
+                command.Parameters.Add(new SqlParameter("@exam_id", examId));
+
+                _context.Database.OpenConnection();
+
+                using var reader = command.ExecuteReader();
+                if (reader.Read())
+                {
+                    resultMessage = reader["Message"].ToString();
+                }
+            }
+            catch (Exception ex)
+            {
+                resultMessage = "Error submitting empty exam: " + ex.Message;
+            }
+            finally
+            {
+                _context.Database.CloseConnection();
+            }
+
+            return resultMessage;
+        }
+
+
     }
 }
 
