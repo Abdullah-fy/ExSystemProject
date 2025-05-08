@@ -21,8 +21,7 @@ namespace ExSystemProject
                 cfg.AddProfile<MappingProfile>();
             });
             builder.Services.AddAutoMapper(typeof(MmappingProfile));
-
-            builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(s =>
+             builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(s =>
             {
                 s.LoginPath = "/Account/Login";
                 s.LogoutPath = "/Account/Login";

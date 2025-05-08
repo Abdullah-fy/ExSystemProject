@@ -3,7 +3,8 @@
 @{
     ViewData["Title"] = "Take Exam";
     var questionsJson = Json.Serialize(Model);
-
+    ViewBag.studentid = ViewBag.studentid ?? 0;
+    ViewBag.examid = ViewBag.examid ?? 0;
     // Calculate exam duration in seconds (difference between start and end)
     // Default to 60 minutes (3600 seconds) if not available
     var examDurationSeconds = 60 * 60; // Default value
@@ -70,6 +71,8 @@
                 if (confirmLeave) {
                     // Check if any answers exist
                     const answers = JSON.parse(sessionStorage.getItem('answers') || '{}');
+
+
                     const hasAnswers = Object.keys(answers).length > 0;
 
                     if (!hasAnswers) {
@@ -164,7 +167,7 @@
         }
 
                 function submitExam(forceSubmit = false) {
-            const answers = JSON.parse(sessionStorage.getItem('answers') || {};
+            const answers = JSON.parse(sessionStorage.getItem('answers') || '{}');
 
             // Build payload - only include answered questions
             const payload = questions
