@@ -16,6 +16,15 @@
                 <span>All Exams</span>
             }
         </h5>
+        <!-- Added Create Exam and Generate Random Exam buttons -->
+        <div>
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="bi bi-plus-circle me-1"></i> Create New Exam
+            </a>
+            @* <a asp-action="GenerateRandomExam" class="btn btn-success ms-2">
+                <i class="bi bi-shuffle me-1"></i> Generate Random Exam
+            </a> *@
+        </div>
     </div>
     <div class="card-body">
         <!-- Filter Form -->
@@ -100,8 +109,14 @@
                                         <a asp-action="Details" asp-route-id="@exam.ExamId" class="btn btn-sm btn-outline-info">
                                             <i class="bi bi-info-circle"></i> Details
                                         </a>
+                                        <a asp-action="Edit" asp-route-id="@exam.ExamId" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-pencil"></i> Edit
+                                        </a>
                                         <a asp-controller="AdminQuestionBank" asp-action="Index" asp-route-examId="@exam.ExamId" class="btn btn-sm btn-outline-secondary">
                                             <i class="bi bi-question-circle"></i> Questions
+                                        </a>
+                                        <a asp-action="Delete" asp-route-id="@exam.ExamId" class="btn btn-sm btn-outline-danger">
+                                            <i class="bi bi-trash"></i> Delete
                                         </a>
                                     </div>
                                 </td>

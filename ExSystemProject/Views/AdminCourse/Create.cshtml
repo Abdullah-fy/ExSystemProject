@@ -14,19 +14,35 @@
 
             <div class="mb-3">
                 <label asp-for="CrsName" class="form-label">Course Name</label>
-                <input asp-for="CrsName" class="form-control" />
+                <input asp-for="CrsName" class="form-control" required>
                 <span asp-validation-for="CrsName" class="text-danger"></span>
             </div>
 
             <div class="mb-3">
                 <label asp-for="CrsPeriod" class="form-label">Duration (Hours)</label>
-                <input asp-for="CrsPeriod" class="form-control" type="number" />
+                <input asp-for="CrsPeriod" class="form-control" type="number" required>
                 <span asp-validation-for="CrsPeriod" class="text-danger"></span>
             </div>
 
             <div class="mb-3">
-                <label asp-for="InsId" class="form-label">Instructor</label>
-                <select asp-for="InsId" class="form-select" asp-items="ViewBag.Instructors">
+                <label asp-for="BranchId" class="form-label">Branch</label>
+                <select asp-for="BranchId" class="form-select" asp-items="ViewBag.Branches" id="branchSelect" required>
+                    <option value="">-- Select Branch --</option>
+                </select>
+                <span asp-validation-for="BranchId" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="TrackId" class="form-label">Track</label>
+                <select asp-for="TrackId" class="form-select" id="trackSelect" required>
+                    <option value="">-- Select Track --</option>
+                </select>
+                <span asp-validation-for="TrackId" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="InsId" class="form-label">Instructor (Optional)</label>
+                <select asp-for="InsId" class="form-select" id="instructorSelect">
                     <option value="">-- Select Instructor --</option>
                 </select>
                 <span asp-validation-for="InsId" class="text-danger"></span>
@@ -38,13 +54,13 @@
                 <span asp-validation-for="Description" class="text-danger"></span>
             </div>
 
-            <input type="hidden" asp-for="Isactive" value="true" />
+            <input type="hidden" asp-for="Isactive" value="true">
 
             <div class="d-flex justify-content-between">
                 <a asp-action="Index" class="btn btn-outline-secondary">
                     <i class="bi bi-arrow-left"></i> Back to List
                 </a>
-                <button type="submit" class="btn btn-primary" id="createButton">
+                <button type="submit" class="btn btn-primary">
                     Create Course
                 </button>
             </div>
@@ -56,30 +72,136 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        $(document).ready(function() {
-            // Initialize unobtrusive validation
-            $.validator.unobtrusive.parse("#courseForm");
+        document.addEventListener('DOMContentLoaded', function() {
+            const branchSelect = document.getElementById('branchSelect');
+            const trackSelect = document.getElementById('trackSelect');
+            const instructorSelect = document.getElementById('instructorSelect');
 
-            $('#courseForm').submit(function(e) {
-                e.preventDefault();
-                var form = $(this);
+            // Function to load tracks based on selected branch
+            function loadTracks(branchId, selectedTrackId = '') {
+                if (!branchId) return;
 
-                if (form.valid()) {
-                    Swal.fire({
-                        title: "Creating course...",
-                        html: "Please wait",
-                        allowOutsideClick: false,
-                        didOpen: () => {
-                            Swal.showLoading();
-                            setTimeout(() => {
-                                form[0].submit();
-                            }, 800);
+                trackSelect.disabled = true;
+                trackSelect.innerHTML = '<option value="">-- Loading Tracks... --</option>';
+
+                fetch(`/AdminCourse/GetTracksByBranch/${branchId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        trackSelect.innerHTML = '<option value="">-- Select Track --</option>';
+                        if (data && data.length > 0) {
+                            data.forEach(track => {
+                                const option = document.createElement('option');
+                                option.value = track.trackId;
+                                option.textContent = track.trackName;
+                                if (selectedTrackId && track.trackId.toString() === selectedTrackId.toString()) {
+                                    option.selected = true;
+                                }
+                                trackSelect.appendChild(option);
+                            });
+                        } else {
+                            trackSelect.innerHTML = '<option value="">No tracks available</option>';
                         }
+                        trackSelect.disabled = false;
+
+                        // Clear instructors when track changes
+                        instructorSelect.innerHTML = '<option value="">-- Select Track First --</option>';
+                    })
+                    .catch(error => {
+                        console.error('Error loading tracks:', error);
+                        trackSelect.innerHTML = '<option value="">-- Error loading tracks --</option>';
+                        trackSelect.disabled = false;
                     });
+            }
+
+            // Function to load instructors based on selected track
+            function loadInstructors(trackId, selectedInstructorId = '') {
+                if (!trackId) return;
+
+                instructorSelect.disabled = true;
+                instructorSelect.innerHTML = '<option value="">-- Loading Instructors... --</option>';
+
+                fetch(`/AdminCourse/GetInstructorsByTrack/${trackId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        instructorSelect.innerHTML = '<option value="">-- Select Instructor (Optional) --</option>';
+                        if (data && data.length > 0) {
+                            data.forEach(instructor => {
+                                const option = document.createElement('option');
+                                option.value = instructor.insId;
+                                option.textContent = instructor.insName;
+                                if (selectedInstructorId && instructor.insId.toString() === selectedInstructorId.toString()) {
+                                    option.selected = true;
+                                }
+                                instructorSelect.appendChild(option);
+                            });
+                        } else {
+                            instructorSelect.innerHTML = '<option value="">No instructors available</option>';
+                        }
+                        instructorSelect.disabled = false;
+                    })
+                    .catch(error => {
+                        console.error('Error loading instructors:', error);
+                        instructorSelect.innerHTML = '<option value="">-- Error loading instructors --</option>';
+                        instructorSelect.disabled = false;
+                    });
+            }
+
+            // Handle branch change
+            branchSelect.addEventListener('change', function() {
+                const branchId = this.value;
+                trackSelect.innerHTML = '<option value="">-- Select Track --</option>';
+                instructorSelect.innerHTML = '<option value="">-- Select Track First --</option>';
+
+                if (branchId) {
+                    loadTracks(branchId);
                 }
             });
+
+            // Handle track change
+            trackSelect.addEventListener('change', function() {
+                const trackId = this.value;
+                instructorSelect.innerHTML = '<option value="">-- Select Instructor --</option>';
+
+                if (trackId) {
+                    loadInstructors(trackId);
+                }
+            });
+
+            // Form validation
+            document.getElementById('courseForm').addEventListener('submit', function(e) {
+                const branchId = branchSelect.value;
+                const trackId = trackSelect.value;
+
+                if (!branchId) {
+                    e.preventDefault();
+                    alert('Please select a Branch');
+                    return false;
+                }
+
+                if (!trackId) {
+                    e.preventDefault();
+                    alert('Please select a Track');
+                    return false;
+                }
+
+                return true;
+            });
+
+            // Auto-load tracks if a branch is already selected (e.g. after validation error)
+            const initialBranchId = branchSelect.value;
+            const initialTrackId = '@Model.TrackId';
+            const initialInstructorId = '@Model.InsId';
+
+            if (initialBranchId) {
+                loadTracks(initialBranchId, initialTrackId);
+
+                if (initialTrackId) {
+                    setTimeout(() => {
+                        loadInstructors(initialTrackId, initialInstructorId);
+                    }, 500);
+                }
+            }
         });
     </script>
 }

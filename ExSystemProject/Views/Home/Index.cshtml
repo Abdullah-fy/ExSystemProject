@@ -27,16 +27,10 @@
                     }
                     else if (User.IsInRole("supervisor"))
                     {
-                        <a asp-controller="Supervisor" asp-action="Index" class="btn btn-iti-red btn-lg px-4">
+                        <a asp-controller="SupervisorDashboard" asp-action="Index" class="btn btn-iti-red btn-lg px-4">
                             <i class="bi bi-diagram-3 me-2"></i> Track Management
                         </a>
                     }
-                  @*   else if (User.IsInRole("supervisor"))
-                    {
-                        <a asp-controller="SupervisorDashboard" asp-action="Index" class="btn btn-iti-red btn-lg px-4">
-                            <i class="bi bi-diagram-3 me-2"></i> Supervisor Dashboard
-                        </a>
-                    } *@
                     else if (User.IsInRole("instructor"))
                     {
                         <a asp-controller="Instructor" asp-action="Index" class="btn btn-iti-red btn-lg px-4">
@@ -45,7 +39,7 @@
                     }
                     else if (User.IsInRole("student"))
                     {
-                        <a asp-controller="Student" asp-action="Courses" class="btn btn-iti-red btn-lg px-4">
+                        <a asp-controller="StudentCourses" asp-action="Getstudentcourses" class="btn btn-iti-red btn-lg px-4">
                             <i class="bi bi-journal-bookmark me-2"></i> My Courses
                         </a>
                     }
@@ -61,7 +55,7 @@
             }
         </div>
     </div>
-    @*
+
     <!-- Features Section -->
     <div class="container py-5">
         <div class="row g-4 py-3">
@@ -262,53 +256,6 @@
                     </div>
                 </div>
             }
-          @*   else if (User.IsInRole("supervisor"))
-            {
-                <div class="row g-4">
-                    <div class="col-md-3">
-                        <div class="card h-100 shadow-sm border-0">
-                            <div class="card-body text-center">
-                                <i class="bi bi-mortarboard fs-1 mb-3" style="color: var(--iti-red);"></i>
-                                <h4>Instructors</h4>
-                                <p>Manage instructors in your track</p>
-                                <a href="#" class="btn btn-sm btn-outline-primary mt-2">Access</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card h-100 shadow-sm border-0">
-                            <div class="card-body text-center">
-                                <i class="bi bi-people fs-1 mb-3" style="color: var(--iti-red);"></i>
-                                <h4>Students</h4>
-                                <p>Manage students in your track</p>
-                                <a href="#" class="btn btn-sm btn-outline-primary mt-2">Access</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card h-100 shadow-sm border-0">
-                            <div class="card-body text-center">
-                                <i class="bi bi-book fs-1 mb-3" style="color: var(--iti-red);"></i>
-                                <h4>Courses</h4>
-                                <p>Manage courses in your track</p>
-                                <a href="#" class="btn btn-sm btn-outline-primary mt-2">Access</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card h-100 shadow-sm border-0">
-                            <div class="card-body text-center">
-                                <i class="bi bi-clipboard-data fs-1 mb-3" style="color: var(--iti-red);"></i>
-                                <h4>Reports</h4>
-                                <p>View track performance reports</p>
-                                <a href="#" class="btn btn-sm btn-outline-primary mt-2">Access</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            } *@
-
-
             else if (User.IsInRole("supervisor"))
             {
                 <div class="row g-4">
@@ -354,7 +301,6 @@
                     </div>
                 </div>
             }
-
             else if (User.IsInRole("instructor"))
             {
                 <div class="row g-4">
@@ -384,7 +330,7 @@
                                 <i class="bi bi-question-circle fs-1 mb-3" style="color: var(--iti-red);"></i>
                                 <h4>Questions</h4>
                                 <p>Manage your question bank</p>
-                                <a href="#" class="btn btn-sm btn-outline-primary mt-2">Access</a>
+                                <a asp-controller="Instructor" asp-action="QuestionBank" class="btn btn-sm btn-outline-primary mt-2">Access</a>
                             </div>
                         </div>
                     </div>
@@ -409,7 +355,7 @@
                                 <i class="bi bi-journal-bookmark fs-1 mb-3" style="color: var(--iti-red);"></i>
                                 <h4>My Courses</h4>
                                 <p>View your enrolled courses</p>
-                                <a asp-action="Getstudentcourses" asp-controller="StudentCourses"  class="btn btn-sm btn-outline-primary mt-2">Access</a>
+                                <a asp-controller="StudentCourses" asp-action="Getstudentcourses" class="btn btn-sm btn-outline-primary mt-2">Access</a>
                             </div>
                         </div>
                     </div>
@@ -429,7 +375,7 @@
                                 <i class="bi bi-award fs-1 mb-3" style="color: var(--iti-red);"></i>
                                 <h4>Grades</h4>
                                 <p>View your exam results and grades</p>
-                                <a asp-action="ResultsofExams" asp-controller="StudentExam" class="btn btn-sm btn-outline-primary mt-2">Access</a>
+                                <a asp-controller="StudentExam" asp-action="ResultsofExams" class="btn btn-sm btn-outline-primary mt-2">Access</a>
                             </div>
                         </div>
                     </div>
@@ -439,7 +385,7 @@
                                 <i class="bi bi-person-circle fs-1 mb-3" style="color: var(--iti-red);"></i>
                                 <h4>My Profile</h4>
                                 <p>View and update your profile</p>
-                                <a href="#" class="btn btn-sm btn-outline-primary mt-2">Access</a>
+                                <a asp-controller="Student" asp-action="Profile" class="btn btn-sm btn-outline-primary mt-2">Access</a>
                             </div>
                         </div>
                     </div>

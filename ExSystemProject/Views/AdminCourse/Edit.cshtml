@@ -26,8 +26,24 @@
             </div>
 
             <div class="mb-3">
-                <label asp-for="InsId" class="form-label">Instructor</label>
-                <select asp-for="InsId" class="form-select" asp-items="ViewBag.Instructors">
+                <label asp-for="BranchId" class="form-label">Branch</label>
+                <select asp-for="BranchId" class="form-select" asp-items="ViewBag.Branches" id="branchSelect" required>
+                    <option value="">-- Select Branch --</option>
+                </select>
+                <span asp-validation-for="BranchId" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="TrackId" class="form-label">Track</label>
+                <select asp-for="TrackId" class="form-select" asp-items="ViewBag.Tracks" id="trackSelect" required>
+                    <option value="">-- Select Track --</option>
+                </select>
+                <span asp-validation-for="TrackId" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="InsId" class="form-label">Instructor (Optional)</label>
+                <select asp-for="InsId" class="form-select" asp-items="ViewBag.Instructors" id="instructorSelect">
                     <option value="">-- Select Instructor --</option>
                 </select>
                 <span asp-validation-for="InsId" class="text-danger"></span>
@@ -73,23 +89,115 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
     <script>
-        $(document).ready(function() {
-            // Update badge on toggle change
-            $('#Isactive').change(function() {
-                if ($(this).is(':checked')) {
-                    $('#statusBadge').removeClass('bg-danger').addClass('bg-success').text('Active');
+               document.addEventListener('DOMContentLoaded', function() {
+            const branchSelect = document.getElementById('branchSelect');
+            const trackSelect = document.getElementById('trackSelect');
+            const instructorSelect = document.getElementById('instructorSelect');
+
+            // Load tracks for a branch
+            function loadTracks(branchId, selectedTrackId) {
+                if (!branchId) return;
+
+                trackSelect.disabled = true;
+                trackSelect.innerHTML = '<option value="">-- Loading Tracks... --</option>';
+
+                fetch(`/AdminCourse/GetTracksByBranch/${branchId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        trackSelect.innerHTML = '<option value="">-- Select Track --</option>';
+                        if (data && data.length > 0) {
+                            data.forEach(track => {
+                                const option = document.createElement('option');
+                                option.value = track.trackId;
+                                option.textContent = track.trackName;
+                                if (selectedTrackId && track.trackId.toString() === selectedTrackId.toString()) {
+                                    option.selected = true;
+                                }
+                                trackSelect.appendChild(option);
+                            });
+                        } else {
+                            trackSelect.innerHTML = '<option value="">No tracks available</option>';
+                        }
+                        trackSelect.disabled = false;
+
+                        // Once tracks are loaded, trigger change event to load instructors if a track is selected
+                        if (trackSelect.value) {
+                            loadInstructors(trackSelect.value, '@Model.InsId');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error loading tracks:', error);
+                        trackSelect.innerHTML = '<option value="">-- Error loading tracks --</option>';
+                        trackSelect.disabled = false;
+                    });
+            }
+
+            // Load instructors for a track
+            function loadInstructors(trackId, selectedInstructorId) {
+                if (!trackId) return;
+
+                instructorSelect.disabled = true;
+                instructorSelect.innerHTML = '<option value="">-- Loading Instructors... --</option>';
+
+                fetch(`/AdminCourse/GetInstructorsByTrack/${trackId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        instructorSelect.innerHTML = '<option value="">-- Select Instructor (Optional) --</option>';
+                        if (data && data.length > 0) {
+                            data.forEach(instructor => {
+                                const option = document.createElement('option');
+                                option.value = instructor.insId;
+                                option.textContent = instructor.insName;
+                                if (selectedInstructorId && instructor.insId.toString() === selectedInstructorId.toString()) {
+                                    option.selected = true;
+                                }
+                                instructorSelect.appendChild(option);
+                            });
+                        } else {
+                            instructorSelect.innerHTML = '<option value="">No instructors available</option>';
+                        }
+                        instructorSelect.disabled = false;
+                    })
+                    .catch(error => {
+                        console.error('Error loading instructors:', error);
+                        instructorSelect.innerHTML = '<option value="">-- Error loading instructors --</option>';
+                        instructorSelect.disabled = false;
+                    });
+            }
+
+            // Branch change event handler
+            branchSelect.addEventListener('change', function() {
+                const branchId = this.value;
+                if (branchId) {
+                    loadTracks(branchId, '');
+                    // Clear instructors when branch changes
+                    instructorSelect.innerHTML = '<option value="">-- Select Track First --</option>';
                 } else {
-                    $('#statusBadge').removeClass('bg-success').addClass('bg-danger').text('Inactive');
+                    trackSelect.innerHTML = '<option value="">-- Select Branch First --</option>';
+                    instructorSelect.innerHTML = '<option value="">-- Select Track First --</option>';
                 }
             });
 
-            // Add hidden field on form submit to properly handle the unchecked state
-            $('form').submit(function() {
-                // If checkbox is not checked, we need to add a hidden field with value 'false'
-                if (!$('#Isactive').is(':checked')) {
-                    $(this).append('<input type="hidden" name="Isactive" value="false" />');
+            // Track change event handler
+            trackSelect.addEventListener('change', function() {
+                const trackId = this.value;
+                if (trackId) {
+                    loadInstructors(trackId, '');
+                } else {
+                    instructorSelect.innerHTML = '<option value="">-- Select Track First --</option>';
                 }
             });
+
+            // Initialize dropdowns with current values from model
+            const initialBranchId = '@Model.BranchId';
+            const initialTrackId = '@Model.TrackId';
+            const initialInstructorId = '@Model.InsId';
+
+            if (initialBranchId) {
+                // If branch is already selected, load tracks for that branch
+                loadTracks(initialBranchId, initialTrackId);
+            }
         });
+
     </script>
 }

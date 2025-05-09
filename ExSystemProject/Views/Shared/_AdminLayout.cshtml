@@ -272,7 +272,7 @@
                     <span>Instructors</span>
                 </a>
             </li>
-            <!-- In _AdminLayout.cshtml, add this after the instructors menu item -->
+          
             <li class="nav-item">
                 <a class="nav-link @(ViewContext.RouteData.Values["controller"].ToString() == "AdminSupervisor" ? "active" : "")" href="/AdminSupervisor">
                     <i class="bi bi-person-badge"></i>
@@ -301,11 +301,12 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#">
+                <a class="nav-link" href="http://localhost/Reports/browse/Report2">
                     <i class="bi bi-file-earmark-bar-graph"></i>
                     <span>Reports</span>
                 </a>
             </li>
+
         </ul>
 
         <ul class="nav flex-column mt-auto">
