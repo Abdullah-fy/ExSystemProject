@@ -8,185 +8,190 @@
     <link href="~/css/site.css" rel="stylesheet" />
     <style>
         :root {
-        --iti-red: #a41e22;
-        --iti-blue: #1e3a47;
-        --iti-light-gray: #f5f5f5;
+            --iti-red: #a41e22;
+            --iti-blue: #1e3a47;
+            --iti-light-gray: #f5f5f5;
         }
 
         body {
-        background-color: var(--iti-light-gray);
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        display: flex;
-        flex-direction: column;
-        min-height: 100vh;
+            background-color: var(--iti-light-gray);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh; /* This ensures the body takes at least the full viewport height */
+            margin: 0; /* Remove default margins */
         }
 
         /* Header Styling */
         .navbar {
-        background-color: #fff;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        border-bottom: 3px solid var(--iti-red);
+            background-color: #fff;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            border-bottom: 3px solid var(--iti-red);
         }
 
         .navbar-brand {
-        display: flex;
-        align-items: center;
+            display: flex;
+            align-items: center;
         }
 
         .navbar-logo {
-        height: 60px;
-        margin-right: 15px;
+            height: 60px;
+            margin-right: 15px;
         }
 
         .site-name {
-        font-weight: 700;
-        color: var(--iti-blue);
-        font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--iti-blue);
+            font-size: 1.5rem;
         }
 
         .navbar-nav .nav-link {
-        color: var(--iti-blue);
-        font-weight: 500;
-        transition: color 0.3s;
-        margin: 0 10px;
+            color: var(--iti-blue);
+            font-weight: 500;
+            transition: color 0.3s;
+            margin: 0 10px;
         }
 
-        .navbar-nav .nav-link:hover {
-        color: var(--iti-red);
-        }
+            .navbar-nav .nav-link:hover {
+                color: var(--iti-red);
+            }
 
         .auth-btns .btn-outline-primary {
-        color: var(--iti-red);
-        border-color: var(--iti-red);
+            color: var(--iti-red);
+            border-color: var(--iti-red);
         }
 
-        .auth-btns .btn-outline-primary:hover {
-        background-color: var(--iti-red);
-        color: white;
-        }
+            .auth-btns .btn-outline-primary:hover {
+                background-color: var(--iti-red);
+                color: white;
+            }
 
         .auth-btns .btn-primary {
-        background-color: var(--iti-red);
-        border-color: var(--iti-red);
+            background-color: var(--iti-red);
+            border-color: var(--iti-red);
         }
 
         /* Main Content */
         main {
-        flex: 1;
+            flex: 1; /* This makes the main content expand to fill available space */
+            padding-bottom: 2rem; /* Add padding to prevent content from touching footer */
         }
 
         /* Card Styling */
         .card {
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        border: none;
-        margin-bottom: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: none;
+            margin-bottom: 1.5rem;
         }
 
         .card-header {
-        background-color: white;
-        border-bottom: 3px solid var(--iti-red);
-        font-weight: 600;
+            background-color: white;
+            border-bottom: 3px solid var(--iti-red);
+            font-weight: 600;
         }
 
         /* Table Styling */
         .table-container {
-        background-color: white;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        border-radius: 0.25rem;
-        padding: 1rem;
-        margin-bottom: 1.5rem;
+            background-color: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 0.25rem;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
         }
 
         /* Button Styling */
         .btn-iti-red {
-        background-color: var(--iti-red);
-        border-color: var(--iti-red);
-        color: white;
+            background-color: var(--iti-red);
+            border-color: var(--iti-red);
+            color: white;
         }
 
-        .btn-iti-red:hover {
-        background-color: #901a1e;
-        border-color: #901a1e;
-        color: white;
-        }
+            .btn-iti-red:hover {
+                background-color: #901a1e;
+                border-color: #901a1e;
+                color: white;
+            }
 
         .btn-iti-blue {
-        background-color: var(--iti-blue);
-        border-color: var(--iti-blue);
-        color: white;
+            background-color: var(--iti-blue);
+            border-color: var(--iti-blue);
+            color: white;
         }
 
-        .btn-iti-blue:hover {
-        background-color: #152c36;
-        border-color: #152c36;
-        color: white;
-        }
+            .btn-iti-blue:hover {
+                background-color: #152c36;
+                border-color: #152c36;
+                color: white;
+            }
 
         /* Badge Styling */
         .badge-admin {
-        background-color: var(--iti-red);
-        color: white;
-        padding: 0.4em 0.6em;
-        font-size: 0.8em;
-        border-radius: 4px;
+            background-color: var(--iti-red);
+            color: white;
+            padding: 0.4em 0.6em;
+            font-size: 0.8em;
+            border-radius: 4px;
         }
 
         /* Footer Styling */
         footer {
-        background-color: var(--iti-blue);
-        color: white;
-        padding: 2rem 0 0 0;
-        margin-top: auto;
+            background-color: var(--iti-blue);
+            color: white;
+            padding: 2rem 0 0 0;
+            width: 100%;
+            margin-top: auto; /* This pushes the footer to the bottom when there's not enough content */
         }
 
-        footer h5 {
-        font-weight: 600;
-        margin-bottom: 1rem;
-        }
+            footer h5 {
+                font-weight: 600;
+                margin-bottom: 1rem;
+            }
 
-        footer .footer-logo {
-        height: 60px;
-        margin-bottom: 1rem;
+            footer .footer-logo {
+                height: 60px;
+                margin-bottom: 1rem;
+            }
 
-        }
+            footer a {
+                color: rgba(255, 255, 255, 0.8);
+                text-decoration: none;
+                transition: color 0.3s;
+            }
 
-        footer a {
-        color: rgba(255, 255, 255, 0.8);
-        text-decoration: none;
-        transition: color 0.3s;
-        }
-
-        footer a:hover {
-        color: white;
-        text-decoration: none;
-        }
+                footer a:hover {
+                    color: white;
+                    text-decoration: none;
+                }
 
         .footer-bottom {
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
-        padding: 1rem 0;
-        margin-top: 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1rem 0;
+            margin-top: 1.5rem;
         }
 
         .social-icons a {
-        display: inline-block;
-        margin-right: 10px;
-        font-size: 1.5rem;
-        color: white;
+            display: inline-block;
+            margin-right: 10px;
+            font-size: 1.5rem;
+            color: white;
         }
 
         /* Responsive adjustments */
         @@media (max-width: 767px) {
-        .navbar-logo {
-        height: 40px;
+            .navbar-logo
+
+        {
+            height: 40px;
         }
 
         .site-name {
-        font-size: 1.2rem;
+            font-size: 1.2rem;
         }
 
         footer .col-md-4 {
-        margin-bottom: 1.5rem;
+            margin-bottom: 1.5rem;
         }
+
         }
     </style>
 </head>
@@ -199,28 +204,28 @@
                     <span class="site-name">ITI Examination System</span>
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav me-auto">
                         @if (User.IsInRole("instructor"))
                         {
-                        <li class="nav-item">
+                            <li class="nav-item">
                                 <a class="nav-link" asp-controller="instructor" asp-action="Index">Students</a>
-                        </li>
-                        <li class="nav-item">
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link" asp-controller="instructor" asp-action="courselist">Courses</a>
-                        </li>
-                        <li class="nav-item">
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link" asp-controller="instructor" asp-action="ExamPage">Exams</a>
-                        </li>
-                        @* <li class="nav-item"> *@
-                        @*         <a class="nav-link" asp-controller="instructor" asp-action="profile">Profile</a> *@
-                        @* </li> *@
-                        @* <li class="nav-item"> *@
-                        @*         <a class="nav-link" asp-controller="instructor" asp-action="Index">Branches</a> *@
-                        @* </li> *@
+                            </li>
+                            @* <li class="nav-item"> *@
+                            @*         <a class="nav-link" asp-controller="instructor" asp-action="profile">Profile</a> *@
+                            @* </li> *@
+                            @* <li class="nav-item"> *@
+                            @*         <a class="nav-link" asp-controller="instructor" asp-action="Index">Branches</a> *@
+                            @* </li> *@
                         }
                         @* <li class="nav-item"> *@
                         @*     <a class="nav-link" asp-controller="StudentExam" asp-action="getassignexamtostudent">Exams</a> *@
@@ -255,7 +260,7 @@
                         else
                         {
                             <a asp-controller="Account" asp-action="Login" class="btn btn-outline-primary me-2">Login</a>
-                            <a asp-controller="Account" asp-action="Register" class="btn btn-primary">Register</a>
+                            @* <a asp-controller="Account" asp-action="Register" class="btn btn-primary">Register</a> *@
                         }
                     </div>
                 </div>
