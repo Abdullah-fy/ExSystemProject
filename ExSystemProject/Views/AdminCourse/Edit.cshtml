@@ -26,11 +26,19 @@
             </div>
 
             <div class="mb-3">
-                <label asp-for="InsId" class="form-label">Instructor</label>
-                <select asp-for="InsId" class="form-select" asp-items="ViewBag.Instructors">
-                    <option value="">-- Select Instructor --</option>
+                <label asp-for="BranchId" class="form-label">Branch</label>
+                <select asp-for="BranchId" class="form-select" asp-items="ViewBag.Branches" id="branchSelect">
+                    <option value="">-- Select Branch --</option>
                 </select>
-                <span asp-validation-for="InsId" class="text-danger"></span>
+                <span asp-validation-for="BranchId" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="TrackId" class="form-label">Track</label>
+                <select asp-for="TrackId" class="form-select" asp-items="ViewBag.Tracks" id="trackSelect">
+                    <option value="">-- Select Track --</option>
+                </select>
+                <span asp-validation-for="TrackId" class="text-danger"></span>
             </div>
 
             <div class="mb-3">
@@ -88,6 +96,26 @@
                 // If checkbox is not checked, we need to add a hidden field with value 'false'
                 if (!$('#Isactive').is(':checked')) {
                     $(this).append('<input type="hidden" name="Isactive" value="false" />');
+                }
+            });
+
+            // Handle branch selection change
+            $('#branchSelect').change(function() {
+                var branchId = $(this).val();
+                if (branchId) {
+                    // Make AJAX request to get tracks for the selected branch
+                    $.getJSON(`/AdminCourse/GetTracksByBranch/${branchId}`, function(tracks) {
+                        // Clear and populate track dropdown
+                        var trackSelect = $('#trackSelect');
+                        trackSelect.empty();
+                        trackSelect.append('<option value="">-- Select Track --</option>');
+                        $.each(tracks, function(i, track) {
+                            trackSelect.append($('<option></option>').val(track.trackId).text(track.trackName));
+                        });
+                    });
+                } else {
+                    // Clear track dropdown if no branch selected
+                    $('#trackSelect').empty().append('<option value="">-- Select Track --</option>');
                 }
             });
         });
