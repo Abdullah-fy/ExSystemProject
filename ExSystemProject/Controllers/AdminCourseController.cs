@@ -146,14 +146,24 @@ namespace ExSystemProject.Controllers
         // GET: AdminCourse/Edit/5
         public IActionResult Edit(int id)
         {
-            // Using the enhanced repository method to get course by id
+            // Get the course with all related data
             var course = _unitOfWork.courseRepo.GetCourseById(id);
             if (course == null)
                 return NotFound();
 
+            // Map to DTO
             var courseDTO = _mapper.Map<CourseDTO>(course);
 
-            // Get branches for dropdown
+            // Ensure BranchId and TrackId are set from related entities if they exist
+            if (course.Ins?.Track?.BranchId != null)
+            {
+                courseDTO.BranchId = course.Ins.Track.BranchId;
+                courseDTO.TrackId = course.Ins.TrackId;
+                courseDTO.BranchName = course.Ins.Track.Branch?.BranchName;
+                courseDTO.TrackName = course.Ins.Track?.TrackName;
+            }
+
+            // Get all branches for dropdown
             var branches = _unitOfWork.branchRepo.GetAllActive();
             ViewBag.Branches = new SelectList(branches, "BranchId", "BranchName", courseDTO.BranchId);
 
@@ -162,10 +172,13 @@ namespace ExSystemProject.Controllers
             {
                 var tracks = _unitOfWork.trackRepo.GetActiveTracksByBranchId(courseDTO.BranchId.Value);
                 ViewBag.Tracks = new SelectList(tracks, "TrackId", "TrackName", courseDTO.TrackId);
-            }
-            else
-            {
-                ViewBag.Tracks = new SelectList(new List<Track>(), "TrackId", "TrackName");
+
+                // Get instructors for this track
+                if (courseDTO.TrackId.HasValue)
+                {
+                    var instructors = _unitOfWork.instructorRepo.GetInstructorsByTrackWithBranch(courseDTO.TrackId.Value, true);
+                    ViewBag.Instructors = new SelectList(instructors, "InsId", "User.Username", courseDTO.InsId);
+                }
             }
 
             return View(courseDTO);
@@ -182,24 +195,38 @@ namespace ExSystemProject.Controllers
             {
                 try
                 {
-                    // Get current course to compare isactive state
+                    // Get current course data
                     var currentCourse = _unitOfWork.courseRepo.GetCourseById(id);
-                    var wasActive = currentCourse?.Isactive ?? true;
+                    if (currentCourse == null)
+                    {
+                        return NotFound();
+                    }
 
-                    // Make sure Isactive is never null before updating
+                    // Preserve fields not included in form if needed
+                    bool wasActive = currentCourse.Isactive ?? true;
+                    string oldPoster = currentCourse.Poster;
+
+                    // Map DTO to entity
+                    var course = _mapper.Map<Course>(courseDTO);
+
+                    // Preserve poster if not changed
+                    if (string.IsNullOrEmpty(course.Poster))
+                    {
+                        course.Poster = oldPoster;
+                    }
+
+                    // Make sure Isactive is never null
                     if (courseDTO.Isactive == null)
                     {
                         courseDTO.Isactive = wasActive;
+                        course.Isactive = wasActive;
                     }
 
-                    var course = _mapper.Map<Course>(courseDTO);
-
-                    // Using the enhanced repository method to update a course
+                    // Update the course
                     _unitOfWork.courseRepo.UpdateCourse(course);
 
+                    // Set success message
                     TempData["Success"] = true;
-
-                    // Custom message based on active status change
                     if (wasActive == true && courseDTO.Isactive == false)
                     {
                         TempData["Message"] = $"Course '{courseDTO.CrsName}' has been deactivated successfully.";
@@ -217,13 +244,13 @@ namespace ExSystemProject.Controllers
                 }
                 catch (Exception ex)
                 {
-                    // Log the exception
+                    // Log the error
                     System.Diagnostics.Debug.WriteLine($"Error updating course: {ex.Message}");
-                    ModelState.AddModelError(string.Empty, $"Error updating course: {ex.Message}");
+                    ModelState.AddModelError("", $"Error updating course: {ex.Message}");
                 }
             }
 
-            // If we got here, something failed; redisplay form
+            // If we get here, something failed; redisplay form with all the needed data
             var branches = _unitOfWork.branchRepo.GetAllActive();
             ViewBag.Branches = new SelectList(branches, "BranchId", "BranchName", courseDTO.BranchId);
 
@@ -231,14 +258,18 @@ namespace ExSystemProject.Controllers
             {
                 var tracks = _unitOfWork.trackRepo.GetActiveTracksByBranchId(courseDTO.BranchId.Value);
                 ViewBag.Tracks = new SelectList(tracks, "TrackId", "TrackName", courseDTO.TrackId);
-            }
-            else
-            {
-                ViewBag.Tracks = new SelectList(new List<Track>(), "TrackId", "TrackName");
+
+                if (courseDTO.TrackId.HasValue)
+                {
+                    var instructors = _unitOfWork.instructorRepo.GetInstructorsByTrackWithBranch(courseDTO.TrackId.Value, true);
+                    ViewBag.Instructors = new SelectList(instructors, "InsId", "User.Username", courseDTO.InsId);
+                }
             }
 
             return View(courseDTO);
         }
+
+
 
 
         // GET: AdminCourse/Delete/5
