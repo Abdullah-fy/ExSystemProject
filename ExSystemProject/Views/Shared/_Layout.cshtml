@@ -220,23 +220,7 @@
                             <li class="nav-item">
                                 <a class="nav-link" asp-controller="instructor" asp-action="ExamPage">Exams</a>
                             </li>
-                            @* <li class="nav-item"> *@
-                            @*         <a class="nav-link" asp-controller="instructor" asp-action="profile">Profile</a> *@
-                            @* </li> *@
-                            @* <li class="nav-item"> *@
-                            @*         <a class="nav-link" asp-controller="instructor" asp-action="Index">Branches</a> *@
-                            @* </li> *@
                         }
-                        @* <li class="nav-item"> *@
-                        @*     <a class="nav-link" asp-controller="StudentExam" asp-action="getassignexamtostudent">Exams</a> *@
-                        @*     <a class="nav-link" asp-controller="StudentExam" asp-action="ResultsofExams">Results</a> *@
-
-
-                        @*     <a class="nav-link" asp-controller="StudentCourses" asp-action="Getstudentcourses">Courses</a> *@
-                        @* </li> *@
-                        @* <li class="nav-item"> *@
-                        @*     <a class="nav-link" asp-controller="Branch" asp-action="Index">Branches</a> *@
-                        @* </li> *@
                     </ul>
                     <div class="auth-btns d-flex align-items-center">
                         @if (User.Identity.IsAuthenticated)
@@ -246,9 +230,11 @@
                                     Welcome, @User.Identity.Name
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                                    <li><a class="dropdown-item" asp-controller="instructor" asp-action="profile">Profile</a></li>
-                                    @* <li><a class="dropdown-item" asp-controller="Account" asp-action="Results">My Results</a></li> *@
-                                    <li><hr class="dropdown-divider"></li>
+                                    @if (User.IsInRole("instructor"))
+                                    {
+                                        <li><a class="dropdown-item" asp-controller="Instructor" asp-action="profile">Profile</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                    }
                                     <li>
                                         <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
                                             <button type="submit" class="dropdown-item">Logout</button>
@@ -260,7 +246,6 @@
                         else
                         {
                             <a asp-controller="Account" asp-action="Login" class="btn btn-outline-primary me-2">Login</a>
-                            @* <a asp-controller="Account" asp-action="Register" class="btn btn-primary">Register</a> *@
                         }
                     </div>
                 </div>
