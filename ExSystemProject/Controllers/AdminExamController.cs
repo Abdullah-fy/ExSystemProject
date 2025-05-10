@@ -112,13 +112,27 @@ namespace ExSystemProject.Controllers
         {
             var userId = GetCurrentUserId();
 
-            var courses = _unitOfWork.courseRepo.getAll();
-            var instructors = _unitOfWork.instructorRepo.getAll();
+            // Get all branches for the dropdown
+            ViewBag.Branches = new SelectList(
+                _unitOfWork.branchRepo.getAll(),
+                "BranchId",
+                "BranchName"
+            );
 
-            ViewBag.Courses = new SelectList(courses, "CrsId", "CrsName");
-            ViewBag.Instructors = new SelectList(instructors, "InsId", "User.Username");
+            // Pre-populate empty selects for tracks, courses, and instructors
+            ViewBag.Tracks = new SelectList(Enumerable.Empty<SelectListItem>());
+            ViewBag.Courses = new SelectList(Enumerable.Empty<SelectListItem>());
+            ViewBag.Instructors = new SelectList(Enumerable.Empty<SelectListItem>());
 
-            return View();
+            // Return a model with default values
+            return View(new ExamDTO
+            {
+                StartTime = DateTime.Now.AddDays(1),
+                EndTime = DateTime.Now.AddDays(1).AddHours(2),
+                TotalMarks = 100,
+                PassedGrade = 60,
+                Isactive = true
+            });
         }
 
         // POST: AdminExam/Create
@@ -130,20 +144,36 @@ namespace ExSystemProject.Controllers
 
             if (ModelState.IsValid)
             {
-                var exam = _mapper.Map<Exam>(examDTO);
+                try
+                {
+                    // Check if an exam with the same name already exists for this course
+                    var existingExams = _unitOfWork.examRepo.GetAllExams(null, examDTO.CrsId, null)
+                        .Where(e => e.ExamName.ToLower() == examDTO.ExamName.ToLower())
+                        .ToList();
 
-                // Create blank exam
-                int examId = _unitOfWork.examRepo.CreateBlankExam(exam);
+                    if (existingExams.Any())
+                    {
+                        ModelState.AddModelError("ExamName", "An exam with this name already exists for the selected course.");
+                        PopulateDropdowns(examDTO);
+                        return View(examDTO);
+                    }
 
-                return RedirectToAction(nameof(Details), new { id = examId });
+                    var exam = _mapper.Map<Exam>(examDTO);
+
+                    // Create blank exam
+                    int examId = _unitOfWork.examRepo.CreateBlankExam(exam);
+
+                    TempData["Success"] = true;
+                    TempData["Message"] = $"Exam '{examDTO.ExamName}' has been created successfully.";
+                    return RedirectToAction(nameof(Details), new { id = examId });
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", $"Error creating exam: {ex.Message}");
+                }
             }
 
-            var courses = _unitOfWork.courseRepo.getAll();
-            var instructors = _unitOfWork.instructorRepo.getAll();
-
-            ViewBag.Courses = new SelectList(courses, "CrsId", "CrsName", examDTO.CrsId);
-            ViewBag.Instructors = new SelectList(instructors, "InsId", "User.Username", examDTO.InsId);
-
+            PopulateDropdowns(examDTO);
             return View(examDTO);
         }
 
@@ -158,42 +188,246 @@ namespace ExSystemProject.Controllers
 
             var examDTO = _mapper.Map<ExamDTO>(exam);
 
-            var courses = _unitOfWork.courseRepo.getAll();
-            var instructors = _unitOfWork.instructorRepo.getAll();
+            // Get branch and track info from the exam
+            int? branchId = null;
+            int? trackId = null;
 
-            ViewBag.Courses = new SelectList(courses, "CrsId", "CrsName", exam.CrsId);
-            ViewBag.Instructors = new SelectList(instructors, "InsId", "User.Username", exam.InsId);
+            // First check if instructor exists and has track/branch info
+            if (exam.InsId.HasValue)
+            {
+                var instructor = _unitOfWork.instructorRepo.GetInstructorByIdWithBranch(exam.InsId.Value);
+                if (instructor != null && instructor.Track != null)
+                {
+                    trackId = instructor.TrackId;
+                    branchId = instructor.Track.BranchId;
+                }
+            }
+
+            // Make sure we have access to ViewBag.SelectedBranchId and ViewBag.SelectedTrackId for the view
+            ViewBag.SelectedBranchId = branchId;
+            ViewBag.SelectedTrackId = trackId;
+
+            Console.WriteLine($"Selected Branch: {branchId}, Selected Track: {trackId}");
+
+            // Populate all branches
+            ViewBag.Branches = new SelectList(
+                _unitOfWork.branchRepo.getAll(),
+                "BranchId",
+                "BranchName",
+                branchId
+            );
+
+            // Populate tracks for the selected branch if we have one
+            if (branchId.HasValue)
+            {
+                var tracks = _unitOfWork.trackRepo.GetTracksByBranchId(branchId.Value);
+                ViewBag.Tracks = new SelectList(
+                    tracks,
+                    "TrackId",
+                    "TrackName",
+                    trackId
+                );
+
+                Console.WriteLine($"Loading {tracks.Count} tracks for branch {branchId}");
+
+                // Get courses for this track
+                var courses = _unitOfWork.courseRepo.GetAllCourses(true, branchId, trackId).ToList();
+                ViewBag.Courses = new SelectList(
+                    courses,
+                    "CrsId",
+                    "CrsName",
+                    exam.CrsId
+                );
+
+                Console.WriteLine($"Loading {courses.Count} courses for track {trackId}");
+
+                // Get instructors for this track
+                var instructors = trackId.HasValue
+                    ? _unitOfWork.instructorRepo.GetInstructorsByTrackId(trackId.Value)
+                    : new List<Instructor>();
+
+                ViewBag.Instructors = new SelectList(
+                    instructors,
+                    "InsId",
+                    "User.Username",
+                    exam.InsId
+                );
+
+                Console.WriteLine($"Loading {instructors.Count} instructors for track {trackId}");
+            }
+            else
+            {
+                // Empty selects if no branch/track identified
+                ViewBag.Tracks = new SelectList(Enumerable.Empty<SelectListItem>());
+                ViewBag.Courses = new SelectList(Enumerable.Empty<SelectListItem>());
+                ViewBag.Instructors = new SelectList(Enumerable.Empty<SelectListItem>());
+            }
 
             return View(examDTO);
         }
 
-        // POST: AdminExam/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Edit(int id, ExamDTO examDTO)
+        public IActionResult Edit(int id, ExamDTO examDTO, bool? Isactive = null)
         {
             var userId = GetCurrentUserId();
 
             if (id != examDTO.ExamId)
                 return NotFound();
 
+            // Explicitly set Isactive property based on checkbox
+            examDTO.Isactive = Isactive.HasValue && Isactive.Value;
+
             if (ModelState.IsValid)
             {
-                var exam = _mapper.Map<Exam>(examDTO);
+                try
+                {
+                    // Check if an exam with the same name exists (other than this one)
+                    var existingExams = _unitOfWork.examRepo.GetAllExams(null, examDTO.CrsId, null)
+                        .Where(e => e.ExamName.ToLower() == examDTO.ExamName.ToLower() && e.ExamId != id)
+                        .ToList();
 
-                // Use the new stored procedure for updating
-                _unitOfWork.examRepo.UpdateExam(exam);
+                    if (existingExams.Any())
+                    {
+                        ModelState.AddModelError("ExamName", "Another exam with this name already exists for the selected course.");
+                        PopulateDropdowns(examDTO);
+                        return View(examDTO);
+                    }
 
-                return RedirectToAction(nameof(Details), new { id = id });
+                    // Get the existing exam to preserve values that aren't in the form
+                    var existingExam = _unitOfWork.examRepo.GetExamById(id);
+                    if (existingExam == null)
+                        return NotFound();
+
+                    // Log the status value before update
+                    Console.WriteLine($"Existing exam isActive: {existingExam.Isactive}, Form value: {Isactive}, examDTO value: {examDTO.Isactive}");
+
+                    // Update the exam mapping carefully
+                    var exam = _mapper.Map<Exam>(examDTO);
+
+                    // Log the status value before update
+                    Console.WriteLine($"Updating exam {id}: Status before update = {existingExam.Isactive}, Status after update = {exam.Isactive}");
+
+                    // Update exam
+                    _unitOfWork.examRepo.UpdateExam(exam);
+
+                    TempData["Success"] = true;
+                    TempData["Message"] = $"Exam '{examDTO.ExamName}' has been updated successfully.";
+                    return RedirectToAction(nameof(Details), new { id = id });
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", $"Error updating exam: {ex.Message}");
+                }
             }
 
-            var courses = _unitOfWork.courseRepo.getAll();
-            var instructors = _unitOfWork.instructorRepo.getAll();
-
-            ViewBag.Courses = new SelectList(courses, "CrsId", "CrsName", examDTO.CrsId);
-            ViewBag.Instructors = new SelectList(instructors, "InsId", "User.Username", examDTO.InsId);
-
+            PopulateDropdowns(examDTO);
             return View(examDTO);
+        }
+
+
+
+        private void PopulateDropdowns(ExamDTO examDTO)
+        {
+            // Get all branches
+            ViewBag.Branches = new SelectList(
+                _unitOfWork.branchRepo.getAll(),
+                "BranchId",
+                "BranchName"
+            );
+
+            // If we have branch and track IDs, populate dependent dropdowns
+            int? branchId = Request.Form["BranchId"].ToString().AsNullableInt();
+            int? trackId = Request.Form["TrackId"].ToString().AsNullableInt();
+
+            if (branchId.HasValue)
+            {
+                // Get tracks for this branch
+                ViewBag.Tracks = new SelectList(
+                    _unitOfWork.trackRepo.GetTracksByBranchId(branchId.Value),
+                    "TrackId",
+                    "TrackName",
+                    trackId
+                );
+
+                if (trackId.HasValue)
+                {
+                    // Get courses for this track
+                    var courses = _unitOfWork.courseRepo.GetAllCourses(true, branchId, trackId);
+                    ViewBag.Courses = new SelectList(courses, "CrsId", "CrsName", examDTO.CrsId);
+
+                    // Get instructors for this track
+                    var instructors = _unitOfWork.instructorRepo.GetInstructorsByTrackId(trackId.Value);
+                    ViewBag.Instructors = new SelectList(instructors, "InsId", "User.Username", examDTO.InsId);
+                }
+                else
+                {
+                    ViewBag.Courses = new SelectList(Enumerable.Empty<SelectListItem>());
+                    ViewBag.Instructors = new SelectList(Enumerable.Empty<SelectListItem>());
+                }
+            }
+            else
+            {
+                ViewBag.Tracks = new SelectList(Enumerable.Empty<SelectListItem>());
+                ViewBag.Courses = new SelectList(Enumerable.Empty<SelectListItem>());
+                ViewBag.Instructors = new SelectList(Enumerable.Empty<SelectListItem>());
+            }
+        }
+
+        // GET: /AdminExam/GetTracksByBranch
+        [HttpGet]
+        public JsonResult GetTracksByBranch(int branchId)
+        {
+            try
+            {
+                var tracks = _unitOfWork.trackRepo.GetTracksByBranchId(branchId);
+                var trackList = tracks.Select(t => new { trackId = t.TrackId, trackName = t.TrackName }).ToList();
+                return Json(trackList);
+            }
+            catch (Exception ex)
+            {
+                // Log the exception
+                return Json(new List<object>());
+            }
+        }
+
+        // GET: /AdminExam/GetCoursesByTrack
+        [HttpGet]
+        public JsonResult GetCoursesByTrack(int trackId)
+        {
+            try
+            {
+                // Get track first to find branch ID
+                var track = _unitOfWork.trackRepo.getById(trackId);
+                if (track == null)
+                    return Json(new List<object>());
+
+                var courses = _unitOfWork.courseRepo.GetAllCourses(true, track.BranchId, trackId).ToList();
+                var courseList = courses.Select(c => new { crsId = c.CrsId, crsName = c.CrsName }).ToList();
+                return Json(courseList);
+            }
+            catch (Exception ex)
+            {
+                // Log the exception
+                return Json(new List<object>());
+            }
+        }
+
+        // GET: /AdminExam/GetInstructorsByTrack
+        [HttpGet]
+        public JsonResult GetInstructorsByTrack(int trackId)
+        {
+            try
+            {
+                var instructors = _unitOfWork.instructorRepo.GetInstructorsByTrackId(trackId);
+                var instructorList = instructors.Select(i => new { insId = i.InsId, username = i.User?.Username }).ToList();
+                return Json(instructorList);
+            }
+            catch (Exception ex)
+            {
+                // Log the exception
+                return Json(new List<object>());
+            }
         }
 
         // GET: AdminExam/Delete/5
@@ -233,11 +467,17 @@ namespace ExSystemProject.Controllers
         {
             var userId = GetCurrentUserId();
 
-            var courses = _unitOfWork.courseRepo.getAll();
-            var instructors = _unitOfWork.instructorRepo.getAll();
+            // Get all branches
+            ViewBag.Branches = new SelectList(
+                _unitOfWork.branchRepo.getAll(),
+                "BranchId",
+                "BranchName"
+            );
 
-            ViewBag.Courses = new SelectList(courses, "CrsId", "CrsName");
-            ViewBag.Instructors = new SelectList(instructors, "InsId", "User.Username");
+            // Empty dropdowns until branch/track are selected
+            ViewBag.Tracks = new SelectList(Enumerable.Empty<SelectListItem>());
+            ViewBag.Courses = new SelectList(Enumerable.Empty<SelectListItem>());
+            ViewBag.Instructors = new SelectList(Enumerable.Empty<SelectListItem>());
 
             return View(new ExamDTO
             {
@@ -270,7 +510,8 @@ namespace ExSystemProject.Controllers
                         examDTO.EndTime.Value
                     );
 
-                    TempData["SuccessMessage"] = "Random exam generated successfully!";
+                    TempData["Success"] = true;
+                    TempData["Message"] = "Random exam generated successfully!";
                     return RedirectToAction(nameof(Details), new { id = examId });
                 }
                 catch (Exception ex)
@@ -279,13 +520,19 @@ namespace ExSystemProject.Controllers
                 }
             }
 
-            var courses = _unitOfWork.courseRepo.getAll();
-            var instructors = _unitOfWork.instructorRepo.getAll();
-
-            ViewBag.Courses = new SelectList(courses, "CrsId", "CrsName", examDTO.CrsId);
-            ViewBag.Instructors = new SelectList(instructors, "InsId", "User.Username", examDTO.InsId);
-
+            PopulateDropdowns(examDTO);
             return View(examDTO);
+        }
+    }
+
+    // Extension method to parse nullable int
+    public static class StringExtensions
+    {
+        public static int? AsNullableInt(this string str)
+        {
+            if (int.TryParse(str, out int result))
+                return result;
+            return null;
         }
     }
 }
