@@ -16,13 +16,10 @@ namespace ExSystemProject.Controllers
         [HttpGet]
         public IActionResult Index(string searchString, bool activeOnly = false, int page = 1)
         {
-            // Get current user ID using the base controller method
             var userId = GetCurrentUserId();
 
-            // Start with base query
             var query = _unitOfWork.branchRepo.getAll().AsEnumerable();
 
-            // Apply search filter if provided
             if (!string.IsNullOrEmpty(searchString))
             {
                 query = query.Where(b =>
@@ -30,13 +27,11 @@ namespace ExSystemProject.Controllers
                     b.Location.Contains(searchString, StringComparison.OrdinalIgnoreCase));
             }
 
-            // Apply active filter if checked
             if (activeOnly)
             {
                 query = query.Where(b => b.Isactive == true);
             }
 
-            // Pagination
             int pageSize = 6;
             var totalItems = query.Count();
             var branches = query
@@ -44,7 +39,6 @@ namespace ExSystemProject.Controllers
                 .Take(pageSize)
                 .ToList();
 
-            // Pass pagination and filter data to view
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
             ViewBag.CurrentFilter = searchString;
@@ -56,7 +50,6 @@ namespace ExSystemProject.Controllers
         [HttpGet]
         public IActionResult Create()
         {
-            // Get current user ID using the base controller method
             var userId = GetCurrentUserId();
 
             var instrutors = _unitOfWork.instructorRepo.getAllWithUserData();
@@ -67,7 +60,6 @@ namespace ExSystemProject.Controllers
         [HttpPost]
         public IActionResult Create(Branch branch, int managerId)
         {
-            // Get current user ID using the base controller method
             var userId = GetCurrentUserId();
 
             if (ModelState.IsValid)
@@ -86,7 +78,6 @@ namespace ExSystemProject.Controllers
         [HttpGet]
         public IActionResult Details(int id)
         {
-            // Get current user ID using the base controller method
             var userId = GetCurrentUserId();
 
             List<Track> tracks = _unitOfWork.branchRepo.GetTracksByBranchId(id);
@@ -99,12 +90,10 @@ namespace ExSystemProject.Controllers
         [HttpGet]
         public IActionResult Delete(int id)
         {
-            // Get current user ID using the base controller method
             var userId = GetCurrentUserId();
 
             if (id == null) return BadRequest();
             ViewBag.id = id;
-            // get branch by id 
 
             var branch = _unitOfWork.branchRepo.GetBranchById(id);
             var tracks = _unitOfWork.trackRepo.GetTracksByBranchId(id);
@@ -115,7 +104,6 @@ namespace ExSystemProject.Controllers
         
         public IActionResult ConfirmDelete(int id)
         {
-            // Get current user ID using the base controller method
             var userId = GetCurrentUserId();
 
             if (id == null) return BadRequest();
@@ -127,7 +115,6 @@ namespace ExSystemProject.Controllers
         [HttpGet]
         public IActionResult Edit(int id)
         {
-            // Get current user ID using the base controller method
             var userId = GetCurrentUserId();
 
             if (id == null) return BadRequest();
@@ -140,7 +127,6 @@ namespace ExSystemProject.Controllers
         [HttpPost]
         public IActionResult Edit(Branch branch)
         {
-            // Get current user ID using the base controller method
             var userId = GetCurrentUserId();
 
             if (ModelState.IsValid)

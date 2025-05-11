@@ -48,7 +48,7 @@ namespace ExSystemProject.Controllers
         {
             var userId = GetCurrentUserId();
 
-            // Get exams with filters
+           
             var query = _unitOfWork.examRepo.GetAllExams(isActive, courseId, insId);
 
             // Count total exams for pagination
@@ -59,7 +59,7 @@ namespace ExSystemProject.Controllers
 
             var examDTOs = _mapper.Map<List<ExamDTO>>(paginatedExams);
 
-            // Set ViewBag properties for filters and pagination
+           
             ViewBag.CourseId = courseId;
             if (courseId.HasValue)
             {
@@ -72,7 +72,7 @@ namespace ExSystemProject.Controllers
             ViewBag.PageSize = pageSize;
             ViewBag.TotalExams = totalExams;
 
-            // Populate filter dropdowns
+           
             ViewBag.Courses = new SelectList(
                 _unitOfWork.courseRepo.GetAllCourses(isActive: null, branchId: null, trackId: null),
                 "CrsId",
@@ -119,12 +119,12 @@ namespace ExSystemProject.Controllers
                 "BranchName"
             );
 
-            // Pre-populate empty selects for tracks, courses, and instructors
+            
             ViewBag.Tracks = new SelectList(Enumerable.Empty<SelectListItem>());
             ViewBag.Courses = new SelectList(Enumerable.Empty<SelectListItem>());
             ViewBag.Instructors = new SelectList(Enumerable.Empty<SelectListItem>());
 
-            // Return a model with default values
+           
             return View(new ExamDTO
             {
                 StartTime = DateTime.Now.AddDays(1),
@@ -146,7 +146,7 @@ namespace ExSystemProject.Controllers
             {
                 try
                 {
-                    // Check if an exam with the same name already exists for this course
+                   
                     var existingExams = _unitOfWork.examRepo.GetAllExams(null, examDTO.CrsId, null)
                         .Where(e => e.ExamName.ToLower() == examDTO.ExamName.ToLower())
                         .ToList();
@@ -188,11 +188,11 @@ namespace ExSystemProject.Controllers
 
             var examDTO = _mapper.Map<ExamDTO>(exam);
 
-            // Get branch and track info from the exam
+           
             int? branchId = null;
             int? trackId = null;
 
-            // First check if instructor exists and has track/branch info
+            
             if (exam.InsId.HasValue)
             {
                 var instructor = _unitOfWork.instructorRepo.GetInstructorByIdWithBranch(exam.InsId.Value);
@@ -203,13 +203,13 @@ namespace ExSystemProject.Controllers
                 }
             }
 
-            // Make sure we have access to ViewBag.SelectedBranchId and ViewBag.SelectedTrackId for the view
+          
             ViewBag.SelectedBranchId = branchId;
             ViewBag.SelectedTrackId = trackId;
 
             Console.WriteLine($"Selected Branch: {branchId}, Selected Track: {trackId}");
 
-            // Populate all branches
+            
             ViewBag.Branches = new SelectList(
                 _unitOfWork.branchRepo.getAll(),
                 "BranchId",
@@ -217,7 +217,7 @@ namespace ExSystemProject.Controllers
                 branchId
             );
 
-            // Populate tracks for the selected branch if we have one
+            
             if (branchId.HasValue)
             {
                 var tracks = _unitOfWork.trackRepo.GetTracksByBranchId(branchId.Value);
@@ -230,7 +230,6 @@ namespace ExSystemProject.Controllers
 
                 Console.WriteLine($"Loading {tracks.Count} tracks for branch {branchId}");
 
-                // Get courses for this track
                 var courses = _unitOfWork.courseRepo.GetAllCourses(true, branchId, trackId).ToList();
                 ViewBag.Courses = new SelectList(
                     courses,
@@ -241,7 +240,6 @@ namespace ExSystemProject.Controllers
 
                 Console.WriteLine($"Loading {courses.Count} courses for track {trackId}");
 
-                // Get instructors for this track
                 var instructors = trackId.HasValue
                     ? _unitOfWork.instructorRepo.GetInstructorsByTrackId(trackId.Value)
                     : new List<Instructor>();
@@ -257,7 +255,6 @@ namespace ExSystemProject.Controllers
             }
             else
             {
-                // Empty selects if no branch/track identified
                 ViewBag.Tracks = new SelectList(Enumerable.Empty<SelectListItem>());
                 ViewBag.Courses = new SelectList(Enumerable.Empty<SelectListItem>());
                 ViewBag.Instructors = new SelectList(Enumerable.Empty<SelectListItem>());
@@ -275,14 +272,12 @@ namespace ExSystemProject.Controllers
             if (id != examDTO.ExamId)
                 return NotFound();
 
-            // Explicitly set Isactive property based on checkbox
             examDTO.Isactive = Isactive.HasValue && Isactive.Value;
 
             if (ModelState.IsValid)
             {
                 try
                 {
-                    // Check if an exam with the same name exists (other than this one)
                     var existingExams = _unitOfWork.examRepo.GetAllExams(null, examDTO.CrsId, null)
                         .Where(e => e.ExamName.ToLower() == examDTO.ExamName.ToLower() && e.ExamId != id)
                         .ToList();
@@ -294,21 +289,16 @@ namespace ExSystemProject.Controllers
                         return View(examDTO);
                     }
 
-                    // Get the existing exam to preserve values that aren't in the form
                     var existingExam = _unitOfWork.examRepo.GetExamById(id);
                     if (existingExam == null)
                         return NotFound();
 
-                    // Log the status value before update
                     Console.WriteLine($"Existing exam isActive: {existingExam.Isactive}, Form value: {Isactive}, examDTO value: {examDTO.Isactive}");
 
-                    // Update the exam mapping carefully
                     var exam = _mapper.Map<Exam>(examDTO);
 
-                    // Log the status value before update
                     Console.WriteLine($"Updating exam {id}: Status before update = {existingExam.Isactive}, Status after update = {exam.Isactive}");
 
-                    // Update exam
                     _unitOfWork.examRepo.UpdateExam(exam);
 
                     TempData["Success"] = true;
@@ -329,20 +319,17 @@ namespace ExSystemProject.Controllers
 
         private void PopulateDropdowns(ExamDTO examDTO)
         {
-            // Get all branches
             ViewBag.Branches = new SelectList(
                 _unitOfWork.branchRepo.getAll(),
                 "BranchId",
                 "BranchName"
             );
 
-            // If we have branch and track IDs, populate dependent dropdowns
             int? branchId = Request.Form["BranchId"].ToString().AsNullableInt();
             int? trackId = Request.Form["TrackId"].ToString().AsNullableInt();
 
             if (branchId.HasValue)
             {
-                // Get tracks for this branch
                 ViewBag.Tracks = new SelectList(
                     _unitOfWork.trackRepo.GetTracksByBranchId(branchId.Value),
                     "TrackId",
@@ -352,11 +339,9 @@ namespace ExSystemProject.Controllers
 
                 if (trackId.HasValue)
                 {
-                    // Get courses for this track
                     var courses = _unitOfWork.courseRepo.GetAllCourses(true, branchId, trackId);
                     ViewBag.Courses = new SelectList(courses, "CrsId", "CrsName", examDTO.CrsId);
 
-                    // Get instructors for this track
                     var instructors = _unitOfWork.instructorRepo.GetInstructorsByTrackId(trackId.Value);
                     ViewBag.Instructors = new SelectList(instructors, "InsId", "User.Username", examDTO.InsId);
                 }
@@ -386,7 +371,6 @@ namespace ExSystemProject.Controllers
             }
             catch (Exception ex)
             {
-                // Log the exception
                 return Json(new List<object>());
             }
         }
@@ -397,7 +381,6 @@ namespace ExSystemProject.Controllers
         {
             try
             {
-                // Get track first to find branch ID
                 var track = _unitOfWork.trackRepo.getById(trackId);
                 if (track == null)
                     return Json(new List<object>());
@@ -408,7 +391,6 @@ namespace ExSystemProject.Controllers
             }
             catch (Exception ex)
             {
-                // Log the exception
                 return Json(new List<object>());
             }
         }
@@ -425,7 +407,6 @@ namespace ExSystemProject.Controllers
             }
             catch (Exception ex)
             {
-                // Log the exception
                 return Json(new List<object>());
             }
         }
@@ -467,14 +448,12 @@ namespace ExSystemProject.Controllers
         {
             var userId = GetCurrentUserId();
 
-            // Get all branches
             ViewBag.Branches = new SelectList(
                 _unitOfWork.branchRepo.getAll(),
                 "BranchId",
                 "BranchName"
             );
 
-            // Empty dropdowns until branch/track are selected
             ViewBag.Tracks = new SelectList(Enumerable.Empty<SelectListItem>());
             ViewBag.Courses = new SelectList(Enumerable.Empty<SelectListItem>());
             ViewBag.Instructors = new SelectList(Enumerable.Empty<SelectListItem>());
@@ -499,7 +478,6 @@ namespace ExSystemProject.Controllers
             {
                 try
                 {
-                    // Generate random exam using the counts from the form
                     int examId = _unitOfWork.examRepo.GenerateRandomExam(
                         examDTO.ExamName,
                         examDTO.CrsId.Value,
@@ -525,7 +503,6 @@ namespace ExSystemProject.Controllers
         }
     }
 
-    // Extension method to parse nullable int
     public static class StringExtensions
     {
         public static int? AsNullableInt(this string str)

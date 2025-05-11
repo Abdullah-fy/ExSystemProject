@@ -22,7 +22,6 @@ namespace ExSystemProject.Repository
             if (choices.Count < 2)
                 throw new ArgumentException("MCQ questions require at least 2 choices");
 
-            // Find the correct choice index (1-based)
             int correctChoiceNo = 0;
             for (int i = 0; i < choices.Count; i++)
             {
@@ -36,7 +35,6 @@ namespace ExSystemProject.Repository
             if (correctChoiceNo == 0)
                 throw new ArgumentException("One choice must be marked as correct");
 
-            // Always set questions to active when creating
             question.Isactive = true;
 
             var quesTextParam = new SqlParameter("@ques_text", question.QuesText);
@@ -50,7 +48,6 @@ namespace ExSystemProject.Repository
 
             try
             {
-                // Execute stored procedure
                 var result = _context.Questions
                     .FromSqlRaw("EXEC sp_insert_ques_mcq @ques_text, @choice1, @choice2, @choice3, @choice4, @ques_score, @correct_choice_no, @exam_id",
                         quesTextParam, choice1Param, choice2Param, choice3Param, choice4Param, quesScoreParam, correctChoiceNoParam, examIdParam)
@@ -68,10 +65,8 @@ namespace ExSystemProject.Repository
 
 
 
-        // Repository Implementation
         public int InsertQuestionTF(Question question, string correctAnswer)
         {
-            // Always set questions to active when creating
             question.Isactive = true;
 
             try
@@ -81,24 +76,20 @@ namespace ExSystemProject.Repository
                 var quesTextParam = new SqlParameter("@ques_text", question.QuesText);
                 var quesScoreParam = new SqlParameter("@ques_score", question.QuesScore);
 
-                // Ensure correctAnswer is "1" or "0" for the stored procedure
                 var correctAnswerParam = new SqlParameter("@correct_answer", SqlDbType.VarChar, 20)
                 {
-                    Value = correctAnswer // Should be "1" or "0"
+                    Value = correctAnswer 
                 };
 
                 var examIdParam = new SqlParameter("@exam_id", question.ExamId ?? (object)DBNull.Value);
 
                 System.Diagnostics.Debug.WriteLine($"Repository: Parameters - Text='{question.QuesText}', Score={question.QuesScore}, Answer='{correctAnswer}', ExamId={question.ExamId ?? (object)DBNull.Value}");
 
-                // Try a different approach to call the stored procedure
                 try
                 {
-                    // Try direct SQL execution with explicit parameter values to debug
                     var sql = $"EXEC sp_insert_ques_tf @ques_text='{question.QuesText.Replace("'", "''")}', @ques_score={question.QuesScore}, @correct_answer='{correctAnswer}', @exam_id={question.ExamId ?? (object)DBNull.Value}";
                     System.Diagnostics.Debug.WriteLine($"Repository: Executing SQL: {sql}");
 
-                    // Use the normal method for actual execution
                     var result = _context.Questions
                         .FromSqlRaw("EXEC sp_insert_ques_tf @ques_text, @ques_score, @correct_answer, @exam_id",
                             quesTextParam, quesScoreParam, correctAnswerParam, examIdParam)
@@ -111,7 +102,6 @@ namespace ExSystemProject.Repository
                     if (resultId <= 0)
                     {
                         System.Diagnostics.Debug.WriteLine("Repository: No question ID returned or ID was 0");
-                        // Try to get more information about why no result was returned
                         var testQuery = _context.Questions.Where(q => q.QuesText == question.QuesText).FirstOrDefault();
                         if (testQuery != null)
                         {
@@ -127,12 +117,10 @@ namespace ExSystemProject.Repository
                     System.Diagnostics.Debug.WriteLine($"Repository: SQL execution error: {ex.Message}");
                     System.Diagnostics.Debug.WriteLine($"Repository: Stack trace: {ex.StackTrace}");
 
-                    // Try a fallback approach - direct SQL without using FromSqlRaw
                     try
                     {
                         System.Diagnostics.Debug.WriteLine("Repository: Trying fallback approach with direct SQL");
 
-                        // Insert the question directly with SQL
                         var insertSql = $"INSERT INTO Question (ques_text, ques_type, ques_score, exam_id, Isactive) VALUES (@p0, @p1, @p2, @p3, @p4); SELECT SCOPE_IDENTITY();";
                         var insertParams = new object[] {
                     question.QuesText,
@@ -147,7 +135,6 @@ namespace ExSystemProject.Repository
 
                         if (quesId > 0)
                         {
-                            // Now insert the choices
                             var choiceSql = $"INSERT INTO Choice (ques_id, choice_text, is_correct) VALUES (@p0, 'True', @p1), (@p0, 'False', @p2)";
                             var choiceParams = new object[] {
                         quesId,
@@ -158,7 +145,6 @@ namespace ExSystemProject.Repository
                             _context.Database.ExecuteSqlRaw(choiceSql, choiceParams);
                             System.Diagnostics.Debug.WriteLine($"Repository: Inserted choices for question {quesId}");
 
-                            // Update exam total marks if needed
                             if (question.ExamId.HasValue)
                             {
                                 var updateSql = "UPDATE Exam SET TotalMarks += @p0 WHERE exam_id = @p1";
@@ -174,7 +160,7 @@ namespace ExSystemProject.Repository
                         System.Diagnostics.Debug.WriteLine($"Repository: Fallback approach error: {fallbackEx.Message}");
                     }
 
-                    throw; // Re-throw the original exception if all approaches fail
+                    throw; 
                 }
             }
             catch (Exception ex)
@@ -185,7 +171,6 @@ namespace ExSystemProject.Repository
             }
         }
 
-        // Call stored procedure to delete a question
         public void DeleteQuestion(int questionId)
         {
             try
@@ -196,7 +181,7 @@ namespace ExSystemProject.Repository
                     "EXEC sp_delete_question @QuesID",
                     quesIdParam);
             }
-            catch (SqlException ex) when (ex.Number == 547) // Foreign key constraint violation
+            catch (SqlException ex) when (ex.Number == 547) 
             {
                 throw new Exception($"Cannot delete question with ID {questionId}. It has student answers associated with it.", ex);
             }
@@ -206,7 +191,6 @@ namespace ExSystemProject.Repository
             }
         }
 
-        // Call stored procedure to update question text
         public void UpdateQuestionText(int questionId, string questionText)
         {
             try
@@ -230,7 +214,6 @@ namespace ExSystemProject.Repository
             {
                 if (question.QuesType == "MCQ" && choices.Count >= 2)
                 {
-                    // Find the correct choice index (1-based)
                     int correctChoiceNo = 0;
                     for (int i = 0; i < choices.Count; i++)
                     {
@@ -244,7 +227,6 @@ namespace ExSystemProject.Repository
                     if (correctChoiceNo == 0)
                         throw new ArgumentException("One choice must be marked as correct");
 
-                    // Ensure we have at least 4 choices for the procedure
                     while (choices.Count < 4)
                     {
                         choices.Add(new Choice { ChoiceText = "N/A", IsCorrect = false });
@@ -265,10 +247,8 @@ namespace ExSystemProject.Repository
                 }
                 else if (question.QuesType == "TF" && choices.Count >= 2)
                 {
-                    // For T/F questions, find if "True" is the correct answer
                     bool isTrue = choices.Any(c => c.IsCorrect && c.ChoiceText.ToLower() == "true");
 
-                    // Update question using MCQ update since the database doesn't have a specific T/F update procedure
                     var quesIdParam = new SqlParameter("@ques_id", question.QuesId);
                     var quesTextParam = new SqlParameter("@ques_text", question.QuesText);
                     var choice1Param = new SqlParameter("@choice1", "True");
@@ -284,7 +264,6 @@ namespace ExSystemProject.Repository
                 }
                 else
                 {
-                    // Just update the question text if it doesn't match known types or has insufficient choices
                     UpdateQuestionText(question.QuesId, question.QuesText);
                 }
             }
@@ -294,7 +273,6 @@ namespace ExSystemProject.Repository
             }
         }
 
-        // Call stored procedure to get all questions
         public List<Question> GetAllQuestions()
         {
             try
@@ -310,7 +288,6 @@ namespace ExSystemProject.Repository
             }
         }
 
-        // Call stored procedure to get question choices
         public List<Choice> GetQuestionChoices(int questionId)
         {
             try
@@ -329,7 +306,6 @@ namespace ExSystemProject.Repository
         }
         
 
-        // Get questions by branch ID (questions that belong to exams in courses in this branch)
         public List<Question> GetQuestionsByBranchId(int branchId)
         {
             try
@@ -352,7 +328,6 @@ namespace ExSystemProject.Repository
             }
         }
 
-        // Check if a question belongs to a specific branch
         public bool IsQuestionInBranch(int questionId, int branchId)
         {
             try
@@ -371,7 +346,6 @@ namespace ExSystemProject.Repository
             }
         }
 
-        // Add this method to QuestionRepo class
         public List<Question> GetQuestionsByExamId(int examId)
         {
             try
@@ -385,20 +359,17 @@ namespace ExSystemProject.Repository
                 throw new Exception($"Error retrieving questions for exam {examId}: {ex.Message}", ex);
             }
         }
-        // Add this method to your QuestionRepo class
         public int InsertQuestionMCQDirect(Question question, List<Choice> choices)
         {
             using var transaction = _context.Database.BeginTransaction();
             try
             {
-                // 1. Insert the question
                 question.Isactive = true;
                 _context.Questions.Add(question);
                 _context.SaveChanges();
 
                 int questionId = question.QuesId;
 
-                // 2. Insert the choices with the new question ID
                 foreach (var choice in choices)
                 {
                     choice.QuesId = questionId;
@@ -406,7 +377,6 @@ namespace ExSystemProject.Repository
                 }
                 _context.SaveChanges();
 
-                // 3. Update the exam's total marks if this question is assigned to an exam
                 if (question.ExamId.HasValue)
                 {
                     var exam = _context.Exams.Find(question.ExamId.Value);

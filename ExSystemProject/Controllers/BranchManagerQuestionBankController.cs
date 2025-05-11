@@ -39,10 +39,8 @@ namespace ExSystemProject.Controllers
 
             if (examId.HasValue)
             {
-                // Get questions for a specific exam that belongs to this branch
                 var exam = _unitOfWork.examRepo.GetExamById(examId.Value);
 
-                // Verify that the exam belongs to this branch manager's branch
                 if (exam == null || !IsCourseInBranch(exam.CrsId, branchId.Value))
                 {
                     TempData["Error"] = "Exam not found or you don't have access to it.";
@@ -55,7 +53,6 @@ namespace ExSystemProject.Controllers
             }
             else
             {
-                // Get questions for exams in courses that belong to this branch
                 questions = GetBranchQuestions(branchId.Value);
             }
 
@@ -63,16 +60,13 @@ namespace ExSystemProject.Controllers
             return View(questionDTOs);
         }
 
-        // Helper method to get questions for a branch
         private List<Question> GetBranchQuestions(int branchId)
         {
-            // Get all branch courses
             var branchCourses = _unitOfWork.courseRepo.GetCoursesByBranch(branchId);
 
             if (branchCourses == null || !branchCourses.Any())
                 return new List<Question>();
 
-            // Get all exams for these courses
             var exams = new List<Exam>();
             foreach (var course in branchCourses)
             {
@@ -86,7 +80,6 @@ namespace ExSystemProject.Controllers
             if (!exams.Any())
                 return new List<Question>();
 
-            // Get all questions for these exams
             var questions = new List<Question>();
             foreach (var exam in exams)
             {
@@ -101,7 +94,6 @@ namespace ExSystemProject.Controllers
         }
 
        
-        // Helper method to check if a course belongs to the branch
         private bool IsCourseInBranch(int? courseId, int branchId)
         {
             if (!courseId.HasValue)
@@ -127,7 +119,6 @@ namespace ExSystemProject.Controllers
             if (question == null)
                 return NotFound();
 
-            // Verify the question belongs to an exam in this branch
             if (question.ExamId.HasValue)
             {
                 var exam = _unitOfWork.examRepo.GetExamById(question.ExamId.Value);
@@ -143,7 +134,6 @@ namespace ExSystemProject.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            // Get choices for this question
             var choices = _unitOfWork.choicesRepo.GetChoicesByQuestionId(id);
             question.Choices = choices;
 
@@ -163,7 +153,6 @@ namespace ExSystemProject.Controllers
                 return RedirectToAction("Index", "BranchManagerDashboard");
             }
 
-            // Get exams for this branch
             var branchExams = GetBranchExams(branchId.Value);
             ViewBag.Exams = new SelectList(branchExams, "ExamId", "ExamName", examId);
             ViewBag.ExamId = examId;
@@ -171,8 +160,8 @@ namespace ExSystemProject.Controllers
             return View(new QuestionBankDTO
             {
                 ExamId = examId,
-                QuesScore = 5, // Default score
-                QuesType = "MCQ", // Default type
+                QuesScore = 5, 
+                QuesType = "MCQ", 
                 Choices = new List<ChoiceDTO>
                 {
                     new ChoiceDTO { ChoiceText = "", IsCorrect = false },
@@ -183,7 +172,7 @@ namespace ExSystemProject.Controllers
             });
         }
 
-        // Helper method to get exams for a branch
+       
         private List<Exam> GetBranchExams(int branchId)
         {
             var branchCourses = _unitOfWork.courseRepo.GetCoursesByBranch(branchId);
@@ -218,7 +207,6 @@ namespace ExSystemProject.Controllers
                 return RedirectToAction("Index", "BranchManagerDashboard");
             }
 
-            // Verify the exam belongs to this branch
             if (questionDTO.ExamId.HasValue)
             {
                 var exam = _unitOfWork.examRepo.GetExamById(questionDTO.ExamId.Value);
@@ -231,7 +219,6 @@ namespace ExSystemProject.Controllers
 
             try
             {
-                // Force the question type to be MCQ for this action
                 questionDTO.QuesType = "MCQ";
 
                 if (ModelState.IsValid)
@@ -247,7 +234,6 @@ namespace ExSystemProject.Controllers
 
                     int questionId = 0;
 
-                    // Process MCQ choices
                     var choices = new List<Choice>();
                     bool hasCorrectChoice = false;
 
@@ -283,7 +269,6 @@ namespace ExSystemProject.Controllers
                         return View(questionDTO);
                     }
 
-                    // Fill in missing choices with N/A
                     while (choices.Count < 4)
                     {
                         choices.Add(new Choice
@@ -293,7 +278,6 @@ namespace ExSystemProject.Controllers
                         });
                     }
 
-                    // Use the new direct method instead of the stored procedure
                     questionId = _unitOfWork.questionRepo.InsertQuestionMCQDirect(question, choices);
 
                     if (questionId > 0)
@@ -341,7 +325,6 @@ namespace ExSystemProject.Controllers
             if (question == null)
                 return NotFound();
 
-            // Verify the question belongs to an exam in this branch
             if (question.ExamId.HasValue)
             {
                 var exam = _unitOfWork.examRepo.GetExamById(question.ExamId.Value);
@@ -357,7 +340,6 @@ namespace ExSystemProject.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            // Get choices for this question
             var choices = _unitOfWork.choicesRepo.GetChoicesByQuestionId(id);
             question.Choices = choices;
 
@@ -386,7 +368,6 @@ namespace ExSystemProject.Controllers
             if (id != questionDTO.QuesId)
                 return NotFound();
 
-            // Verify the question belongs to an exam in this branch
             if (questionDTO.ExamId.HasValue)
             {
                 var exam = _unitOfWork.examRepo.GetExamById(questionDTO.ExamId.Value);
@@ -416,8 +397,6 @@ namespace ExSystemProject.Controllers
 
                     if (questionDTO.QuesType == "MCQ")
                     {
-                        // For MCQ questions, process each choice
-                        // If correctAnswer is provided (0-based index), use it to mark the correct answer
                         if (!string.IsNullOrEmpty(correctAnswer) && int.TryParse(correctAnswer, out int correctIndex) &&
                             correctIndex >= 0 && correctIndex < questionDTO.Choices.Count)
                         {
@@ -429,7 +408,6 @@ namespace ExSystemProject.Controllers
                         }
                         else
                         {
-                            // Otherwise check if any choice is already marked as correct
                             foreach (var choice in questionDTO.Choices)
                             {
                                 if (choice.IsCorrect)
@@ -461,7 +439,6 @@ namespace ExSystemProject.Controllers
                     }
                     else if (questionDTO.QuesType == "TF")
                     {
-                        // For True/False questions, determine which option is correct
                         bool isTrue = false;
 
                         if (!string.IsNullOrEmpty(correctAnswer))
@@ -475,7 +452,6 @@ namespace ExSystemProject.Controllers
                             hasCorrectChoice = true;
                         }
 
-                        // Create two choices for T/F question
                         choices = new List<Choice>
                         {
                             new Choice
@@ -495,7 +471,6 @@ namespace ExSystemProject.Controllers
                         };
                     }
 
-                    // Update question and its choices
                     _unitOfWork.questionRepo.UpdateQuestionAndChoices(question, choices);
 
                     TempData["Success"] = true;
@@ -512,7 +487,6 @@ namespace ExSystemProject.Controllers
                 ModelState.AddModelError("", $"An error occurred: {ex.Message}");
             }
 
-            // Use a different variable name for exams list to avoid name conflict
             var examOptions = GetBranchExams(branchId.Value);
             ViewBag.Exams = new SelectList(examOptions, "ExamId", "ExamName", questionDTO.ExamId);
             return View(questionDTO);
@@ -534,7 +508,6 @@ namespace ExSystemProject.Controllers
             if (question == null)
                 return NotFound();
 
-            // Verify the question belongs to an exam in this branch
             if (question.ExamId.HasValue)
             {
                 var exam = _unitOfWork.examRepo.GetExamById(question.ExamId.Value);
@@ -550,7 +523,6 @@ namespace ExSystemProject.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            // Get choices for this question
             var choices = _unitOfWork.choicesRepo.GetChoicesByQuestionId(id);
             question.Choices = choices;
 
@@ -578,7 +550,6 @@ namespace ExSystemProject.Controllers
                 if (question == null)
                     return NotFound();
 
-                // Verify the question belongs to an exam in this branch
                 if (question.ExamId.HasValue)
                 {
                     var exam = _unitOfWork.examRepo.GetExamById(question.ExamId.Value);
@@ -591,7 +562,6 @@ namespace ExSystemProject.Controllers
 
                 int? examId = question.ExamId;
 
-                // Delete question
                 _unitOfWork.questionRepo.DeleteQuestion(id);
 
                 TempData["Success"] = true;
@@ -604,7 +574,6 @@ namespace ExSystemProject.Controllers
             }
             catch (Exception ex)
             {
-                // Handle the foreign key constraint error
                 TempData["Error"] = true;
                 TempData["Message"] = "Cannot delete this question because it has student answers associated with it.";
 
@@ -644,7 +613,6 @@ namespace ExSystemProject.Controllers
                 return RedirectToAction("Index", "BranchManagerDashboard");
             }
 
-            // Verify the exam belongs to this branch
             if (examId.HasValue)
             {
                 var exam = _unitOfWork.examRepo.GetExamById(examId.Value);
@@ -657,20 +625,17 @@ namespace ExSystemProject.Controllers
 
             try
             {
-                // Create question object
                 var question = new Question
                 {
                     QuesText = quesText,
-                    QuesType = "TF", // Fixed to TF
+                    QuesType = "TF", 
                     QuesScore = quesScore,
                     ExamId = examId,
                     Isactive = true
                 };
 
-                // Convert to "1" or "0" for the stored procedure
                 string correctAnswerValue = tfCorrectAnswer?.ToLower() == "true" ? "1" : "0";
 
-                // Insert TF question
                 int questionId = _unitOfWork.questionRepo.InsertQuestionTF(question, correctAnswerValue);
 
                 if (questionId > 0)
@@ -692,7 +657,6 @@ namespace ExSystemProject.Controllers
             var examsList = GetBranchExams(branchId.Value);
             ViewBag.Exams = new SelectList(examsList, "ExamId", "ExamName", examId);
 
-            // Keep the submitted values
             ViewBag.QuesText = quesText;
             ViewBag.QuesScore = quesScore;
             ViewBag.TFCorrectAnswer = tfCorrectAnswer;
@@ -700,7 +664,6 @@ namespace ExSystemProject.Controllers
             return View();
         }
 
-        // Helper method to get the current user's branch ID
         private int? GetUserBranchId()
         {
             var userId = GetCurrentUserId();
@@ -711,7 +674,6 @@ namespace ExSystemProject.Controllers
             return userAssignment?.BranchId;
         }
 
-        // Helper method to get the current user ID
         private int? GetCurrentUserId()
         {
             if (User?.Identity?.IsAuthenticated != true)

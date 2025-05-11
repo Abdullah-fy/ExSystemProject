@@ -121,7 +121,6 @@ namespace ExSystemProject.Repository
                         };
                     }
 
-                    // Add choice to the corresponding question
                     questionsDict[quesId].Choices.Add(new ChoiceDTO
                     {
                         ChoiceId = reader["choice_id"] != DBNull.Value ? Convert.ToInt32(reader["choice_id"]) : 0,
@@ -152,7 +151,6 @@ namespace ExSystemProject.Repository
                 command.CommandText = "sp_SubmitExamAnswers";
                 command.CommandType = CommandType.StoredProcedure;
 
-                // Parameters
                 var studentParam = command.CreateParameter();
                 studentParam.ParameterName = "@student_id";
                 studentParam.Value = answerDto.StudentId;
@@ -183,7 +181,6 @@ namespace ExSystemProject.Repository
             }
             catch (Exception ex)
             {
-                // Log this in production
                 resultMessage = "Error submitting answer: " + ex.Message;
             }
             finally
@@ -252,7 +249,7 @@ namespace ExSystemProject.Repository
                 if (await reader.NextResultAsync() && await reader.ReadAsync())
                 {
                     result.Score = reader.GetInt32(2);
-                    result.Percentage = reader.IsDBNull(4) ? null : (float?)reader.GetDouble(4); // Explicit cast
+                    result.Percentage = reader.IsDBNull(4) ? null : (float?)reader.GetDouble(4); 
                     result.Result = reader.IsDBNull(3) ? null : reader.GetString(3);
                 }
 

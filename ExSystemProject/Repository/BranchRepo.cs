@@ -61,9 +61,8 @@ namespace ExSystemProject.Repository
             }
             catch (Exception ex)
             {
-                // Log error
                 Console.WriteLine($"Error in GetBranchById: {ex.Message}");
-                throw; // Re-throw for controller handling
+                throw; 
             }
             finally
             {

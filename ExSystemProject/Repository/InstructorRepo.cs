@@ -45,7 +45,6 @@ namespace ExSystemProject.Repository
             return _context.Instructors.FirstOrDefault(i => i.UserId == userId && i.Isactive == true);
 
         }
-        // Get all instructors with branch information using stored procedure
         public List<Instructor> GetAllInstructorsWithBranch(bool? activeInstructors = true)
         {
             var instructors = new List<Instructor>();
@@ -105,7 +104,6 @@ namespace ExSystemProject.Repository
             return instructors;
         }
 
-        // Get instructor by ID with branch information
         public Instructor GetInstructorByIdWithBranch(int instructorId)
         {
             Instructor instructor = null;
@@ -141,7 +139,6 @@ namespace ExSystemProject.Repository
                                 }
                             };
 
-                            // Only populate Track if track_id is not null
                             if (!reader.IsDBNull(reader.GetOrdinal("track_id")))
                             {
                                 instructor.Track = new Track
@@ -151,7 +148,6 @@ namespace ExSystemProject.Repository
                                     BranchId = reader.IsDBNull(reader.GetOrdinal("branch_id")) ? 0 : reader.GetInt32(reader.GetOrdinal("branch_id"))
                                 };
 
-                                // Only populate Branch if branch_id is not null
                                 if (!reader.IsDBNull(reader.GetOrdinal("branch_id")) &&
                                     !reader.IsDBNull(reader.GetOrdinal("branch_name")))
                                 {
@@ -168,7 +164,6 @@ namespace ExSystemProject.Repository
                 catch (Exception ex)
                 {
                     Console.WriteLine($"Error retrieving instructor with ID {instructorId}: {ex.Message}");
-                    // Include more detailed error information for debugging
                     Console.WriteLine($"Stack trace: {ex.StackTrace}");
                     if (ex.InnerException != null)
                     {
@@ -182,7 +177,6 @@ namespace ExSystemProject.Repository
         }
 
 
-        // Get instructors by track with branch information
         public List<Instructor> GetInstructorsByTrackWithBranch(int trackId, bool? getActive = true)
         {
             var instructors = new List<Instructor>();
@@ -242,7 +236,6 @@ namespace ExSystemProject.Repository
             return instructors;
         }
 
-        // Get instructors by branch with branch information
         public List<Instructor> GetInstructorsByBranchWithBranch(int branchId, bool? getActive = true)
         {
             var instructors = new List<Instructor>();
@@ -302,7 +295,6 @@ namespace ExSystemProject.Repository
             return instructors;
         }
 
-        // Create new instructor using stored procedure
         public void CreateInstructor(string username, string email, string gender, string password, decimal salary, int trackId)
         {
             using (var command = _context.Database.GetDbConnection().CreateCommand())
@@ -335,7 +327,6 @@ namespace ExSystemProject.Repository
             }
         }
 
-        // Update instructor using stored procedure
         public void UpdateInstructor(int insId, string username, string email, string gender, decimal salary, int trackId, bool isActive)
         {
             using (var command = _context.Database.GetDbConnection().CreateCommand())
@@ -369,7 +360,6 @@ namespace ExSystemProject.Repository
             }
         }
 
-        // Delete instructor using stored procedure
         public void DeleteInstructor(int insId)
         {
             using (var command = _context.Database.GetDbConnection().CreateCommand())
@@ -396,7 +386,6 @@ namespace ExSystemProject.Repository
             }
         }
 
-        // Get instructor courses
         public List<Course> GetInstructorCourses(int insId, bool? active = true)
         {
             var courses = new List<Course>();
@@ -423,7 +412,6 @@ namespace ExSystemProject.Repository
                                 CrsPeriod = reader.IsDBNull(reader.GetOrdinal("Crs_period")) ? null : (int?)reader.GetInt32(reader.GetOrdinal("Crs_period")),
                                 InsId = reader.IsDBNull(reader.GetOrdinal("ins_id")) ? null : (int?)reader.GetInt32(reader.GetOrdinal("ins_id")),
                                 Isactive = reader.GetBoolean(reader.GetOrdinal("isactive")),
-                                // Safe handling of potentially NULL fields
                                 description = reader.IsDBNull(reader.GetOrdinal("Description")) ? null : reader.GetString(reader.GetOrdinal("Description")),
                                 Poster = reader.IsDBNull(reader.GetOrdinal("Poster")) ? null : reader.GetString(reader.GetOrdinal("Poster"))
                             };
@@ -448,7 +436,6 @@ namespace ExSystemProject.Repository
         }
 
 
-        // Get instructor courses with student count report
         public dynamic GetInstructorCoursesWithStudentCount(int insId)
         {
             dynamic result = null;
@@ -515,7 +502,6 @@ namespace ExSystemProject.Repository
         }
 
 
-        // extend this repo to return all instructors by track id 
         public List<Instructor> GetInstructorsByTrackId(int trackId, bool? isActive = true)
         {
             var instructors = new List<Instructor>();
@@ -551,7 +537,6 @@ namespace ExSystemProject.Repository
                                     Username = reader.GetString(reader.GetOrdinal("username")),
                                     Email = reader.GetString(reader.GetOrdinal("email")),
                                     Gender = reader.GetString(reader.GetOrdinal("gender")),
-                                    // Optional: img or others if needed
                                 }
                             };
 

@@ -86,7 +86,6 @@
 @section Scripts {
     <script>
         $(document).ready(function() {
-            // Display SweetAlert for TempData messages
         @if (TempData["Success"] != null && (bool)TempData["Success"])
         {
             <text>
@@ -123,7 +122,6 @@
                 confirmButtonText: 'Yes, change it!'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    // Show loading state
                     Swal.fire({
                         title: 'Processing...',
                         html: 'Please wait while we update the status.',
@@ -131,26 +129,22 @@
                         didOpen: () => {
                             Swal.showLoading();
 
-                            // Make the AJAX request
                             $.ajax({
                                 url: '@Url.Action("ToggleTopicStatus", "AdminCourse")',
                                 type: 'POST',
                                 data: { id: topicId },
                                 success: function(result) {
                                     if (result.success) {
-                                        // Update badge
                                         var statusBadge = $('#status-badge-' + topicId);
                                         var toggleBtn = $('#toggle-btn-' + topicId);
 
                                         if (result.isActive) {
-                                            // Topic is now active
                                             statusBadge.removeClass('bg-danger').addClass('bg-success');
                                             statusBadge.text('Active');
 
                                             toggleBtn.removeClass('btn-outline-success').addClass('btn-outline-warning');
                                             toggleBtn.html('<i class="bi bi-x-circle"></i> Deactivate');
                                         } else {
-                                            // Topic is now inactive
                                             statusBadge.removeClass('bg-success').addClass('bg-danger');
                                             statusBadge.text('Inactive');
 
@@ -158,7 +152,6 @@
                                             toggleBtn.html('<i class="bi bi-check-circle"></i> Activate');
                                         }
 
-                                        // Show success message
                                         Swal.fire({
                                             icon: 'success',
                                             title: 'Status Changed!',
@@ -167,7 +160,6 @@
                                             showConfirmButton: false
                                         });
                                     } else {
-                                        // Show error message
                                         Swal.fire({
                                             icon: 'error',
                                             title: 'Error',

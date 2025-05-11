@@ -1,4 +1,4 @@
-﻿// ExSystemProject/Controllers/AdminSupervisorController.cs
+﻿
 using AutoMapper;
 using ExSystemProject.DTOS;
 using ExSystemProject.Models;
@@ -47,7 +47,6 @@ namespace ExSystemProject.Controllers
 
             var supervisorDTO = _mapper.Map<SupervisorDTO>(supervisor);
 
-            // Get additional data
             var students = _unitOfWork.supervisorRepo.GetStudentsUnderSupervisor(id);
             var instructors = _unitOfWork.supervisorRepo.GetInstructorsUnderSupervisor(id);
             var courses = _unitOfWork.supervisorRepo.GetCoursesUnderSupervisor(id);
@@ -66,12 +65,10 @@ namespace ExSystemProject.Controllers
         // GET: AdminSupervisor/Create
         public IActionResult Create()
         {
-            // Get users who can be supervisors (users with role "supervisor")
             var users = _unitOfWork.userRepo.getAll()
                 .Where(u => u.Role == "supervisor" && u.Isactive == true)
                 .ToList();
 
-            // Get all branches
             var branches = _unitOfWork.branchRepo.getAll()
                 .Where(b => b.Isactive == true)
                 .ToList();
@@ -79,7 +76,6 @@ namespace ExSystemProject.Controllers
             ViewBag.Users = new SelectList(users, "UserId", "Username");
             ViewBag.Branches = new SelectList(branches, "BranchId", "BranchName");
 
-            // Tracks will be populated via AJAX based on selected branch
 
             ViewData["Title"] = "Create New Supervisor Assignment";
 
@@ -95,12 +91,10 @@ namespace ExSystemProject.Controllers
             {
                 try
                 {
-                    // First check if a user with this email already exists
                     if (_unitOfWork.userRepo.getAll().Any(u => u.Email == supervisorDTO.Email))
                     {
                         ModelState.AddModelError("Email", "This email address is already in use");
 
-                        // Repopulate dropdowns
                         var branches = _unitOfWork.branchRepo.getAll()
                             .Where(b => b.Isactive == true)
                             .ToList();
@@ -110,7 +104,6 @@ namespace ExSystemProject.Controllers
                         return View(supervisorDTO);
                     }
 
-                    // Create a new user with supervisor role
                     var user = new User
                     {
                         Username = supervisorDTO.Username,
@@ -124,7 +117,6 @@ namespace ExSystemProject.Controllers
                     _unitOfWork.userRepo.add(user);
                     _unitOfWork.save();
 
-                    // Create supervisor assignment
                     var assignment = _unitOfWork.supervisorRepo.CreateSupervisor(
                         user.UserId,
                         supervisorDTO.BranchId ?? 0,
@@ -139,7 +131,6 @@ namespace ExSystemProject.Controllers
                 }
             }
 
-            // If we got this far, something failed, redisplay form
             var branchesForSelect = _unitOfWork.branchRepo.getAll()
                 .Where(b => b.Isactive == true)
                 .ToList();
@@ -160,7 +151,6 @@ namespace ExSystemProject.Controllers
                 return NotFound();
             }
 
-            // Map to the EditDTO instead
             var supervisorDTO = _mapper.Map<SupervisorEditDTO>(supervisor);
 
             var branches = _unitOfWork.branchRepo.getAll()
@@ -192,16 +182,13 @@ namespace ExSystemProject.Controllers
                 return NotFound();
             }
 
-            // Basic validation check
             if (string.IsNullOrEmpty(model.Username) ||
                 string.IsNullOrEmpty(model.Email) ||
                 string.IsNullOrEmpty(model.Gender) ||
                 !model.BranchId.HasValue)
             {
-                // Add error message
                 ModelState.AddModelError("", "Please fill in all required fields");
 
-                // Repopulate branch dropdown
                 var branches = _unitOfWork.branchRepo.getAll()
                     .Where(b => b.Isactive == true)
                     .ToList();
@@ -212,7 +199,6 @@ namespace ExSystemProject.Controllers
 
             try
             {
-                // 1. Update the User record
                 var user = _unitOfWork.userRepo.getById(model.UserId);
                 if (user != null)
                 {
@@ -223,7 +209,6 @@ namespace ExSystemProject.Controllers
                     _unitOfWork.userRepo.update(user);
                 }
 
-                // 2. Update the UserAssignment record
                 var assignment = _unitOfWork.context.UserAssignments.Find(id);
                 if (assignment != null)
                 {
@@ -233,7 +218,6 @@ namespace ExSystemProject.Controllers
                     _unitOfWork.context.UserAssignments.Update(assignment);
                 }
 
-                // Save changes
                 _unitOfWork.save();
 
                 TempData["Success"] = "Supervisor updated successfully";
@@ -243,7 +227,6 @@ namespace ExSystemProject.Controllers
             {
                 ModelState.AddModelError("", $"Error updating supervisor: {ex.Message}");
 
-                // Repopulate branch dropdown
                 var branches = _unitOfWork.branchRepo.getAll()
                     .Where(b => b.Isactive == true)
                     .ToList();
@@ -275,7 +258,7 @@ namespace ExSystemProject.Controllers
             return View(supervisorDTO);
         }
 
-        // POST: AdminSupervisor/Delete/5
+        
         // POST: AdminSupervisor/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
@@ -291,7 +274,6 @@ namespace ExSystemProject.Controllers
 
                 if (reactivate)
                 {
-                    // Reactivate the supervisor
                     supervisor.Isactive = true;
                     if (supervisor.User != null)
                     {
@@ -305,7 +287,6 @@ namespace ExSystemProject.Controllers
                 }
                 else
                 {
-                    // Deactivate the supervisor
                     _unitOfWork.supervisorRepo.DeactivateSupervisor(id);
                     TempData["Success"] = "Supervisor deactivated successfully";
                 }

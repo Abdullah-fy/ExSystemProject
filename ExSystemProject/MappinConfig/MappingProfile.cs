@@ -10,19 +10,14 @@ namespace ExSystemProject.MappinConfig
     {
         public MappingProfile()
         {
-            // Handle DateOnly to DateTime conversions
             CreateMap<DateOnly, DateTime>().ConvertUsing(src => src.ToDateTime(TimeOnly.MinValue));
             CreateMap<DateTime, DateOnly>().ConvertUsing(src => DateOnly.FromDateTime(src));
             CreateMap<DateOnly?, DateTime?>().ConvertUsing((src, dest) => src.HasValue ? src.Value.ToDateTime(TimeOnly.MinValue) : null);
             CreateMap<DateTime?, DateOnly?>().ConvertUsing((src, dest) => src.HasValue ? DateOnly.FromDateTime(src.Value) : null);
 
-            // Course mappings - explicit mapping for description property
 
 
-            // Update in ExSystemProject/MappinConfig/MappingProfile.cs
 
-            // Add this mapping to the constructor
-            // In your MappingProfile.cs file
             CreateMap<UserAssignment, SupervisorDTO>()
                 .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.User.Username))
                 .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.User.Email))
@@ -32,7 +27,6 @@ namespace ExSystemProject.MappinConfig
                 .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.Isactive ?? false))
                 .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom(src => src.User.Img));
 
-            // Mapping from DTO to entity
             CreateMap<SupervisorDTO, UserAssignment>()
                 .ForMember(dest => dest.Isactive, opt => opt.MapFrom(src => src.IsActive))
                 .ForMember(dest => dest.User, opt => opt.Ignore());
@@ -50,7 +44,6 @@ namespace ExSystemProject.MappinConfig
                     opt => opt.MapFrom(src => src.Description));
 
 
-            // Question and Choice mappings - preserving existing mapping
             CreateMap<Question, QuestionBankDTO>()
                 .ForMember(dest => dest.ExamName,
                     opt => opt.MapFrom(src => src.Exam != null ? src.Exam.ExamName : null));
@@ -60,7 +53,6 @@ namespace ExSystemProject.MappinConfig
             CreateMap<Choice, ChoiceDTO>();
             CreateMap<ChoiceDTO, Choice>();
 
-            // Student mappings with detailed information
             CreateMap<Student, StudentDTO>()
               .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.User.Username))
               .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.User.Email))
@@ -71,14 +63,12 @@ namespace ExSystemProject.MappinConfig
                 .ForMember(dest => dest.StudentCourses, opt => opt.MapFrom(src => src.StudentCourses))
                 .ForMember(dest => dest.StudentExams, opt => opt.MapFrom(src => src.StudentExams));
 
-            // Map StudentCourse to StudentCourseDTO
             CreateMap<StudentCourse, StudentCourseDTO>()
                 .ForMember(dest => dest.CourseName,
                     opt => opt.MapFrom(src => src.Crs != null ? src.Crs.CrsName : null))
                 .ForMember(dest => dest.CoursePeriod,
                     opt => opt.MapFrom(src => src.Crs != null ? src.Crs.CrsPeriod : null));
 
-            // Map StudentExam to StudentExamDTO
             CreateMap<StudentExam, StudentExamDTO>()
                 .ForMember(dest => dest.ExamName,
                     opt => opt.MapFrom(src => src.Exam != null ? src.Exam.ExamName : null))
@@ -102,7 +92,6 @@ namespace ExSystemProject.MappinConfig
 
 
 
-            // Instructor mappings
             CreateMap<Instructor, InstructorDTO>()
     .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.User.Username))
     .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.User.Email))
@@ -118,7 +107,6 @@ namespace ExSystemProject.MappinConfig
                 .ForPath(dest => dest.User.Email, opt => opt.MapFrom(src => src.Email))
                 .ForPath(dest => dest.User.Gender, opt => opt.MapFrom(src => src.Gender));
 
-            // Exam mappings - preserving existing mapping
             CreateMap<Exam, ExamDTO>()
                 .ForMember(dest => dest.CourseName,
                     opt => opt.MapFrom(src => src.Crs != null ? src.Crs.CrsName : null))
@@ -128,14 +116,12 @@ namespace ExSystemProject.MappinConfig
 
             CreateMap<ExamDTO, Exam>();
 
-            // Track mappings
             CreateMap<Track, TrackDTO>()
                 .ForMember(dest => dest.branch_name,
                     opt => opt.MapFrom(src => src.Branch != null ? src.Branch.BranchName : null));
 
             CreateMap<TrackDTO, Track>();
 
-            // Branch mappings
             CreateMap<Branch, BranchDTO>();
             CreateMap<BranchDTO, Branch>();
 
@@ -157,7 +143,6 @@ namespace ExSystemProject.MappinConfig
         }
     }
 
-    // Custom type converter for handling ExaminationDate if needed
     public class DateConverter : IValueConverter<object, DateTime?>
     {
         public DateTime? Convert(object sourceMember, ResolutionContext context)

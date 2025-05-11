@@ -15,7 +15,6 @@ namespace ExSystemProject.Controllers
         {
             ViewData["Title"] = "Branch Dashboard";
 
-            // Basic counts for the dashboard
             var studentCount = _unitOfWork.studentRepo.GetStudentCountByBranchAsync(CurrentBranchId);
             var instructorCount = _unitOfWork.instructorRepo.GetInstructorCountByBranchAsync(CurrentBranchId);
             var courseCount = _unitOfWork.courseRepo.GetCourseCountByBranchAsync(CurrentBranchId);
@@ -23,13 +22,11 @@ namespace ExSystemProject.Controllers
             var examCount = _unitOfWork.examRepo.GetExamCountByBranchAsync(CurrentBranchId);
             var supervisorCount = _unitOfWork.supervisorRepo.GetSupervisorCountByBranchAsync(CurrentBranchId);
 
-            // Get track data for the chart
             var tracks = _unitOfWork.trackRepo.GetActiveTracksByBranchId(CurrentBranchId);
             var trackNames = tracks.Select(t => t.TrackName).ToList();
             var studentsPerTrack = tracks.Select(t =>
                 _unitOfWork.studentRepo.GetStudentsByTrackId(t.TrackId, true).Count()).ToList();
 
-            // Get exam performance metrics
             var branchExams = _unitOfWork.examRepo.GetAllExams()
                 .Where(e => e.Ins?.Track?.BranchId == CurrentBranchId)
                 .ToList();
@@ -50,17 +47,14 @@ namespace ExSystemProject.Controllers
                 totalScores += results.Sum(r => r.Score ?? 0); // Add null check
             }
 
-            // Calculate metrics
             double passRate = totalExamsTaken > 0 ? (double)passedExams / totalExamsTaken * 100 : 0;
             double averageGrade = totalExamsTaken > 0 ? totalScores / totalExamsTaken : 0;
 
-            // Calculate course completion rate
             var studentCourses = _unitOfWork.studentCourseRepo.GetAllStudentCoursesByBranch(CurrentBranchId);
             var totalEnrollments = studentCourses.Count;
             var completedCourses = studentCourses.Count(sc => sc.Ispassed == true);
             double courseCompletionRate = totalEnrollments > 0 ? (double)completedCourses / totalEnrollments * 100 : 0;
 
-            // Create a dashboard view model
             var dashboardViewModel = new BranchDashboardViewModel
             {
                 StudentCount = studentCount,
@@ -72,11 +66,9 @@ namespace ExSystemProject.Controllers
                 BranchId = CurrentBranchId,
                 BranchName = CurrentBranchName,
 
-                // Chart data
                 TrackNames = trackNames,
                 StudentsPerTrack = studentsPerTrack,
 
-                // Exam metrics
                 PassedExams = passedExams,
                 FailedExams = failedExams,
                 NotTakenExams = notTakenExams,

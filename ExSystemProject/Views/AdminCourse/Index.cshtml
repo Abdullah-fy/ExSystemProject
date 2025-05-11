@@ -125,7 +125,6 @@
             <nav aria-label="Page navigation">
                 <ul class="pagination justify-content-center">
                     <li class="page-item @(Model.CurrentPage == 1 ? "disabled" : "")">
-                        <!-- Update all pagination links like this -->
                         <a class="page-link"
                            asp-action="Index"
                            asp-route-pageNumber="@(Model.CurrentPage - 1)"
@@ -149,7 +148,6 @@
                     }
 
                     <li class="page-item @(Model.CurrentPage == Model.TotalPages ? "disabled" : "")">
-                        <!-- Update ALL pagination links like this example: -->
                         <a class="page-link"
                            asp-action="Index"
                            asp-route-pageNumber="@(Model.CurrentPage - 1)"
@@ -184,7 +182,6 @@
         }
 
         function resetTrackAndSubmit() {
-            // Reset track filter when branch changes
             document.getElementById('trackFilter').value = '';
             submitFilterForm();
         }

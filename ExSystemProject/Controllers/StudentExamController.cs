@@ -20,19 +20,13 @@ namespace ExSystemProject.Controllers
 
         public IActionResult getassignexamtostudent()
         {
-            // get studentid from cookie 
-            // get track id from cookie 
             var userclaim = User.FindFirst(s => s.Type == ClaimTypes.NameIdentifier);
-            // checking first if student login or not 
             if (userclaim == null || string.IsNullOrEmpty(userclaim.Value))
-                return Unauthorized(); // should redirect to login page 
+                return Unauthorized(); 
 
             var userid = userclaim.Value;
 
-            //var trackid = Request.Cookies["TrackId"];
 
-            //if (string.IsNullOrEmpty(trackid))
-            //    return Unauthorized(); // or redirect to login
             
 
             var std = unitOfWork.studentRepo.Getstd(Convert.ToInt32(userid));
@@ -48,17 +42,12 @@ namespace ExSystemProject.Controllers
         public IActionResult JoinExam(int examid)
         {
             var userclaim = User.FindFirst(s => s.Type == ClaimTypes.NameIdentifier);
-            // checking first if student login or not 
             if (userclaim == null || string.IsNullOrEmpty(userclaim.Value))
-                return Unauthorized(); // should redirect to login page 
+                return Unauthorized();
 
             var userid = userclaim.Value;
 
-            //var trackid = Request.Cookies["TrackId"];
 
-            //if (string.IsNullOrEmpty(trackid))
-            //    return Unauthorized(); // or redirect to login
-            // hello 
 
             var std = unitOfWork.studentRepo.Getstd(Convert.ToInt32(userid));
             if (std == null || std.Track == null)
@@ -88,7 +77,6 @@ namespace ExSystemProject.Controllers
         {
             try
             {
-                // Get student and exam IDs from the first answer (they should be the same for all)
                 int studentId = answers.FirstOrDefault()?.StudentId ?? 0;
                 int examId = answers.FirstOrDefault()?.ExamId ?? 0;
 
@@ -97,7 +85,6 @@ namespace ExSystemProject.Controllers
                     return BadRequest("Missing student or exam information");
                 }
 
-                // Filter out null answers and submit only answered questions
                 var answeredQuestions = answers.Where(a => a.ChoiceId != null).ToList();
 
                 foreach (var answer in answeredQuestions)
@@ -105,7 +92,6 @@ namespace ExSystemProject.Controllers
                     unitOfWork.studentExamRepo.SubmitExamAnswer(answer);
                 }
 
-                // Deactivate the exam regardless of how many answers were submitted
                 unitOfWork.studentExamRepo.DeactivateStudentExam(studentId, examId);
 
                 return Ok(new
@@ -159,10 +145,8 @@ namespace ExSystemProject.Controllers
         {
             try
             {
-                // Submit empty exam with score 0
                 string result = unitOfWork.studentExamRepo.SubmitEmptyExam(request.StudentId, request.ExamId);
 
-                // Deactivate the exam
                 unitOfWork.studentExamRepo.DeactivateStudentExam(request.StudentId, request.ExamId);
 
                 return Ok(new { message = result });
@@ -173,7 +157,6 @@ namespace ExSystemProject.Controllers
             }
         }
 
-        // Add this DTO class somewhere in your project
        
     }
 }

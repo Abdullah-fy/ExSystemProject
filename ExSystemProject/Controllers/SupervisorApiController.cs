@@ -1,4 +1,4 @@
-﻿// ExSystemProject/Controllers/SupervisorApiController.cs
+﻿
 using AutoMapper;
 using ExSystemProject.DTOS;
 using ExSystemProject.Models;

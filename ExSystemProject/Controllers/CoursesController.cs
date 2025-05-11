@@ -14,7 +14,6 @@ namespace ExSystemProject.Controllers
             this.unitOfWork = unitOfWork;
         }
 
-        // here wanna to get course by track id to student i will get it from cookie 
 
         public IActionResult Index()
         {
@@ -23,18 +22,13 @@ namespace ExSystemProject.Controllers
 
         public IActionResult GetallcoursesbyTrackid()
         {
-            // get track id from cookie 
             var userclaim = User.FindFirst(s => s.Type == ClaimTypes.NameIdentifier);
-            // checking first if student login or not 
             if (userclaim == null || string.IsNullOrEmpty(userclaim.Value))
-                return Unauthorized(); // should redirect to login page 
+                return Unauthorized(); 
 
             var userid = userclaim.Value;
 
-            //var trackid = Request.Cookies["TrackId"];
 
-            //if (string.IsNullOrEmpty(trackid))
-            //    return Unauthorized(); // or redirect to login
 
 
             var std = unitOfWork.studentRepo.Getstd(Convert.ToInt32(userid));
@@ -53,7 +47,6 @@ namespace ExSystemProject.Controllers
             var instructors = unitOfWork.instructorRepo.GetInstructorsByTrackId(Convert.ToInt32(std.Track.TrackId));
 
             List<CourseDTO> coursesdtos = new List<CourseDTO>(); 
-            // get all courses by instructors ids 
 
             foreach (var instructor in instructors) {
              var courses = unitOfWork.instructorRepo.GetInstructorCourses(instructor.InsId);
@@ -84,7 +77,6 @@ namespace ExSystemProject.Controllers
             return View(coursesdtos); 
         }
 
-        // view course detail + Allow Enroll on std id 
 
         public IActionResult GetCoursebyid(int id)
         {
@@ -101,22 +93,18 @@ namespace ExSystemProject.Controllers
                 
             };
             return View(course); 
-           // return Content($"say hello course id =  {id}");
         }
 
 
-        // enroll course to student 
         public IActionResult Enroll(int crsid)
         {
             var userclaim = User.FindFirst(s => s.Type == ClaimTypes.NameIdentifier);
-            // checking first if student login or not 
             if (userclaim == null || string.IsNullOrEmpty(userclaim.Value))
-                return Unauthorized(); // should redirect to login page 
+                return Unauthorized(); 
 
             var userid = userclaim.Value;
 
             bool enroll = unitOfWork.studentRepo.Enrollment(Convert.ToInt32(userid),crsid);
-           // int x = 0;
             if (!enroll)
             {
 
