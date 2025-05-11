@@ -385,6 +385,48 @@ namespace ExSystemProject.Repository
                 throw new Exception($"Error retrieving questions for exam {examId}: {ex.Message}", ex);
             }
         }
+        // Add this method to your QuestionRepo class
+        public int InsertQuestionMCQDirect(Question question, List<Choice> choices)
+        {
+            using var transaction = _context.Database.BeginTransaction();
+            try
+            {
+                // 1. Insert the question
+                question.Isactive = true;
+                _context.Questions.Add(question);
+                _context.SaveChanges();
+
+                int questionId = question.QuesId;
+
+                // 2. Insert the choices with the new question ID
+                foreach (var choice in choices)
+                {
+                    choice.QuesId = questionId;
+                    _context.Choices.Add(choice);
+                }
+                _context.SaveChanges();
+
+                // 3. Update the exam's total marks if this question is assigned to an exam
+                if (question.ExamId.HasValue)
+                {
+                    var exam = _context.Exams.Find(question.ExamId.Value);
+                    if (exam != null)
+                    {
+                        exam.TotalMarks = (exam.TotalMarks ?? 0) + question.QuesScore;
+                        _context.SaveChanges();
+                    }
+                }
+
+                transaction.Commit();
+                return questionId;
+            }
+            catch (Exception ex)
+            {
+                transaction.Rollback();
+                throw new Exception($"Error inserting MCQ question directly: {ex.Message}", ex);
+            }
+        }
+
 
 
     }

@@ -283,6 +283,7 @@ namespace ExSystemProject.Controllers
                         return View(questionDTO);
                     }
 
+                    // Fill in missing choices with N/A
                     while (choices.Count < 4)
                     {
                         choices.Add(new Choice
@@ -292,7 +293,8 @@ namespace ExSystemProject.Controllers
                         });
                     }
 
-                    questionId = _unitOfWork.questionRepo.InsertQuestionMCQ(question, choices);
+                    // Use the new direct method instead of the stored procedure
+                    questionId = _unitOfWork.questionRepo.InsertQuestionMCQDirect(question, choices);
 
                     if (questionId > 0)
                     {
@@ -321,6 +323,7 @@ namespace ExSystemProject.Controllers
 
             return View(questionDTO);
         }
+
 
         // GET: BranchManagerQuestionBank/Edit/5
         public IActionResult Edit(int id)
