@@ -4,7 +4,6 @@
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
     var course = ViewBag.Course as ExSystemProject.DTOS.CourseDTO;
 
-    // Get non-nullable boolean value from the nullable property
     bool isActiveValue = Model.IsActive ?? true;
 }
 
@@ -63,7 +62,6 @@
     }
     <script>
         $(document).ready(function() {
-            // Update badge on toggle change
             $('#IsActiveCheckbox').change(function() {
                 if ($(this).is(':checked')) {
                     $('#statusBadge').removeClass('bg-danger').addClass('bg-success').text('Active');
@@ -72,7 +70,6 @@
                 }
             });
 
-            // Display status message using SweetAlert if available
         @if (TempData != null && TempData["Success"] != null && (bool)TempData["Success"])
         {
             <text>

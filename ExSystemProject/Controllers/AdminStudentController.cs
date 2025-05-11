@@ -26,7 +26,6 @@ namespace ExSystemProject.Controllers
         // GET: AdminStudent
         public IActionResult Index(int? branchId = null, int? trackId = null, bool? activeOnly = null)
         {
-            // Get current user ID using the base controller method
             var userId = GetCurrentUserId();
 
             List<Student> students;
@@ -35,7 +34,6 @@ namespace ExSystemProject.Controllers
             {
                 Track track = _unitOfWork.trackRepo.getById(trackId.Value);
                 Branch branch = _unitOfWork.branchRepo.getById(branchId.Value);
-                // Get students for a specific branch and track
                 students = _unitOfWork.studentRepo.GetStudentsByBranchAndTrackName(branch.BranchName, track.TrackName, activeOnly);
                 ViewBag.BranchId = branchId;
                 ViewBag.BranchName = _unitOfWork.branchRepo.getById(branchId.Value)?.BranchName;
@@ -44,21 +42,18 @@ namespace ExSystemProject.Controllers
             }
             else if (branchId.HasValue)
             {
-                // Get students for a specific branch
                 students = _unitOfWork.studentRepo.GetStudentsByBranchId(branchId.Value, activeOnly);
                 ViewBag.BranchId = branchId;
                 ViewBag.BranchName = _unitOfWork.branchRepo.getById(branchId.Value)?.BranchName;
             }
             else if (trackId.HasValue)
             {
-                // Get students for a specific track
                 students = _unitOfWork.studentRepo.GetStudentsByTrackId(trackId.Value, activeOnly);
                 ViewBag.TrackId = trackId;
                 ViewBag.TrackName = _unitOfWork.trackRepo.getById(trackId.Value)?.TrackName;
             }
             else
             {
-                // Get all students
                 students = _unitOfWork.studentRepo.GetAllStudents(activeOnly);
             }
 
@@ -76,14 +71,12 @@ namespace ExSystemProject.Controllers
         // GET: AdminStudent/Details/5
         public IActionResult Details(int id)
         {
-            // Get current user ID using the base controller method
             var userId = GetCurrentUserId();
 
             var student = _unitOfWork.studentRepo.GetStudentById(id);
             if (student == null)
                 return NotFound();
 
-            // Explicitly include related data
             student = _unitOfWork.context.Students
                 .Include(s => s.User)
                 .Include(s => s.Track)
@@ -101,14 +94,11 @@ namespace ExSystemProject.Controllers
         // GET: AdminStudent/Create
         public IActionResult Create()
         {
-            // Get current user ID using the base controller method
             var userId = GetCurrentUserId();
 
-            // Get all branches
             var branches = _unitOfWork.branchRepo.getAll();
             ViewBag.Branches = new SelectList(branches, "BranchId", "BranchName");
 
-            // When a branch is selected, we'll use JavaScript to populate tracks for that branch
             var tracks = _unitOfWork.trackRepo.getAll();
             ViewBag.Tracks = new SelectList(tracks, "TrackId", "TrackName");
 
@@ -122,15 +112,12 @@ namespace ExSystemProject.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Create(StudentDTO studentDTO, string Password)
         {
-            // Get current user ID using the base controller method
             var userId = GetCurrentUserId();
 
             try
             {
-                // Log received data for debugging
                 System.Diagnostics.Debug.WriteLine($"Creating student: {studentDTO.Username}, Email: {studentDTO.Email}, TrackId: {studentDTO.TrackId}, TrackName: {studentDTO.TrackName}, BranchName: {studentDTO.BranchName}");
 
-                // Check for required fields
                 if (string.IsNullOrEmpty(studentDTO.Username) ||
                     string.IsNullOrEmpty(studentDTO.Email) ||
                     string.IsNullOrEmpty(studentDTO.Gender))
@@ -138,7 +125,6 @@ namespace ExSystemProject.Controllers
                     ModelState.AddModelError("", "Please fill in all required fields");
                 }
 
-                // Check for required password
                 if (string.IsNullOrEmpty(Password))
                 {
                     ModelState.AddModelError("Password", "Password is required");
@@ -146,12 +132,11 @@ namespace ExSystemProject.Controllers
 
                 if (ModelState.IsValid)
                 {
-                    // Use the CreateStudentWithStoredProcedure method with admin-provided password
                     _unitOfWork.studentRepo.CreateStudentWithStoredProcedure(
                         studentDTO.Username,
                         studentDTO.Email,
                         studentDTO.Gender,
-                        Password, // Use the password entered by the admin
+                        Password, 
                         studentDTO.TrackId);
 
                     TempData["SuccessMessage"] = "Student created successfully!";
@@ -168,11 +153,9 @@ namespace ExSystemProject.Controllers
                 }
             }
 
-            // If we get here, there was an error - reload the form with the same data
             var allBranches = _unitOfWork.branchRepo.getAll();
             ViewBag.Branches = new SelectList(allBranches, "BranchId", "BranchName");
 
-            // If TrackId is provided, populate tracks for that branch
             if (studentDTO.TrackId.HasValue && studentDTO.BranchId.HasValue)
             {
                 var tracks = _unitOfWork.branchRepo.GetTracksByBranchId(studentDTO.BranchId.Value);
@@ -187,7 +170,6 @@ namespace ExSystemProject.Controllers
         // GET: AdminStudent/Edit/5
         public IActionResult Edit(int id)
         {
-            // Get current user ID using the base controller method
             var userId = GetCurrentUserId();
 
             var student = _unitOfWork.studentRepo.GetStudentByIdWithBranch(id);
@@ -196,11 +178,9 @@ namespace ExSystemProject.Controllers
 
             var studentDTO = _mapper.Map<StudentDTO>(student);
 
-            // Get all branches for dropdown
             var branches = _unitOfWork.branchRepo.getAll();
             ViewBag.Branches = branches;
 
-            // Get tracks for the student's branch (if any)
             List<Track> tracks;
             if (student.Track?.BranchId > 0)
             {
@@ -219,7 +199,6 @@ namespace ExSystemProject.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Edit(int id, StudentDTO studentDTO, int? BranchId, string IsactiveHidden)
         {
-            // Get current user ID using the base controller method
             var userId = GetCurrentUserId();
 
             System.Diagnostics.Debug.WriteLine($"Edit POST called with: ID={id}, Username={studentDTO.Username}, " +
@@ -229,7 +208,6 @@ namespace ExSystemProject.Controllers
             if (id != studentDTO.StudentId)
                 return NotFound();
 
-            // Explicitly set the active status based on the hidden field value
             studentDTO.Isactive = IsactiveHidden?.ToLower() == "true";
             System.Diagnostics.Debug.WriteLine($"Setting Isactive to: {studentDTO.Isactive}");
 
@@ -237,7 +215,6 @@ namespace ExSystemProject.Controllers
             {
                 try
                 {
-                    // Verify that the track belongs to the selected branch if a branch was selected
                     if (BranchId.HasValue && studentDTO.TrackId.HasValue)
                     {
                         var track = _unitOfWork.trackRepo.getById(studentDTO.TrackId.Value);
@@ -258,11 +235,9 @@ namespace ExSystemProject.Controllers
                         System.Diagnostics.Debug.WriteLine($"Track validated. Track belongs to branch: {track.BranchId}");
                     }
 
-                    // Ensure isactive is properly handled (read from the explicit value we set above)
                     bool isActive = studentDTO.Isactive ?? true;
                     System.Diagnostics.Debug.WriteLine($"IsActive value being used: {isActive}");
 
-                    // Update student using stored procedure
                     _unitOfWork.studentRepo.UpdateStudent(
                         studentDTO.StudentId,
                         studentDTO.Username,
@@ -294,7 +269,6 @@ namespace ExSystemProject.Controllers
                 }
             }
 
-            // If we got this far, something failed, redisplay form
             PrepareEditViewBags(BranchId, studentDTO);
             return View(studentDTO);
         }
@@ -316,7 +290,6 @@ namespace ExSystemProject.Controllers
         // GET: AdminStudent/Delete/5
         public IActionResult Delete(int id)
         {
-            // Get current user ID using the base controller method
             var userId = GetCurrentUserId();
 
             var student = _unitOfWork.studentRepo.GetStudentById(id);
@@ -332,12 +305,10 @@ namespace ExSystemProject.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(int id)
         {
-            // Get current user ID using the base controller method
             var userId = GetCurrentUserId();
 
             try
             {
-                // Delete student using stored procedure (logical delete)
                 _unitOfWork.studentRepo.DeleteStudent(id);
 
                 TempData["SuccessMessage"] = "Student deactivated successfully!";
@@ -353,7 +324,6 @@ namespace ExSystemProject.Controllers
         // GET: AdminStudent/AssignExam
         public IActionResult AssignExam(int id)
         {
-            // Get current user ID using the base controller method
             var userId = GetCurrentUserId();
 
             var student = _unitOfWork.studentRepo.GetStudentById(id);
@@ -376,7 +346,6 @@ namespace ExSystemProject.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult AssignExam(int studentId, int examId)
         {
-            // Get current user ID using the base controller method
             var userId = GetCurrentUserId();
 
             try
@@ -388,7 +357,6 @@ namespace ExSystemProject.Controllers
                     TempData["SwalMessage"] = "Exam already assigned.";
                     return RedirectToAction(nameof(Details), new { id = studentId });
                 }
-                // Assign exam to student using stored procedure
                 _unitOfWork.studentRepo.AssignExamToStudent(examId, studentId);
 
                 TempData["SuccessMessage"] = "Exam assigned successfully!";
@@ -414,7 +382,6 @@ namespace ExSystemProject.Controllers
         [HttpGet]
         public JsonResult GetTracksByBranch(int branchId)
         {
-            // Get current user ID using the base controller method
             var userId = GetCurrentUserId();
 
             try

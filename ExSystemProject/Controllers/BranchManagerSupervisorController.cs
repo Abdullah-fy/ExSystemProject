@@ -29,7 +29,6 @@ namespace ExSystemProject.Controllers
         {
             ViewData["Title"] = "Supervisors Management";
 
-            // Get supervisors for this branch with the specified active filter
             var supervisors = _unitOfWork.supervisorRepo.GetSupervisorsByBranchId(CurrentBranchId, active);
 
             return View(supervisors);
@@ -43,7 +42,6 @@ namespace ExSystemProject.Controllers
             // Get supervisor by id
             var supervisor = _unitOfWork.supervisorRepo.GetSupervisorById(id);
 
-            // Verify supervisor exists and belongs to this branch
             if (supervisor == null || supervisor.BranchId != CurrentBranchId)
             {
                 return NotFound();
@@ -58,7 +56,6 @@ namespace ExSystemProject.Controllers
         {
             try
             {
-                // Get tracks from the current branch for optional assignment
                 var tracks = _unitOfWork.trackRepo.GetTracksByBranchId(CurrentBranchId)
                     .Where(t => t.IsActive == true)
                     .Select(t => new SelectListItem
@@ -68,13 +65,11 @@ namespace ExSystemProject.Controllers
                     })
                     .ToList();
 
-                // Get branch details directly from the database
                 var branch = _unitOfWork.branchRepo.getById(CurrentBranchId);
                 string branchName = branch?.BranchName;
 
                 if (string.IsNullOrEmpty(branchName))
                 {
-                    // Fallback to the current branch name from the base controller
                     branchName = CurrentBranchName ?? "Default Branch";
                 }
 
@@ -103,25 +98,20 @@ namespace ExSystemProject.Controllers
         {
             try
             {
-                // For debugging
                 System.Diagnostics.Debug.WriteLine($"Model: Username={model.Username}, Email={model.Email}, BranchId={model.BranchId}, BranchName={model.BranchName}");
 
-                // Force set the BranchId to the current branch ID for security
                 model.BranchId = CurrentBranchId;
 
-                // Get branch details directly from the database
                 var branch = _unitOfWork.branchRepo.getById(CurrentBranchId);
                 if (branch != null)
                 {
                     model.BranchName = branch.BranchName;
                 }
 
-                // Check for email uniqueness
                 if (_unitOfWork.userRepo.getAll().Any(u => u.Email == model.Email))
                 {
                     ModelState.AddModelError("Email", "This email address is already in use");
 
-                    // Repopulate tracks dropdown
                     var tracks = _unitOfWork.trackRepo.GetTracksByBranchId(CurrentBranchId)
                         .Where(t => t.IsActive == true)
                         .Select(t => new SelectListItem
@@ -138,7 +128,6 @@ namespace ExSystemProject.Controllers
 
                 if (ModelState.IsValid)
                 {
-                    // Create user with supervisor role
                     var user = new User
                     {
                         Username = model.Username,
@@ -154,7 +143,6 @@ namespace ExSystemProject.Controllers
 
                     System.Diagnostics.Debug.WriteLine($"User created with ID: {user.UserId}");
 
-                    // Create supervisor assignment
                     var assignment = new UserAssignment
                     {
                         UserId = user.UserId,
@@ -172,14 +160,12 @@ namespace ExSystemProject.Controllers
                     return RedirectToAction(nameof(Index));
                 }
 
-                // If we get here, something went wrong with validation
                 System.Diagnostics.Debug.WriteLine("Model validation failed:");
                 foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
                 {
                     System.Diagnostics.Debug.WriteLine($"- {error.ErrorMessage}");
                 }
 
-                // Repopulate tracks dropdown
                 var tracksList = _unitOfWork.trackRepo.GetTracksByBranchId(CurrentBranchId)
                     .Where(t => t.IsActive == true)
                     .Select(t => new SelectListItem
@@ -195,7 +181,6 @@ namespace ExSystemProject.Controllers
             }
             catch (Exception ex)
             {
-                // Enhanced error logging
                 System.Diagnostics.Debug.WriteLine($"Error creating supervisor: {ex.Message}");
                 if (ex.InnerException != null)
                 {
@@ -204,7 +189,6 @@ namespace ExSystemProject.Controllers
 
                 ModelState.AddModelError("", $"Error creating supervisor: {ex.Message}");
 
-                // Repopulate tracks dropdown
                 var tracks = _unitOfWork.trackRepo.GetTracksByBranchId(CurrentBranchId)
                     .Where(t => t.IsActive == true)
                     .Select(t => new SelectListItem
@@ -228,13 +212,11 @@ namespace ExSystemProject.Controllers
         {
             var supervisor = _unitOfWork.supervisorRepo.GetSupervisorById(id);
 
-            // Verify supervisor exists and belongs to this branch
             if (supervisor == null || supervisor.BranchId != CurrentBranchId)
             {
                 return NotFound();
             }
 
-            // Get tracks from the current branch
             var tracks = _unitOfWork.trackRepo.GetTracksByBranchId(CurrentBranchId)
                 .Select(t => new SelectListItem
                 {
@@ -279,20 +261,17 @@ namespace ExSystemProject.Controllers
 
                 var supervisor = _unitOfWork.supervisorRepo.GetSupervisorById(id);
 
-                // Verify supervisor exists and belongs to this branch
                 if (supervisor == null || supervisor.BranchId != CurrentBranchId)
                 {
                     System.Diagnostics.Debug.WriteLine($"Supervisor not found or doesn't belong to this branch. BranchId: {CurrentBranchId}");
                     return NotFound();
                 }
 
-                // Check if email is changed and is already in use by another user
                 if (supervisor.User.Email != model.Email &&
                     _unitOfWork.userRepo.getAll().Any(u => u.Email == model.Email && u.UserId != model.UserId))
                 {
                     ModelState.AddModelError("Email", "This email address is already in use by another user");
 
-                    // Repopulate tracks dropdown
                     var tracks = _unitOfWork.trackRepo.GetTracksByBranchId(CurrentBranchId)
                         .Select(t => new SelectListItem
                         {
@@ -307,10 +286,8 @@ namespace ExSystemProject.Controllers
                     return View(model);
                 }
 
-                // Make sure BranchId is always set to CurrentBranchId for security
                 model.BranchId = CurrentBranchId;
 
-                // Get branch name if not provided
                 if (string.IsNullOrEmpty(model.BranchName))
                 {
                     var branch = _unitOfWork.branchRepo.getById(CurrentBranchId);
@@ -323,7 +300,6 @@ namespace ExSystemProject.Controllers
                     {
                         System.Diagnostics.Debug.WriteLine("Model is valid, updating supervisor...");
 
-                        // Update user information
                         var user = _unitOfWork.userRepo.getById(model.UserId);
                         if (user != null)
                         {
@@ -337,7 +313,6 @@ namespace ExSystemProject.Controllers
                             System.Diagnostics.Debug.WriteLine($"User updated successfully: {user.UserId}");
                         }
 
-                        // Update assignment information
                         supervisor.Isactive = model.IsActive;
                         supervisor.TrackId = model.TrackId;
                         _unitOfWork.supervisorRepo.update(supervisor);
@@ -368,8 +343,6 @@ namespace ExSystemProject.Controllers
                     }
                 }
 
-                // If we get here, something went wrong with validation or saving
-                // Repopulate tracks and return view
                 model.BranchName = CurrentBranchName ?? model.BranchName;
                 model.Tracks = _unitOfWork.trackRepo.GetTracksByBranchId(CurrentBranchId)
                     .Select(t => new SelectListItem
@@ -401,7 +374,6 @@ namespace ExSystemProject.Controllers
         {
             var supervisor = _unitOfWork.supervisorRepo.GetSupervisorById(id);
 
-            // Verify supervisor exists and belongs to this branch
             if (supervisor == null || supervisor.BranchId != CurrentBranchId)
             {
                 return NotFound();
@@ -418,7 +390,6 @@ namespace ExSystemProject.Controllers
         {
             var supervisor = _unitOfWork.supervisorRepo.GetSupervisorById(id);
 
-            // Verify supervisor exists and belongs to this branch
             if (supervisor == null || supervisor.BranchId != CurrentBranchId)
             {
                 return NotFound();
@@ -445,13 +416,11 @@ namespace ExSystemProject.Controllers
             {
                 var supervisor = _unitOfWork.supervisorRepo.GetSupervisorById(id);
 
-                // Verify supervisor exists and belongs to this branch
                 if (supervisor == null || supervisor.BranchId != CurrentBranchId)
                 {
                     return Json(new { success = false, message = "Supervisor not found or access denied" });
                 }
 
-                // Toggle active status
                 supervisor.Isactive = !(supervisor.Isactive ?? true);
                 if (supervisor.User != null)
                 {

@@ -22,10 +22,8 @@ namespace ExSystemProject.Controllers
         {
             ViewData["Title"] = "Track Management";
 
-            // Get tracks for this branch
             var tracks = _unitOfWork.trackRepo.GetTracksByBranchId(CurrentBranchId);
 
-            // Filter by active status if specified
             if (active.HasValue)
             {
                 tracks = tracks.Where(t => t.IsActive == active.Value).ToList();
@@ -39,13 +37,11 @@ namespace ExSystemProject.Controllers
         {
             var track = _unitOfWork.trackRepo.getById(id);
 
-            // Verify track exists and belongs to this branch
             if (track == null || track.BranchId != CurrentBranchId)
             {
                 return NotFound();
             }
 
-            // Get related data
             var instructors = _unitOfWork.instructorRepo.GetInstructorsByTrackWithBranch(id, null);
             var students = _unitOfWork.studentRepo.GetStudentsByDepartmentWithBranch(id, null);
 
@@ -61,7 +57,6 @@ namespace ExSystemProject.Controllers
         // GET: BranchManagerTrack/Create
         public IActionResult Create()
         {
-            // Set the branch ID to current branch
             var track = new Track { BranchId = CurrentBranchId };
 
             ViewData["Title"] = "Create New Track";
@@ -75,7 +70,6 @@ namespace ExSystemProject.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Create(Track track)
         {
-            // Always set the branch ID to current branch for security
             track.BranchId = CurrentBranchId;
 
             if (ModelState.IsValid)
@@ -104,7 +98,6 @@ namespace ExSystemProject.Controllers
         {
             var track = _unitOfWork.trackRepo.getById(id);
 
-            // Verify track exists and belongs to this branch
             if (track == null || track.BranchId != CurrentBranchId)
             {
                 return NotFound();
@@ -126,10 +119,8 @@ namespace ExSystemProject.Controllers
                 return NotFound();
             }
 
-            // Always set the branch ID to current branch for security
             track.BranchId = CurrentBranchId;
 
-            // Parse the IsActive value from form
             track.IsActive = IsActive?.ToLower() == "true";
 
             if (ModelState.IsValid)
@@ -159,7 +150,6 @@ namespace ExSystemProject.Controllers
         {
             var track = _unitOfWork.trackRepo.getById(id);
 
-            // Verify track exists and belongs to this branch
             if (track == null || track.BranchId != CurrentBranchId)
             {
                 return NotFound();
@@ -176,7 +166,6 @@ namespace ExSystemProject.Controllers
         {
             var track = _unitOfWork.trackRepo.getById(id);
 
-            // Verify track exists and belongs to this branch
             if (track == null || track.BranchId != CurrentBranchId)
             {
                 return NotFound();
@@ -184,7 +173,6 @@ namespace ExSystemProject.Controllers
 
             try
             {
-                // Soft delete by setting IsActive to false
                 track.IsActive = false;
                 _unitOfWork.trackRepo.update(track);
                 _unitOfWork.save();
@@ -209,13 +197,11 @@ namespace ExSystemProject.Controllers
             {
                 var track = _unitOfWork.trackRepo.getById(id);
 
-                // Verify track exists and belongs to this branch
                 if (track == null || track.BranchId != CurrentBranchId)
                 {
                     return Json(new { success = false, message = "Track not found or access denied" });
                 }
 
-                // Toggle the active status
                 track.IsActive = !(track.IsActive ?? true);
                 _unitOfWork.trackRepo.update(track);
                 _unitOfWork.save();
@@ -239,7 +225,6 @@ namespace ExSystemProject.Controllers
         {
             var track = _unitOfWork.trackRepo.getById(id);
 
-            // Verify track exists and belongs to this branch
             if (track == null || track.BranchId != CurrentBranchId)
             {
                 return NotFound();
@@ -258,7 +243,6 @@ namespace ExSystemProject.Controllers
         {
             var track = _unitOfWork.trackRepo.getById(id);
 
-            // Verify track exists and belongs to this branch
             if (track == null || track.BranchId != CurrentBranchId)
             {
                 return NotFound();

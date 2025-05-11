@@ -31,14 +31,12 @@ namespace ExSystemProject.Controllers
 
             if (examId.HasValue)
             {
-                // Get questions for a specific exam
                 questions = _unitOfWork.examRepo.GetQuestionsByExamId(examId.Value);
                 ViewBag.ExamId = examId;
                 ViewBag.ExamName = _unitOfWork.examRepo.GetExamById(examId.Value)?.ExamName;
             }
             else
             {
-                // Get all questions
                 questions = _unitOfWork.questionRepo.GetAllQuestions();
             }
 
@@ -55,7 +53,6 @@ namespace ExSystemProject.Controllers
             if (question == null)
                 return NotFound();
 
-            // Get choices for this question
             var choices = _unitOfWork.choicesRepo.GetChoicesByQuestionId(id);
             question.Choices = choices;
 
@@ -75,8 +72,8 @@ namespace ExSystemProject.Controllers
             return View(new QuestionBankDTO
             {
                 ExamId = examId,
-                QuesScore = 5, // Default score
-                QuesType = "MCQ", // Default type
+                QuesScore = 5, 
+                QuesType = "MCQ", 
                 Choices = new List<ChoiceDTO>
                 {
                     new ChoiceDTO { ChoiceText = "", IsCorrect = false },
@@ -96,7 +93,6 @@ namespace ExSystemProject.Controllers
 
             try
             {
-                // Force the question type to be MCQ for this action
                 questionDTO.QuesType = "MCQ";
 
                 System.Diagnostics.Debug.WriteLine($"Create MCQ POST: Text={questionDTO.QuesText}, Score={questionDTO.QuesScore}");
@@ -114,7 +110,6 @@ namespace ExSystemProject.Controllers
 
                     int questionId = 0;
 
-                    // Process MCQ choices
                     var choices = new List<Choice>();
                     bool hasCorrectChoice = false;
 
@@ -199,7 +194,6 @@ namespace ExSystemProject.Controllers
             if (question == null)
                 return NotFound();
 
-            // Get choices for this question
             var choices = _unitOfWork.choicesRepo.GetChoicesByQuestionId(id);
             question.Choices = choices;
 
@@ -240,8 +234,6 @@ namespace ExSystemProject.Controllers
 
                     if (questionDTO.QuesType == "MCQ")
                     {
-                        // For MCQ questions, process each choice
-                        // If correctAnswer is provided (0-based index), use it to mark the correct answer
                         if (!string.IsNullOrEmpty(correctAnswer) && int.TryParse(correctAnswer, out int correctIndex) &&
                             correctIndex >= 0 && correctIndex < questionDTO.Choices.Count)
                         {
@@ -253,7 +245,6 @@ namespace ExSystemProject.Controllers
                         }
                         else
                         {
-                            // Otherwise check if any choice is already marked as correct
                             foreach (var choice in questionDTO.Choices)
                             {
                                 if (choice.IsCorrect)
@@ -285,7 +276,6 @@ namespace ExSystemProject.Controllers
                     }
                     else if (questionDTO.QuesType == "TF")
                     {
-                        // For True/False questions, determine which option is correct
                         bool isTrue = false;
 
                         if (!string.IsNullOrEmpty(correctAnswer))
@@ -299,7 +289,6 @@ namespace ExSystemProject.Controllers
                             hasCorrectChoice = true;
                         }
 
-                        // Create two choices for T/F question
                         choices = new List<Choice>
                         {
                             new Choice
@@ -319,7 +308,6 @@ namespace ExSystemProject.Controllers
                         };
                     }
 
-                    // Update question and its choices
                     _unitOfWork.questionRepo.UpdateQuestionAndChoices(question, choices);
 
                     TempData["Success"] = true;
@@ -336,7 +324,6 @@ namespace ExSystemProject.Controllers
                 ModelState.AddModelError("", $"An error occurred: {ex.Message}");
             }
 
-            // Use a different variable name for exams list to avoid name conflict
             var examOptions = _unitOfWork.examRepo.GetAllExams();
             ViewBag.Exams = new SelectList(examOptions, "ExamId", "ExamName", questionDTO.ExamId);
             return View(questionDTO);
@@ -351,7 +338,6 @@ namespace ExSystemProject.Controllers
             if (question == null)
                 return NotFound();
 
-            // Get choices for this question
             var choices = _unitOfWork.choicesRepo.GetChoicesByQuestionId(id);
             question.Choices = choices;
 
@@ -384,7 +370,6 @@ namespace ExSystemProject.Controllers
             }
             catch (Exception ex)
             {
-                // Handle the foreign key constraint error
                 TempData["Error"] = true;
                 TempData["Message"] = "Cannot delete this question because it has student answers associated with it.";
 
@@ -401,7 +386,6 @@ namespace ExSystemProject.Controllers
             if (question == null)
                 return NotFound();
 
-            // Get exams for dropdown (excluding the one the question is already in)
             var exams = _unitOfWork.examRepo.GetAllExams()
                 .Where(e => e.ExamId != question.ExamId)
                 .ToList();
@@ -421,7 +405,6 @@ namespace ExSystemProject.Controllers
 
             try
             {
-                // Add question to exam
                 _unitOfWork.examRepo.AddQuestionToExam(examId, id);
 
                 TempData["Success"] = true;
@@ -447,7 +430,6 @@ namespace ExSystemProject.Controllers
 
             try
             {
-                // Remove question from exam
                 _unitOfWork.examRepo.RemoveQuestionFromExam(examId, id);
 
                 TempData["Success"] = true;
@@ -464,7 +446,6 @@ namespace ExSystemProject.Controllers
             }
         }
 
-        // New action specifically for True/False questions
         [HttpGet]
         public IActionResult CreateTrueFalse()
         {
@@ -485,20 +466,17 @@ namespace ExSystemProject.Controllers
             {
                 System.Diagnostics.Debug.WriteLine($"CreateTrueFalse POST: Text={quesText}, Score={quesScore}, Answer={tfCorrectAnswer}, ExamId={examId}");
 
-                // Create question object
                 var question = new Question
                 {
                     QuesText = quesText,
-                    QuesType = "TF", // Fixed to TF
+                    QuesType = "TF", 
                     QuesScore = quesScore,
                     ExamId = examId,
                     Isactive = true
                 };
 
-                // Convert to "1" or "0" for the stored procedure
                 string correctAnswerValue = tfCorrectAnswer?.ToLower() == "true" ? "1" : "0";
 
-                // Insert TF question
                 int questionId = _unitOfWork.questionRepo.InsertQuestionTF(question, correctAnswerValue);
 
                 if (questionId > 0)
@@ -521,7 +499,6 @@ namespace ExSystemProject.Controllers
             var examsList = _unitOfWork.examRepo.GetAllExams();
             ViewBag.Exams = new SelectList(examsList, "ExamId", "ExamName", examId);
 
-            // Keep the submitted values
             ViewBag.QuesText = quesText;
             ViewBag.QuesScore = quesScore;
             ViewBag.TFCorrectAnswer = tfCorrectAnswer;

@@ -37,7 +37,6 @@ namespace ExSystemProject.Repository
             return query;
         }
 
-        // Call stored procedure to create a course
         public void CreateCourse(Course course)
         {
             var crsNameParam = new SqlParameter("@crs_name", course.CrsName);
@@ -51,17 +50,15 @@ namespace ExSystemProject.Repository
                 crsNameParam, crsPeriodParam, insIdParam, posterParam, descriptionParam);
         }
 
-        // Call stored procedure to update a course
         public void UpdateCourse(Course course)
         {
-            // If isactive is null, get the current value from the database
             if (!course.Isactive.HasValue)
             {
                 var currentCourse = _context.Courses
                     .AsNoTracking()
                     .FirstOrDefault(c => c.CrsId == course.CrsId);
 
-                course.Isactive = currentCourse?.Isactive ?? true;  // Default to true if somehow null
+                course.Isactive = currentCourse?.Isactive ?? true;  
             }
 
             var crsIdParam = new SqlParameter("@crs_id", course.CrsId);
@@ -78,7 +75,6 @@ namespace ExSystemProject.Repository
         }
 
 
-        // Call stored procedure to delete a course
         public void DeleteCourse(int courseId)
         {
             var crsIdParam = new SqlParameter("@CrsId", courseId);
@@ -88,7 +84,6 @@ namespace ExSystemProject.Repository
                 crsIdParam);
         }
 
-        // Call stored procedure to get course by id
         public Course GetCourseById(int courseId)
         {
             var crsIdParam = new SqlParameter("@CrsId", courseId);
@@ -99,7 +94,6 @@ namespace ExSystemProject.Repository
                 .FirstOrDefault();
         }
 
-        // Call stored procedure to get all courses
         public List<Course> GetAllCourses(bool? activeOnly = null)
         {
             var activeParam = activeOnly.HasValue
@@ -112,7 +106,6 @@ namespace ExSystemProject.Repository
                 .ToList();
         }
 
-        // Call stored procedure to get course topics
         public List<Topic> GetCourseTopics(int courseId)
         {
             var crsIdParam = new SqlParameter("@CrsId", courseId);
@@ -123,7 +116,6 @@ namespace ExSystemProject.Repository
                 .ToList();
         }
 
-        // Call stored procedure to get exams by course id
         public List<Exam> GetExamsByCourseId(int courseId)
         {
             var crsIdParam = new SqlParameter("@CrsId", courseId);
@@ -164,7 +156,6 @@ namespace ExSystemProject.Repository
         }
        
 
-        // Get courses by branch ID
         public List<Course> GetCoursesByBranch(int branchId)
         {
             try
@@ -182,7 +173,6 @@ namespace ExSystemProject.Repository
             }
         }
 
-        // Get course with branch information
         public Course GetCourseWithBranch(int courseId)
         {
             try
@@ -203,11 +193,9 @@ namespace ExSystemProject.Repository
         {
             try
             {
-                // Create parameters for the stored procedure
                 var courseIdParam = new SqlParameter("@CourseId", courseId);
                 var instructorIdParam = new SqlParameter("@InstructorId", instructorId);
 
-                // Execute the stored procedure
                 _context.Database.ExecuteSqlRaw(
                     "EXEC sp_AssignCourseToInstructor @CourseId, @InstructorId",
                     courseIdParam, instructorIdParam);

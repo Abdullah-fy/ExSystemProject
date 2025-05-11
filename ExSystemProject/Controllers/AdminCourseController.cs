@@ -84,10 +84,10 @@ namespace ExSystemProject.Controllers
             var branches = _unitOfWork.branchRepo.GetAllActive();
             ViewBag.Branches = new SelectList(branches, "BranchId", "BranchName");
 
-            // Tracks will be loaded via AJAX when branch is selected
+            
             ViewBag.Tracks = new SelectList(new List<Track>(), "TrackId", "TrackName");
 
-            // Instructors will be loaded via AJAX when track is selected
+           
             ViewBag.Instructors = new SelectList(new List<Instructor>(), "InsId", "User.Username");
 
             return View(new CourseDTO { Isactive = true });
@@ -99,7 +99,7 @@ namespace ExSystemProject.Controllers
         {
             if (!ModelState.IsValid)
             {
-                // Repopulate dropdowns
+               
                 var branches = _unitOfWork.branchRepo.GetAllActive();
                 ViewBag.Branches = new SelectList(branches, "BranchId", "BranchName", courseDTO.BranchId);
 
@@ -118,7 +118,7 @@ namespace ExSystemProject.Controllers
                 return View(courseDTO);
             }
 
-            // Save course logic here
+          
             var course = _mapper.Map<Course>(courseDTO);
             _unitOfWork.courseRepo.CreateCourse(course);
 
@@ -146,15 +146,15 @@ namespace ExSystemProject.Controllers
         // GET: AdminCourse/Edit/5
         public IActionResult Edit(int id)
         {
-            // Get the course with all related data
+           
             var course = _unitOfWork.courseRepo.GetCourseById(id);
             if (course == null)
                 return NotFound();
 
-            // Map to DTO
+           
             var courseDTO = _mapper.Map<CourseDTO>(course);
 
-            // Ensure BranchId and TrackId are set from related entities if they exist
+            
             if (course.Ins?.Track?.BranchId != null)
             {
                 courseDTO.BranchId = course.Ins.Track.BranchId;
@@ -163,17 +163,17 @@ namespace ExSystemProject.Controllers
                 courseDTO.TrackName = course.Ins.Track?.TrackName;
             }
 
-            // Get all branches for dropdown
+          
             var branches = _unitOfWork.branchRepo.GetAllActive();
             ViewBag.Branches = new SelectList(branches, "BranchId", "BranchName", courseDTO.BranchId);
 
-            // Get tracks for the selected branch
+           
             if (courseDTO.BranchId.HasValue)
             {
                 var tracks = _unitOfWork.trackRepo.GetActiveTracksByBranchId(courseDTO.BranchId.Value);
                 ViewBag.Tracks = new SelectList(tracks, "TrackId", "TrackName", courseDTO.TrackId);
 
-                // Get instructors for this track
+                
                 if (courseDTO.TrackId.HasValue)
                 {
                     var instructors = _unitOfWork.instructorRepo.GetInstructorsByTrackWithBranch(courseDTO.TrackId.Value, true);
@@ -195,37 +195,37 @@ namespace ExSystemProject.Controllers
             {
                 try
                 {
-                    // Get current course data
+                    
                     var currentCourse = _unitOfWork.courseRepo.GetCourseById(id);
                     if (currentCourse == null)
                     {
                         return NotFound();
                     }
 
-                    // Preserve fields not included in form if needed
+                    
                     bool wasActive = currentCourse.Isactive ?? true;
                     string oldPoster = currentCourse.Poster;
 
-                    // Map DTO to entity
+                   
                     var course = _mapper.Map<Course>(courseDTO);
 
-                    // Preserve poster if not changed
+                    
                     if (string.IsNullOrEmpty(course.Poster))
                     {
                         course.Poster = oldPoster;
                     }
 
-                    // Make sure Isactive is never null
+                 
                     if (courseDTO.Isactive == null)
                     {
                         courseDTO.Isactive = wasActive;
                         course.Isactive = wasActive;
                     }
 
-                    // Update the course
+                  
                     _unitOfWork.courseRepo.UpdateCourse(course);
 
-                    // Set success message
+                
                     TempData["Success"] = true;
                     if (wasActive == true && courseDTO.Isactive == false)
                     {
@@ -244,13 +244,13 @@ namespace ExSystemProject.Controllers
                 }
                 catch (Exception ex)
                 {
-                    // Log the error
+                    
                     System.Diagnostics.Debug.WriteLine($"Error updating course: {ex.Message}");
                     ModelState.AddModelError("", $"Error updating course: {ex.Message}");
                 }
             }
 
-            // If we get here, something failed; redisplay form with all the needed data
+          
             var branches = _unitOfWork.branchRepo.GetAllActive();
             ViewBag.Branches = new SelectList(branches, "BranchId", "BranchName", courseDTO.BranchId);
 
@@ -277,7 +277,7 @@ namespace ExSystemProject.Controllers
         {
             var userId = GetCurrentUserId();
 
-            // Using the enhanced repository method to get course by id
+            
             var course = _unitOfWork.courseRepo.GetCourseById(id);
             if (course == null)
                 return NotFound();
@@ -295,14 +295,14 @@ namespace ExSystemProject.Controllers
 
             try
             {
-                // Get the course to check if it exists
+                
                 var course = _unitOfWork.courseRepo.GetCourseById(id);
                 if (course == null)
                 {
                     return NotFound();
                 }
 
-                // Delete the course using the repository method
+               
                 _unitOfWork.courseRepo.DeleteCourse(id);
 
                 TempData["Success"] = true;
@@ -312,14 +312,14 @@ namespace ExSystemProject.Controllers
             }
             catch (Exception ex)
             {
-                // Log the error
+                
                 System.Diagnostics.Debug.WriteLine($"Error deleting course: {ex.Message}");
 
-                // Use TempData to display error message
+               
                 TempData["Error"] = true;
                 TempData["Message"] = $"Error deleting course: {ex.Message}";
 
-                // Redirect back to the delete confirmation page
+               
                 return RedirectToAction(nameof(Delete), new { id });
             }
         }
@@ -335,9 +335,8 @@ namespace ExSystemProject.Controllers
 
             var courseDTO = _mapper.Map<CourseDTO>(course);
 
-            // Get topics for this course
-            var topics = _unitOfWork.topicRepo.GetTopicsByCourseId(id, null); // Get all topics (active and inactive)
-
+           
+            var topics = _unitOfWork.topicRepo.GetTopicsByCourseId(id, null); 
             ViewBag.Course = courseDTO;
             ViewBag.Topics = topics;
 
@@ -417,7 +416,7 @@ namespace ExSystemProject.Controllers
                 CourseName = topic.Crs?.CrsName
             };
 
-            // Get course info for the view header
+            
             var course = _unitOfWork.courseRepo.GetCourseById(topic.CrsId ?? 0);
             ViewBag.Course = _mapper.Map<CourseDTO>(course);
 
@@ -458,7 +457,7 @@ namespace ExSystemProject.Controllers
                 }
             }
 
-            // If we got this far, something failed; redisplay form
+           
             var course = _unitOfWork.courseRepo.GetCourseById(topicDTO.CrsId ?? 0);
             ViewBag.Course = _mapper.Map<CourseDTO>(course);
 
@@ -484,7 +483,7 @@ namespace ExSystemProject.Controllers
                 CourseName = topic.Crs?.CrsName
             };
 
-            // Get course info for the view header
+            
             var course = _unitOfWork.courseRepo.GetCourseById(topic.CrsId ?? 0);
             ViewBag.Course = _mapper.Map<CourseDTO>(course);
 
@@ -533,7 +532,7 @@ namespace ExSystemProject.Controllers
                 if (topic == null)
                     return Json(new { success = false, message = "Topic not found" });
 
-                // Determine the new status (opposite of current)
+               
                 bool currentStatus = topic.Isactive ?? true;
                 bool newStatus = !currentStatus;
 
@@ -546,7 +545,7 @@ namespace ExSystemProject.Controllers
                     newStatus
                 );
 
-                // Return success response with the new status
+              
                 string statusText = newStatus ? "activated" : "deactivated";
                 return Json(new
                 {

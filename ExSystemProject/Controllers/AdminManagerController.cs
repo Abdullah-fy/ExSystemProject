@@ -30,7 +30,6 @@ namespace ExSystemProject.Controllers
             {
                 List<UserAssignment> managers = _unitOfWork.userAssignmentRepo.GetAllManagers(activeOnly);
 
-                // Apply search filter if provided
                 if (!string.IsNullOrEmpty(searchString))
                 {
                     managers = managers.Where(m =>
@@ -91,7 +90,6 @@ namespace ExSystemProject.Controllers
 
             try
             {
-                // Check for required password
                 if (string.IsNullOrEmpty(Password))
                 {
                     ModelState.AddModelError("Password", "Password is required");
@@ -102,7 +100,6 @@ namespace ExSystemProject.Controllers
 
                 if (ModelState.IsValid)
                 {
-                    // Create user with admin role
                     var user = new User
                     {
                         Username = managerDTO.Username,
@@ -116,7 +113,6 @@ namespace ExSystemProject.Controllers
                     _unitOfWork.userRepo.add(user);
                     _unitOfWork.save();
 
-                    // Create user assignment for branch
                     var userAssignment = new UserAssignment
                     {
                         UserId = user.UserId,
@@ -227,7 +223,6 @@ namespace ExSystemProject.Controllers
 
             try
             {
-                // Deactivate the manager (logical delete)
                 _unitOfWork.userAssignmentRepo.DeactivateManager(id);
 
                 TempData["SuccessMessage"] = "Branch Manager deactivated successfully!";

@@ -23,22 +23,18 @@ namespace ExSystemProject.Controllers
         {
             ViewData["Title"] = "Instructor Management";
 
-            // Get instructors for this branch
             var instructors = _unitOfWork.instructorRepo.GetInstructorsByBranchWithBranch(CurrentBranchId, null);
 
-            // Filter by track if specified
             if (trackId.HasValue)
             {
                 instructors = instructors.Where(i => i.TrackId == trackId.Value).ToList();
             }
 
-            // Filter by active status if specified
             if (active.HasValue)
             {
                 instructors = instructors.Where(i => i.Isactive == active.Value).ToList();
             }
 
-            // Get tracks for filtering
             ViewBag.Tracks = _unitOfWork.trackRepo.GetTracksByBranchId(CurrentBranchId).Select(t => new SelectListItem
             {
                 Text = t.TrackName,
@@ -57,13 +53,11 @@ namespace ExSystemProject.Controllers
         {
             var instructor = _unitOfWork.instructorRepo.GetInstructorByIdWithBranch(id);
 
-            // Verify instructor exists and belongs to this branch
             if (instructor == null || instructor.Track?.BranchId != CurrentBranchId)
             {
                 return NotFound();
             }
 
-            // Get instructor courses
             var courses = _unitOfWork.instructorRepo.GetInstructorCourses(id);
             ViewBag.Courses = courses;
 
@@ -74,7 +68,6 @@ namespace ExSystemProject.Controllers
         // GET: BranchManagerInstructor/Create
         public IActionResult Create()
         {
-            // Get tracks for this branch
             var tracks = _unitOfWork.trackRepo.GetTracksByBranchId(CurrentBranchId)
                 .Where(t => t.IsActive == true)
                 .ToList();
@@ -90,7 +83,6 @@ namespace ExSystemProject.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Create(InstructorDTO instructorDTO, string password)
         {
-            // Always ensure instructor is assigned to a track in this branch
             var track = _unitOfWork.trackRepo.getById(instructorDTO.TrackId ?? 0);
             if (track == null || track.BranchId != CurrentBranchId)
             {
@@ -116,7 +108,6 @@ namespace ExSystemProject.Controllers
 
             try
             {
-                // Create instructor with stored procedure
                 _unitOfWork.instructorRepo.CreateInstructor(
                     instructorDTO.Username,
                     instructorDTO.Email,
@@ -149,20 +140,17 @@ namespace ExSystemProject.Controllers
         {
             var instructor = _unitOfWork.instructorRepo.GetInstructorByIdWithBranch(id);
 
-            // Verify instructor exists and belongs to this branch
             if (instructor == null || instructor.Track?.BranchId != CurrentBranchId)
             {
                 return NotFound();
             }
 
-            // Get tracks for this branch
             var tracks = _unitOfWork.trackRepo.GetTracksByBranchId(CurrentBranchId)
                 .Where(t => t.IsActive == true)
                 .ToList();
 
             ViewBag.Tracks = new SelectList(tracks, "TrackId", "TrackName", instructor.TrackId);
 
-            // Map instructor to DTO
             var instructorDTO = new InstructorDTO
             {
                 InsId = instructor.InsId,
@@ -175,7 +163,7 @@ namespace ExSystemProject.Controllers
                 BranchId = instructor.Track?.BranchId,
                 BranchName = instructor.Track?.Branch?.BranchName ?? string.Empty,
                 Isactive = instructor.Isactive,
-                ImageUrl = instructor.User?.Img ?? "default.jpg" // Use default if null
+                ImageUrl = instructor.User?.Img ?? "default.jpg" 
             };
 
             ViewData["Title"] = $"Edit Instructor: {instructorDTO.Username}";
@@ -192,14 +180,12 @@ namespace ExSystemProject.Controllers
                 return NotFound();
             }
 
-            // Ensure instructor is assigned to a track in this branch
             var track = _unitOfWork.trackRepo.getById(instructorDTO.TrackId ?? 0);
             if (track == null || track.BranchId != CurrentBranchId)
             {
                 ModelState.AddModelError("TrackId", "Please select a valid track from this branch");
             }
 
-            // Set default image URL if not provided
             instructorDTO.ImageUrl ??= "default.jpg";
 
             if (!ModelState.IsValid)
@@ -216,7 +202,6 @@ namespace ExSystemProject.Controllers
 
             try
             {
-                // Update instructor with stored procedure
                 _unitOfWork.instructorRepo.UpdateInstructor(
                     instructorDTO.InsId,
                     instructorDTO.Username,
@@ -250,7 +235,6 @@ namespace ExSystemProject.Controllers
         {
             var instructor = _unitOfWork.instructorRepo.GetInstructorByIdWithBranch(id);
 
-            // Verify instructor exists and belongs to this branch
             if (instructor == null || instructor.Track?.BranchId != CurrentBranchId)
             {
                 return NotFound();
@@ -267,7 +251,6 @@ namespace ExSystemProject.Controllers
         {
             var instructor = _unitOfWork.instructorRepo.GetInstructorByIdWithBranch(id);
 
-            // Verify instructor exists and belongs to this branch
             if (instructor == null || instructor.Track?.BranchId != CurrentBranchId)
             {
                 return NotFound();
@@ -291,13 +274,11 @@ namespace ExSystemProject.Controllers
         {
             var instructor = _unitOfWork.instructorRepo.GetInstructorByIdWithBranch(id);
 
-            // Verify instructor exists and belongs to this branch
             if (instructor == null || instructor.Track?.BranchId != CurrentBranchId)
             {
                 return NotFound();
             }
 
-            // Get instructor courses
             var coursesData = _unitOfWork.instructorRepo.GetInstructorCoursesWithStudentCount(id);
 
             ViewBag.Instructor = instructor;
@@ -311,13 +292,11 @@ namespace ExSystemProject.Controllers
         {
             var instructor = _unitOfWork.instructorRepo.GetInstructorByIdWithBranch(id);
 
-            // Verify instructor exists and belongs to this branch
             if (instructor == null || instructor.Track?.BranchId != CurrentBranchId)
             {
                 return NotFound();
             }
 
-            // Get unassigned courses
             var availableCourses = _unitOfWork.courseRepo.GetAllCourses(true)
                 .Where(c => c.InsId == null || c.InsId == id)
                 .ToList();
@@ -335,31 +314,26 @@ namespace ExSystemProject.Controllers
         {
             try
             {
-                // Get the instructor and verify they belong to this branch
                 var instructor = _unitOfWork.instructorRepo.GetInstructorByIdWithBranch(instructorId);
                 if (instructor == null || instructor.Track?.BranchId != CurrentBranchId)
                 {
                     return NotFound("Instructor not found or does not belong to your branch");
                 }
 
-                // Get the course
                 var course = _unitOfWork.courseRepo.getById(courseId);
                 if (course == null)
                 {
                     return NotFound("Course not found");
                 }
 
-                // Check if course is already assigned to another instructor
                 if (course.InsId.HasValue && course.InsId != instructorId)
                 {
-                    // Get current instructor name for better error message
                     var currentInstructor = _unitOfWork.instructorRepo.getById(course.InsId.Value);
                     string instructorName = currentInstructor?.User?.Username ?? "another instructor";
                     TempData["Error"] = $"This course is already assigned to {instructorName}. Please unassign it first.";
                     return RedirectToAction(nameof(AssignCourse), new { id = instructorId });
                 }
 
-                // Use the new stored procedure method to assign the course
                 bool success = _unitOfWork.courseRepo.AssignCourseToInstructor(courseId, instructorId);
 
                 if (success)
@@ -375,7 +349,6 @@ namespace ExSystemProject.Controllers
             }
             catch (SqlException sqlEx)
             {
-                // Check for specific error messages from the stored procedure
                 if (sqlEx.Message.Contains("Course not found or is not active"))
                 {
                     TempData["Error"] = "The course must be active to be assigned";
@@ -393,7 +366,6 @@ namespace ExSystemProject.Controllers
             }
             catch (Exception ex)
             {
-                // Log the error
                 Console.WriteLine($"Error in AssignCourse: {ex.Message}");
                 if (ex.InnerException != null)
                 {
@@ -414,13 +386,11 @@ namespace ExSystemProject.Controllers
             {
                 var instructor = _unitOfWork.instructorRepo.GetInstructorByIdWithBranch(id);
 
-                // Verify instructor exists and belongs to this branch
                 if (instructor == null || instructor.Track?.BranchId != CurrentBranchId)
                 {
                     return Json(new { success = false, message = "Instructor not found or access denied" });
                 }
 
-                // Toggle active status
                 bool newStatus = !(instructor.Isactive ?? true);
 
                 _unitOfWork.instructorRepo.UpdateInstructor(

@@ -39,7 +39,6 @@ namespace ExSystemProject.Repository
 
             return query.ToList();
         }
-        // Call stored procedure to create a blank exam
 
         public ExamDTO getexambyid(int examid)
         {
@@ -56,16 +55,13 @@ namespace ExSystemProject.Repository
         }
         public int CreateBlankExam(Exam exam)
         {
-            // Required parameters
             var crsIdParam = new SqlParameter("@crs_id", exam.CrsId ?? throw new ArgumentNullException("Course ID is required"));
             var examNameParam = new SqlParameter("@exam_name", exam.ExamName);
 
-            // Optional parameters
             var startTimeParam = new SqlParameter("@startTime", exam.StartTime ?? (object)DBNull.Value);
             var endTimeParam = new SqlParameter("@endTime", exam.EndTime ?? (object)DBNull.Value);
             var insIdParam = new SqlParameter("@ins_id", exam.InsId ?? (object)DBNull.Value);
 
-            // Execute the stored procedure
             var result = _context.Exams
                 .FromSqlRaw("EXEC sp_create_blank_exam @crs_id, @exam_name, @startTime, @endTime, @ins_id",
                     crsIdParam, examNameParam, startTimeParam, endTimeParam, insIdParam)
@@ -76,7 +72,6 @@ namespace ExSystemProject.Repository
         }
 
 
-        // Call stored procedure to update an exam
         public void UpdateExam(Exam exam)
         {
             var examIdParam = new SqlParameter("@exam_id", exam.ExamId);
@@ -92,7 +87,6 @@ namespace ExSystemProject.Repository
                 examIdParam, examNameParam, startTimeParam, endTimeParam, crsIdParam, insIdParam, isActiveParam);
         }
 
-        // Call stored procedure to delete an exam
         public void DeleteExam(int examId)
         {
             var examIdParam = new SqlParameter("@ExamID", examId);
@@ -102,7 +96,6 @@ namespace ExSystemProject.Repository
                 examIdParam);
         }
 
-        // Call stored procedure to add question to exam
         public void AddQuestionToExam(int examId, int questionId)
         {
             var examIdParam = new SqlParameter("@ExamID", examId);
@@ -113,7 +106,6 @@ namespace ExSystemProject.Repository
                 examIdParam, quesIdParam);
         }
 
-        // Call stored procedure to remove question from exam
         public void RemoveQuestionFromExam(int examId, int questionId)
         {
             var examIdParam = new SqlParameter("@ExamID", examId);
@@ -124,7 +116,6 @@ namespace ExSystemProject.Repository
                 examIdParam, quesIdParam);
         }
 
-        // Call stored procedure to get all exams
         public List<Exam> GetAllExams()
         {
             return _context.Exams
@@ -133,7 +124,6 @@ namespace ExSystemProject.Repository
                 .ToList();
         }
 
-        // Call stored procedure to get exam by ID
         public Exam GetExamById(int examId)
         {
             var examIdParam = new SqlParameter("@ExamID", examId);
@@ -144,7 +134,6 @@ namespace ExSystemProject.Repository
                 .FirstOrDefault();
         }
 
-        // Call stored procedure to get questions by exam ID
         public List<Question> GetQuestionsByExamId(int examId)
         {
             var examIdParam = new SqlParameter("@ExamID", examId);
@@ -155,14 +144,11 @@ namespace ExSystemProject.Repository
                 .ToList();
         }
 
-        // Call stored procedure to get exam questions with their choices
         public List<Question> GetExamQuestionsAndChoices(int examId)
         {
             var examIdParam = new SqlParameter("@ExamID", examId);
 
-            // This requires special handling as it returns multiple result sets
-            // You may need a custom approach or a Dapper implementation
-            // This is a simplified version
+           
             return _context.Questions
                 .Include(q => q.Choices)
                 .Where(q => q.ExamId == examId)
@@ -173,7 +159,6 @@ namespace ExSystemProject.Repository
         {
             try
             {
-                // First get course name as the stored procedure requires course name instead of ID
                 var course = _context.Courses.Find(courseId);
                 if (course == null)
                     throw new Exception($"Course with ID {courseId} not found");
@@ -186,12 +171,10 @@ namespace ExSystemProject.Repository
                 var startTimeParam = new SqlParameter("@StartTime", startTime);
                 var endTimeParam = new SqlParameter("@EndTime", endTime);
 
-                // Execute the stored procedure without output parameter
                 _context.Database.ExecuteSqlRaw(
                     "EXEC sp_GenerateRandomExam @Crs_Name, @MCQ_Count, @TF_Count, @Ins_Id, @ExamName, @StartTime, @EndTime",
                     crsNameParam, mcqCountParam, tfCountParam, insIdParam, examNameParam, startTimeParam, endTimeParam);
 
-                // Get the last created exam as the result
                 var lastExam = _context.Exams
                     .OrderByDescending(e => e.ExamId)
                     .FirstOrDefault();
@@ -245,7 +228,6 @@ namespace ExSystemProject.Repository
                 .Where(e => e.Crs.Ins.Track.BranchId == branchId && e.Isactive == true)
                 .Count();
         }
-        // Get exam results
         public List<StudentExam> GetExamResults(int examId)
         {
             return _context.StudentExams
@@ -257,7 +239,6 @@ namespace ExSystemProject.Repository
                 .ToList();
         }
 
-        // Get a specific student's exam result
         public StudentExam GetStudentExamResult(int examId, int studentId)
         {
             return _context.StudentExams
@@ -267,16 +248,13 @@ namespace ExSystemProject.Repository
                 .FirstOrDefault(se => se.ExamId == examId && se.StudentId == studentId);
         }
 
-        // Get a student's answers for a specific exam
         public List<StudentAnswer> GetStudentExamAnswers(int examId, int studentId)
         {
-            // Get all questions for this exam
             var examQuestions = _context.Questions
                 .Where(q => q.ExamId == examId)
                 .Select(q => q.QuesId)
                 .ToList();
 
-            // Get all student answers for these questions
             return _context.StudentAnswers
                 .Include(sa => sa.Ques)
                 .Include(sa => sa.Choice)
@@ -287,7 +265,6 @@ namespace ExSystemProject.Repository
         }
         
 
-        // Get exams by course ID
         public List<Exam> GetExamsByCourseId(int courseId)
         {
             try
@@ -303,7 +280,6 @@ namespace ExSystemProject.Repository
             }
             catch (Exception ex)
             {
-                // Fallback to EF Core query if stored procedure fails
                 return _context.Exams
                     .Include(e => e.Crs)
                     .Include(e => e.Ins)

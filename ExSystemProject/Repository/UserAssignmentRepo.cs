@@ -49,13 +49,11 @@ public class UserAssignmentRepo : GenaricRepo<UserAssignment>
         if (user == null)
             throw new Exception("User not found");
 
-        // Update user information
         user.Username = username;
         user.Email = email;
         user.Gender = gender;
         user.Isactive = isActive;
 
-        // Update assignment
         assignment.BranchId = branchId;
         assignment.Isactive = isActive;
 
@@ -72,7 +70,6 @@ public class UserAssignmentRepo : GenaricRepo<UserAssignment>
         if (user == null)
             throw new Exception("User not found");
 
-        // Deactivate both user and assignment
         user.Isactive = false;
         assignment.Isactive = false;
 

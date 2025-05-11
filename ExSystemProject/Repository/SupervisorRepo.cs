@@ -1,4 +1,4 @@
-﻿// ExSystemProject/Repository/SupervisorRepo.cs
+﻿
 using ExSystemProject.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -16,7 +16,6 @@ namespace ExSystemProject.Repository
             _context = context;
         }
 
-        // Get all supervisors with detailed information
         public List<UserAssignment> GetAllSupervisors(bool? activeOnly = true)
         {
             var query = _context.UserAssignments
@@ -33,7 +32,6 @@ namespace ExSystemProject.Repository
             return query.ToList();
         }
 
-        // Get supervisor by ID with detailed information
         public UserAssignment GetSupervisorById(int id)
         {
             return _context.UserAssignments
@@ -43,7 +41,6 @@ namespace ExSystemProject.Repository
                 .FirstOrDefault(ua => ua.AssignmentId == id && ua.User.Role == "supervisor");
         }
 
-        // Get supervisor by user ID
         public UserAssignment GetSupervisorByUserId(int userId)
         {
             return _context.UserAssignments
@@ -53,7 +50,6 @@ namespace ExSystemProject.Repository
                 .FirstOrDefault(ua => ua.UserId == userId && ua.User.Role == "supervisor");
         }
 
-        // Get supervisors by branch ID
         public List<UserAssignment> GetSupervisorsByBranchId(int branchId, bool? activeOnly = null)
         {
             var query = _context.UserAssignments
@@ -70,7 +66,6 @@ namespace ExSystemProject.Repository
             return query.ToList();
         }
 
-        // Get supervisors by track ID
         public List<UserAssignment> GetSupervisorsByTrackId(int trackId, bool? activeOnly = null)
         {
             var query = _context.UserAssignments
@@ -87,12 +82,10 @@ namespace ExSystemProject.Repository
             return query.ToList();
         }
 
-        // Create a new supervisor
         public UserAssignment CreateSupervisor(int userId, int branchId, int? trackId = null)
         {
             try
             {
-                // First check if the user exists and has the supervisor role
                 var user = _context.Users.Find(userId);
                 if (user == null)
                 {
@@ -124,11 +117,10 @@ namespace ExSystemProject.Repository
                 {
                     System.Diagnostics.Debug.WriteLine($"Inner exception: {ex.InnerException.Message}");
                 }
-                throw; // Re-throw so the controller can handle it
+                throw; 
             }
         }
 
-        // Update supervisor details
         public UserAssignment UpdateSupervisor(int assignmentId, int? branchId, int? trackId, bool isActive)
         {
             var assignment = _context.UserAssignments
@@ -137,7 +129,6 @@ namespace ExSystemProject.Repository
 
             if (assignment != null)
             {
-                // Update assignment
                 if (branchId.HasValue)
                     assignment.BranchId = branchId;
 
@@ -156,7 +147,6 @@ namespace ExSystemProject.Repository
             return null;
         }
 
-        // Deactivate supervisor
         public bool DeactivateSupervisor(int assignmentId)
         {
             var assignment = _context.UserAssignments
@@ -177,7 +167,6 @@ namespace ExSystemProject.Repository
             return false;
         }
 
-        // Get supervisor count by branch
         public int GetSupervisorCountByBranchAsync(int branchId)
         {
             return _context.UserAssignments
@@ -185,7 +174,6 @@ namespace ExSystemProject.Repository
                 .Count(s => s.BranchId == branchId && s.User.Role == "supervisor" && s.Isactive == true);
         }
 
-        // Get students under a supervisor
         public List<Student> GetStudentsUnderSupervisor(int supervisorId)
         {
             var supervisor = GetSupervisorById(supervisorId);
@@ -195,7 +183,6 @@ namespace ExSystemProject.Repository
 
             if (supervisor.TrackId.HasValue)
             {
-                // If assigned to specific track, get students from that track
                 return _context.Students
                     .Include(s => s.User)
                     .Include(s => s.Track)
@@ -204,7 +191,6 @@ namespace ExSystemProject.Repository
             }
             else if (supervisor.BranchId.HasValue)
             {
-                // If assigned to branch only, get all students from tracks in that branch
                 return _context.Students
                     .Include(s => s.User)
                     .Include(s => s.Track)
@@ -215,7 +201,6 @@ namespace ExSystemProject.Repository
             return new List<Student>();
         }
 
-        // Get instructors under a supervisor
         public List<Instructor> GetInstructorsUnderSupervisor(int supervisorId)
         {
             var supervisor = GetSupervisorById(supervisorId);
@@ -225,7 +210,6 @@ namespace ExSystemProject.Repository
 
             if (supervisor.TrackId.HasValue)
             {
-                // If assigned to specific track, get instructors from that track
                 return _context.Instructors
                     .Include(i => i.User)
                     .Include(i => i.Track)
@@ -234,7 +218,6 @@ namespace ExSystemProject.Repository
             }
             else if (supervisor.BranchId.HasValue)
             {
-                // If assigned to branch only, get all instructors from tracks in that branch
                 return _context.Instructors
                     .Include(i => i.User)
                     .Include(i => i.Track)
@@ -245,7 +228,6 @@ namespace ExSystemProject.Repository
             return new List<Instructor>();
         }
 
-        // Get courses under a supervisor
         public List<Course> GetCoursesUnderSupervisor(int supervisorId)
         {
             var instructors = GetInstructorsUnderSupervisor(supervisorId);
@@ -261,7 +243,6 @@ namespace ExSystemProject.Repository
                 .ToList();
         }
 
-        // Get exams under a supervisor
         public List<Exam> GetExamsUnderSupervisor(int supervisorId)
         {
             var courses = GetCoursesUnderSupervisor(supervisorId);

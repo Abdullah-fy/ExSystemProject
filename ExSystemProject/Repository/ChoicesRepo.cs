@@ -15,7 +15,6 @@ namespace ExSystemProject.Repository
             _context = context;
         }
 
-        // Call stored procedure to add choice to question
         public void AddChoiceToQuestion(int questionId, string choiceText, bool isCorrect)
         {
             var quesIdParam = new SqlParameter("@QuesId", questionId);
@@ -27,7 +26,6 @@ namespace ExSystemProject.Repository
                 quesIdParam, choiceTextParam, isCorrectParam);
         }
 
-        // Call stored procedure to remove choice from question
         public void RemoveChoiceFromQuestion(int choiceId)
         {
             var choiceIdParam = new SqlParameter("@ChoiceID", choiceId);
@@ -37,7 +35,6 @@ namespace ExSystemProject.Repository
                 choiceIdParam);
         }
 
-        // Call stored procedure to get choices by question ID
         public List<Choice> GetChoicesByQuestionId(int questionId)
         {
             var quesIdParam = new SqlParameter("@QuesId", questionId);
@@ -49,7 +46,6 @@ namespace ExSystemProject.Repository
         }
         
 
-        // Get correct choice for a question
         public Choice GetCorrectChoiceForQuestion(int questionId)
         {
             return _context.Choices
@@ -57,7 +53,6 @@ namespace ExSystemProject.Repository
                 .FirstOrDefault();
         }
 
-        // Update a specific choice
         public void UpdateChoice(Choice choice)
         {
             try
@@ -71,7 +66,6 @@ namespace ExSystemProject.Repository
             }
         }
 
-        // Add multiple choices at once
         public void AddChoices(List<Choice> choices)
         {
             try

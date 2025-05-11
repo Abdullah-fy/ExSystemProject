@@ -19,7 +19,6 @@ namespace ExSystemProject.Controllers
             var userId = GetCurrentUserId();
             var query = _unitOfWork.trackRepo.GetAllWithBranch().AsQueryable();
 
-            // Apply search filter if provided
             if (!string.IsNullOrEmpty(searchString))
             {
                 query = query.Where(t =>
@@ -27,13 +26,11 @@ namespace ExSystemProject.Controllers
                     t.branch_name.Contains(searchString, StringComparison.OrdinalIgnoreCase));
             }
 
-            // Apply active filter if checked
             if (activeOnly)
             {
                 query = query.Where(t => t.is_active == true);
             }
 
-            // Pagination
             int pageSize = 6;
             var totalItems = query.Count();
             var tracks = query
@@ -52,7 +49,6 @@ namespace ExSystemProject.Controllers
         [HttpGet]
         public IActionResult Create()
         {
-            // Get current user ID using the base controller method
             var userId = GetCurrentUserId();
 
             List<Branch> branches = _unitOfWork.branchRepo.getAll();
@@ -63,7 +59,6 @@ namespace ExSystemProject.Controllers
         [HttpPost]
         public IActionResult Create(Track track)
         {
-            // Get current user ID using the base controller method
             var userId = GetCurrentUserId();
 
             if (ModelState.IsValid)
@@ -84,7 +79,6 @@ namespace ExSystemProject.Controllers
         [HttpGet]
         public IActionResult Delete(int id)
         {
-            // Get current user ID using the base controller method
             var userId = GetCurrentUserId();
 
             if (id == null) return BadRequest();
@@ -94,7 +88,6 @@ namespace ExSystemProject.Controllers
 
         public IActionResult ConfirmDelete(int id)
         {
-            // Get current user ID using the base controller method
             var userId = GetCurrentUserId();
 
             if (id == null) return BadRequest();
@@ -107,7 +100,6 @@ namespace ExSystemProject.Controllers
         [HttpGet]
         public IActionResult Edit(int id)
         {
-            // Get current user ID using the base controller method
             var userId = GetCurrentUserId();
 
             if (id == null) return BadRequest();
@@ -122,7 +114,6 @@ namespace ExSystemProject.Controllers
         [HttpPost]
         public IActionResult Edit(Track track)
         {
-            // Get current user ID using the base controller method
             var userId = GetCurrentUserId();
 
             if (ModelState.IsValid)
@@ -135,7 +126,6 @@ namespace ExSystemProject.Controllers
             return View(track);
         }
 
-        // expand 
         [HttpGet]
         public IActionResult Details(int id)
         {

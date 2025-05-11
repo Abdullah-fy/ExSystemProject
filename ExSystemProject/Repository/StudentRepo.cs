@@ -60,7 +60,6 @@ namespace ExSystemProject.Repository
 
             try
             {
-                // Use direct SQL execution to avoid EF Core tracking issues
                 using (var command = _context.Database.GetDbConnection().CreateCommand())
                 {
                     command.CommandText = "EXEC sp_GetAllStudentsWithBranch @activeStudent";
@@ -120,27 +119,22 @@ namespace ExSystemProject.Repository
                 Value = studentId
             };
 
-            // First get the student from the stored procedure
             var student = _context.Students
                 .FromSqlRaw("EXEC sp_GetStudentById @student_id", parameter)
-                .AsEnumerable() // Convert to in-memory enumerable before composing
+                .AsEnumerable() 
                 .FirstOrDefault();
 
-            // If we found a student, load the related data separately
             if (student != null)
             {
-                // Manually load the related entities
                 _context.Entry(student).Reference(s => s.User).Load();
                 _context.Entry(student).Reference(s => s.Track).Load();
 
-                // Load student courses
                 _context.Entry(student).Collection(s => s.StudentCourses).Load();
                 foreach (var course in student.StudentCourses)
                 {
                     _context.Entry(course).Reference(c => c.Crs).Load();
                 }
 
-                // Load student exams
                 _context.Entry(student).Collection(s => s.StudentExams).Load();
                 foreach (var exam in student.StudentExams)
                 {
@@ -162,7 +156,6 @@ namespace ExSystemProject.Repository
 
             try
             {
-                // Use direct SQL execution to avoid EF Core tracking issues
                 using (var command = _context.Database.GetDbConnection().CreateCommand())
                 {
                     command.CommandText = "EXEC sp_GetStudentByIdWithBranch @student_id";
@@ -207,14 +200,12 @@ namespace ExSystemProject.Repository
                                 };
                             }
 
-                            // Load student courses
                             _context.Entry(student).Collection(s => s.StudentCourses).Load();
                             foreach (var course in student.StudentCourses)
                             {
                                 _context.Entry(course).Reference(c => c.Crs).Load();
                             }
 
-                            // Load student exams
                             _context.Entry(student).Collection(s => s.StudentExams).Load();
                             foreach (var exam in student.StudentExams)
                             {
@@ -242,7 +233,6 @@ namespace ExSystemProject.Repository
                     new SqlParameter("@activeStudent", SqlDbType.Bit) { Value = activeStudents ?? true }
                 };
 
-                // Execute using raw SQL to avoid composition issues
                 var students = new List<Student>();
 
                 using (var command = _context.Database.GetDbConnection().CreateCommand())
@@ -294,7 +284,6 @@ namespace ExSystemProject.Repository
             }
             catch (Exception ex)
             {
-                // Log the exception if possible
                 Console.WriteLine($"Error in GetStudentsByTrackId: {ex.Message}");
                 return new List<Student>();
             }
@@ -499,7 +488,6 @@ namespace ExSystemProject.Repository
                     new SqlParameter("@isactive", SqlDbType.Bit) { Value = isActive }
                 };
 
-                // Ensure the connection is open
                 if (_context.Database.GetDbConnection().State != ConnectionState.Open)
                 {
                     _context.Database.OpenConnection();
@@ -515,7 +503,7 @@ namespace ExSystemProject.Repository
             {
                 Console.WriteLine($"Error in UpdateStudent: {ex.Message}");
                 Console.WriteLine($"Inner exception: {ex.InnerException?.Message}");
-                throw; // Rethrow to allow caller to handle
+                throw; 
             }
         }
 
@@ -557,7 +545,6 @@ namespace ExSystemProject.Repository
                     new SqlParameter("@track_id", SqlDbType.Int) { Value = trackId.HasValue ? (object)trackId.Value : DBNull.Value }
                 };
 
-                // Explicitly ensure connection is open
                 if (_context.Database.GetDbConnection().State != ConnectionState.Open)
                 {
                     _context.Database.OpenConnection();
@@ -571,11 +558,10 @@ namespace ExSystemProject.Repository
             }
             catch (Exception ex)
             {
-                // Enhanced error logging
                 Console.WriteLine($"Error in CreateStudentWithStoredProcedure: {ex.Message}");
                 Console.WriteLine($"Inner exception: {ex.InnerException?.Message}");
                 Console.WriteLine($"Stack trace: {ex.StackTrace}");
-                throw; // Rethrow to allow caller to handle
+                throw; 
             }
         }
 
@@ -638,12 +624,10 @@ namespace ExSystemProject.Repository
         }
 
 
-        // repo to insert into student-course 
 
         public bool Enrollment(int userid, int crsid)
         {
             var student = _context.Students.FirstOrDefault(s => s.UserId == userid);
-            //  var course = _context.Courses.FirstOrDefault(c => c.CrsId == crsid);
 
             var exists = _context.StudentCourses.Any(s => s.StudentId == student.StudentId && s.CrsId == crsid);
 
@@ -732,7 +716,6 @@ namespace ExSystemProject.Repository
             new SqlParameter("@activeStudent", SqlDbType.Bit) { Value = activeStudents ?? (object)DBNull.Value }
         };
 
-                // Execute using raw SQL to avoid composition issues
                 var students = new List<Student>();
 
                 using (var command = _context.Database.GetDbConnection().CreateCommand())
@@ -787,7 +770,6 @@ namespace ExSystemProject.Repository
             }
             catch (Exception ex)
             {
-                // Log the exception if possible
                 Console.WriteLine($"Error in GetStudentsByDepartmentWithBranch: {ex.Message}");
                 return new List<Student>();
             }

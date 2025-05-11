@@ -23,8 +23,8 @@ namespace ExSystemProject.Repository
         public List<Track> GetDistictTracks()
         {
             return context.Tracks
-         .GroupBy(t => t.TrackName)  // Group by the unique identifier (TrackId)
-         .Select(g => g.First())  // Select the first occurrence from each group
+         .GroupBy(t => t.TrackName)  
+         .Select(g => g.First())  
          .ToList();
         }
         public bool Exists(int id)
@@ -57,7 +57,6 @@ namespace ExSystemProject.Repository
         {
             try
             {
-                // Use LINQ to query tracks by branch ID, including both active and inactive
                 var tracks = context.Tracks
                              .Where(t => t.BranchId == branchId)
                              .Include(t => t.Branch)
@@ -76,7 +75,6 @@ namespace ExSystemProject.Repository
         {
             try
             {
-                // Use LINQ to query only active tracks by branch ID
                 var tracks = context.Tracks
                              .Where(t => t.BranchId == branchId && t.IsActive == true)
                              .Include(t => t.Branch)
@@ -97,7 +95,6 @@ namespace ExSystemProject.Repository
                 .Where(t => t.BranchId == branchId && t.IsActive == true)
                 .Count();
         }
-        //-------- expand 
         public TrackDTO GetTrackById(int trackId)
         {
             var track = new TrackDTO();
@@ -133,9 +130,8 @@ namespace ExSystemProject.Repository
             }
             catch (Exception ex)
             {
-                // Log error
                 Console.WriteLine($"Error in GetTrackById: {ex.Message}");
-                throw; // Re-throw for controller handling
+                throw; 
             }
             finally
             {
@@ -145,7 +141,6 @@ namespace ExSystemProject.Repository
             return track;
         }
 
-        // expand 
 
 
         public IEnumerable<StudentByTrackDTO> GetStudentsByTrackId(int track_id)

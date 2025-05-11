@@ -25,21 +25,18 @@ namespace ExSystemProject.Controllers
 
             if (courseId.HasValue)
             {
-                // Get course to verify it belongs to this branch
                 var course = _unitOfWork.courseRepo.GetCourseById(courseId.Value);
                 if (course == null || course.Ins?.Track?.BranchId != CurrentBranchId)
                 {
                     return NotFound();
                 }
 
-                // Get exams for the specified course
                 exams = _unitOfWork.courseRepo.GetExamsByCourseId(courseId.Value);
                 ViewBag.CourseId = courseId;
                 ViewBag.CourseName = course.CrsName;
             }
             else
             {
-                // Get all exams for this branch only
                 exams = _unitOfWork.examRepo.GetAllExams()
                     .Where(e => e.Ins?.Track?.BranchId == CurrentBranchId)
                     .ToList();
@@ -53,13 +50,11 @@ namespace ExSystemProject.Controllers
         {
             var exam = _unitOfWork.examRepo.GetExamById(id);
 
-            // Verify exam exists and belongs to this branch
             if (exam == null || exam.Ins?.Track?.BranchId != CurrentBranchId)
             {
                 return NotFound();
             }
 
-            // Get questions and results
             var questions = _unitOfWork.examRepo.GetQuestionsByExamId(id);
             var results = _unitOfWork.examRepo.GetExamResults(id);
 
@@ -76,18 +71,15 @@ namespace ExSystemProject.Controllers
         // GET: BranchManagerExam/Create
         public IActionResult Create(int? courseId = null)
         {
-            // Get courses from this branch only
             var courses = _unitOfWork.courseRepo.GetAllCourses(true)
                 .Where(c => c.Ins?.Track?.BranchId == CurrentBranchId)
                 .ToList();
 
-            // Get instructors from this branch only
             var instructors = _unitOfWork.instructorRepo.GetInstructorsByBranchWithBranch(CurrentBranchId, true);
 
             ViewBag.Courses = new SelectList(courses, "CrsId", "CrsName", courseId);
             ViewBag.Instructors = new SelectList(instructors, "InsId", "User.Username");
 
-            // Default values for new exam
             var exam = new Exam
             {
                 CrsId = courseId,
@@ -107,7 +99,6 @@ namespace ExSystemProject.Controllers
         {
             if (ModelState.IsValid)
             {
-                // Verify course and instructor belong to this branch
                 var course = _unitOfWork.courseRepo.GetCourseById(exam.CrsId ?? 0);
                 var instructor = exam.InsId.HasValue ? _unitOfWork.instructorRepo.GetInstructorByIdWithBranch(exam.InsId.Value) : null;
 
@@ -116,7 +107,6 @@ namespace ExSystemProject.Controllers
                 {
                     ModelState.AddModelError("", "Selected course or instructor does not belong to your branch");
 
-                    // Re-populate dropdowns
                     var courses = _unitOfWork.courseRepo.GetAllCourses(true)
                         .Where(c => c.Ins?.Track?.BranchId == CurrentBranchId)
                         .ToList();
@@ -130,7 +120,6 @@ namespace ExSystemProject.Controllers
 
                 try
                 {
-                    // Create blank exam
                     int examId = _unitOfWork.examRepo.CreateBlankExam(exam);
                     TempData["Success"] = "Exam created successfully";
                     return RedirectToAction(nameof(Details), new { id = examId });
@@ -141,7 +130,6 @@ namespace ExSystemProject.Controllers
                 }
             }
 
-            // Re-populate dropdowns if we reach here due to validation failure
             var branchCourses = _unitOfWork.courseRepo.GetAllCourses(true)
                 .Where(c => c.Ins?.Track?.BranchId == CurrentBranchId)
                 .ToList();
@@ -159,13 +147,11 @@ namespace ExSystemProject.Controllers
         {
             var exam = _unitOfWork.examRepo.GetExamById(id);
 
-            // Verify exam exists and belongs to this branch
             if (exam == null || exam.Ins?.Track?.BranchId != CurrentBranchId)
             {
                 return NotFound();
             }
 
-            // Get courses and instructors from this branch
             var courses = _unitOfWork.courseRepo.GetAllCourses(true)
                 .Where(c => c.Ins?.Track?.BranchId == CurrentBranchId)
                 .ToList();
@@ -190,7 +176,6 @@ namespace ExSystemProject.Controllers
 
             if (ModelState.IsValid)
             {
-                // Verify course and instructor belong to this branch
                 var course = _unitOfWork.courseRepo.GetCourseById(exam.CrsId ?? 0);
                 var instructor = exam.InsId.HasValue ? _unitOfWork.instructorRepo.GetInstructorByIdWithBranch(exam.InsId.Value) : null;
 
@@ -199,7 +184,6 @@ namespace ExSystemProject.Controllers
                 {
                     ModelState.AddModelError("", "Selected course or instructor does not belong to your branch");
 
-                    // Re-populate dropdowns
                     var courses = _unitOfWork.courseRepo.GetAllCourses(true)
                         .Where(c => c.Ins?.Track?.BranchId == CurrentBranchId)
                         .ToList();
@@ -223,7 +207,6 @@ namespace ExSystemProject.Controllers
                 }
             }
 
-            // Re-populate dropdowns if we reach here due to validation failure
             var branchCourses = _unitOfWork.courseRepo.GetAllCourses(true)
                 .Where(c => c.Ins?.Track?.BranchId == CurrentBranchId)
                 .ToList();
@@ -241,7 +224,6 @@ namespace ExSystemProject.Controllers
         {
             var exam = _unitOfWork.examRepo.GetExamById(id);
 
-            // Verify exam exists and belongs to this branch
             if (exam == null || exam.Ins?.Track?.BranchId != CurrentBranchId)
             {
                 return NotFound();
@@ -258,7 +240,6 @@ namespace ExSystemProject.Controllers
         {
             var exam = _unitOfWork.examRepo.GetExamById(id);
 
-            // Verify exam exists and belongs to this branch
             if (exam == null || exam.Ins?.Track?.BranchId != CurrentBranchId)
             {
                 return NotFound();
@@ -286,13 +267,11 @@ namespace ExSystemProject.Controllers
         {
             var course = _unitOfWork.courseRepo.GetCourseById(courseId);
 
-            // Verify course exists and belongs to this branch
             if (course == null || course.Ins?.Track?.BranchId != CurrentBranchId)
             {
                 return NotFound();
             }
 
-            // Get instructors from this branch
             var instructors = _unitOfWork.instructorRepo.GetInstructorsByBranchWithBranch(CurrentBranchId, true);
             ViewBag.Instructors = new SelectList(instructors, "InsId", "User.Username", course.InsId);
 
@@ -322,7 +301,6 @@ namespace ExSystemProject.Controllers
                 var course = _unitOfWork.courseRepo.GetCourseById(exam.CrsId ?? 0);
                 var instructor = exam.InsId.HasValue ? _unitOfWork.instructorRepo.GetInstructorByIdWithBranch(exam.InsId.Value) : null;
 
-                // Verify course and instructor belong to this branch
                 if (course == null || course.Ins?.Track?.BranchId != CurrentBranchId ||
                     (instructor != null && instructor.Track?.BranchId != CurrentBranchId))
                 {
@@ -338,7 +316,6 @@ namespace ExSystemProject.Controllers
 
                 try
                 {
-                    // Generate random exam
                     int examId = _unitOfWork.examRepo.GenerateRandomExam(
                         exam.ExamName,
                         exam.CrsId.Value,
@@ -358,7 +335,6 @@ namespace ExSystemProject.Controllers
                 }
             }
 
-            // If we get here, redisplay the form
             var branchCourse = _unitOfWork.courseRepo.GetCourseById(exam.CrsId ?? 0);
             var branchInstructors = _unitOfWork.instructorRepo.GetInstructorsByBranchWithBranch(CurrentBranchId, true);
 
@@ -374,25 +350,21 @@ namespace ExSystemProject.Controllers
         {
             var exam = _unitOfWork.examRepo.GetExamById(id);
 
-            // Verify exam exists and belongs to this branch
             if (exam == null || exam.Ins?.Track?.BranchId != CurrentBranchId)
             {
                 return NotFound();
             }
 
-            // Get students taking this course who haven't been assigned this exam yet
             var courseStudents = _unitOfWork.studentRepo.GetStudentByCourseId(exam.CrsId ?? 0)
                 .Where(s => !_unitOfWork.studentExamRepo.GetStudentExamsByExamId(id).Any(se => se.StudentId == s.StudentId))
                 .ToList();
 
-            // Create SelectListItems from the student list
             var studentItems = courseStudents.Select(s => new SelectListItem
             {
                 Value = s.StudentId.ToString(),
                 Text = s.User?.Username ?? $"Student {s.StudentId}"
             }).ToList();
 
-            // Use SelectList instead of MultiSelectList to avoid the Count() issue
             ViewBag.Students = new SelectList(studentItems, "Value", "Text");
 
             ViewBag.Exam = exam;
@@ -408,7 +380,6 @@ namespace ExSystemProject.Controllers
         {
             var exam = _unitOfWork.examRepo.GetExamById(id);
 
-            // Verify exam exists and belongs to this branch
             if (exam == null || exam.Ins?.Track?.BranchId != CurrentBranchId)
             {
                 return NotFound();
@@ -418,19 +389,16 @@ namespace ExSystemProject.Controllers
             {
                 TempData["Error"] = "Please select at least one student";
 
-                // Get students taking this course who haven't been assigned this exam yet
                 var courseStudents = _unitOfWork.studentRepo.GetStudentByCourseId(exam.CrsId ?? 0)
                     .Where(s => !_unitOfWork.studentExamRepo.GetStudentExamsByExamId(id).Any(se => se.StudentId == s.StudentId))
                     .ToList();
 
-                // Create SelectListItems from the student list
                 var studentItems = courseStudents.Select(s => new SelectListItem
                 {
                     Value = s.StudentId.ToString(),
                     Text = s.User?.Username ?? $"Student {s.StudentId}"
                 }).ToList();
 
-                // Use SelectList instead of MultiSelectList
                 ViewBag.Students = new SelectList(studentItems, "Value", "Text");
                 ViewBag.Exam = exam;
 
@@ -442,7 +410,6 @@ namespace ExSystemProject.Controllers
             {
                 int assignedCount = 0;
 
-                // Assign exam to selected students
                 foreach (var studentId in selectedStudents)
                 {
                     _unitOfWork.studentRepo.AssignExamToStudent(id, studentId);
@@ -465,13 +432,11 @@ namespace ExSystemProject.Controllers
         {
             var exam = _unitOfWork.examRepo.GetExamById(id);
 
-            // Verify exam exists and belongs to this branch
             if (exam == null || exam.Ins?.Track?.BranchId != CurrentBranchId)
             {
                 return NotFound();
             }
 
-            // Get exam results
             var results = _unitOfWork.examRepo.GetExamResults(id);
 
             ViewBag.Exam = exam;
@@ -491,13 +456,11 @@ namespace ExSystemProject.Controllers
             var exam = _unitOfWork.examRepo.GetExamById(examId);
             var student = _unitOfWork.studentRepo.GetStudentById(studentId);
 
-            // Verify exam exists and belongs to this branch
             if (exam == null || exam.Ins?.Track?.BranchId != CurrentBranchId || student == null)
             {
                 return NotFound();
             }
 
-            // Get the student's exam result with answers
             var result = _unitOfWork.examRepo.GetStudentExamResult(examId, studentId);
             var answers = _unitOfWork.examRepo.GetStudentExamAnswers(examId, studentId);
 

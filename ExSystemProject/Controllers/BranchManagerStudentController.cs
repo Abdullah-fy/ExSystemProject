@@ -22,7 +22,6 @@ namespace ExSystemProject.Controllers
         {
             ViewData["Title"] = "Students Management";
 
-            // Get students from this branch only
             var students = _unitOfWork.studentRepo.GetStudentsByBranchId(CurrentBranchId, active);
             return View(students);
         }
@@ -30,7 +29,6 @@ namespace ExSystemProject.Controllers
         // GET: BranchManagerStudent/Details/5
         public IActionResult Details(int id)
         {
-            // Use the same query approach as in Assignments to ensure consistency
             var student = _unitOfWork.context.Students
                 .Include(s => s.User)
                 .Include(s => s.Track)
@@ -41,7 +39,6 @@ namespace ExSystemProject.Controllers
                             .ThenInclude(i => i.User)
                 .FirstOrDefault(s => s.StudentId == id);
 
-            // Check if student exists and belongs to this branch
             if (student == null || student.Track?.BranchId != CurrentBranchId)
             {
                 return NotFound();
@@ -64,12 +61,10 @@ namespace ExSystemProject.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Create(StudentDTO studentDTO, string Password, string PasswordBackup)
         {
-            // Use backup password if main password is empty
             string finalPassword = !string.IsNullOrEmpty(Password) ? Password : PasswordBackup;
 
             try
             {
-                // Validate required fields
                 if (string.IsNullOrEmpty(studentDTO.Username) ||
                     string.IsNullOrEmpty(studentDTO.Email) ||
                     string.IsNullOrEmpty(studentDTO.Gender) ||
@@ -80,7 +75,6 @@ namespace ExSystemProject.Controllers
                     return View(studentDTO);
                 }
 
-                // Validate password length
                 if (finalPassword.Length < 6)
                 {
                     ModelState.AddModelError("Password", "Password must be at least 6 characters long");
@@ -88,7 +82,6 @@ namespace ExSystemProject.Controllers
                     return View(studentDTO);
                 }
 
-                // Create the student
                 _unitOfWork.studentRepo.CreateStudentWithStoredProcedure(
                     studentDTO.Username,
                     studentDTO.Email,
@@ -112,13 +105,11 @@ namespace ExSystemProject.Controllers
         {
             var student = _unitOfWork.studentRepo.GetStudentByIdWithBranch(id);
 
-            // Check if student exists and belongs to this branch
             if (student == null || student.Track?.BranchId != CurrentBranchId)
             {
                 return NotFound();
             }
 
-            // Map to DTO
             var studentDTO = new StudentDTO
             {
                 StudentId = student.StudentId,
@@ -126,7 +117,7 @@ namespace ExSystemProject.Controllers
                 Email = student.User?.Email,
                 Gender = student.User?.Gender,
                 TrackId = student.TrackId,
-                Isactive = student.Isactive ?? true  // Default to true if null
+                Isactive = student.Isactive ?? true 
             };
 
             PrepareEditViewBags();
@@ -145,7 +136,6 @@ namespace ExSystemProject.Controllers
 
             try
             {
-                // Verify the track belongs to this branch
                 if (studentDTO.TrackId.HasValue)
                 {
                     var track = _unitOfWork.trackRepo.getById(studentDTO.TrackId.Value);
@@ -157,16 +147,13 @@ namespace ExSystemProject.Controllers
                     }
                 }
 
-                // Debug logging
                 System.Diagnostics.Debug.WriteLine($"Updating student: ID={studentDTO.StudentId}, " +
                     $"Username={studentDTO.Username}, Email={studentDTO.Email}, " +
                     $"Gender={studentDTO.Gender}, TrackId={studentDTO.TrackId}, " +
                     $"IsActive={studentDTO.Isactive}");
 
-                // If Isactive is null, set it to true (maintain current status)
                 bool isActive = studentDTO.Isactive ?? true;
 
-                // Update the student
                 _unitOfWork.studentRepo.UpdateStudent(
                     studentDTO.StudentId,
                     studentDTO.Username,
@@ -198,7 +185,6 @@ namespace ExSystemProject.Controllers
         {
             var student = _unitOfWork.studentRepo.GetStudentByIdWithBranch(id);
 
-            // Check if student exists and belongs to this branch
             if (student == null || student.Track?.BranchId != CurrentBranchId)
             {
                 return NotFound();
@@ -215,13 +201,11 @@ namespace ExSystemProject.Controllers
         {
             var student = _unitOfWork.studentRepo.GetStudentByIdWithBranch(id);
 
-            // Check if student exists and belongs to this branch
             if (student == null || student.Track?.BranchId != CurrentBranchId)
             {
                 return NotFound();
             }
 
-            // Soft delete - calls stored procedure that sets isactive = false
             _unitOfWork.studentRepo.DeleteStudent(id);
 
             return RedirectToAction(nameof(Index));
@@ -232,7 +216,6 @@ namespace ExSystemProject.Controllers
         {
             try
             {
-                // Explicitly get student with all related data including courses
                 var student = _unitOfWork.context.Students
                     .Include(s => s.User)
                     .Include(s => s.Track)
@@ -243,7 +226,6 @@ namespace ExSystemProject.Controllers
                                 .ThenInclude(i => i.User)
                     .FirstOrDefault(s => s.StudentId == id);
 
-                // Check if student exists and belongs to this branch
                 if (student == null || student.Track?.BranchId != CurrentBranchId)
                 {
                     return NotFound();
@@ -252,7 +234,6 @@ namespace ExSystemProject.Controllers
                 ViewData["Title"] = "Student Course Assignments";
                 ViewData["BranchId"] = CurrentBranchId;
 
-                // Add success/error messages
                 if (TempData["Success"] != null)
                 {
                     ViewData["SuccessMessage"] = TempData["Success"];
@@ -280,18 +261,15 @@ namespace ExSystemProject.Controllers
         {
             try
             {
-                // First, get all active courses in the current branch
                 var branchCourses = _unitOfWork.courseRepo.GetAllCourses(true)
                     .Where(c => c.Ins?.Track?.BranchId == CurrentBranchId)
                     .ToList();
 
-                // Next, get all course IDs the student is already enrolled in
                 var enrolledCourseIds = _unitOfWork.context.StudentCourses
                     .Where(sc => sc.StudentId == studentId && sc.Isactive == true)
                     .Select(sc => sc.CrsId)
                     .ToList();
 
-                // Then filter out courses the student is already enrolled in
                 var availableCourses = branchCourses
                     .Where(c => !enrolledCourseIds.Contains(c.CrsId))
                     .Select(c => new {
@@ -319,10 +297,8 @@ namespace ExSystemProject.Controllers
         {
             try
             {
-                // Debug logging
                 System.Diagnostics.Debug.WriteLine($"EnrollInCourse called: Student ID={studentId}, Course ID={courseId}");
 
-                // Validate the student belongs to this branch
                 var student = _unitOfWork.studentRepo.GetStudentByIdWithBranch(studentId);
                 if (student == null || student.Track?.BranchId != CurrentBranchId)
                 {
@@ -330,7 +306,6 @@ namespace ExSystemProject.Controllers
                     return RedirectToAction(nameof(Assignments), new { id = studentId });
                 }
 
-                // Validate the course exists and belongs to this branch
                 var course = _unitOfWork.courseRepo.GetCourseById(courseId);
                 if (course == null)
                 {
@@ -344,17 +319,14 @@ namespace ExSystemProject.Controllers
                     return RedirectToAction(nameof(Assignments), new { id = studentId });
                 }
 
-                // Check if already enrolled
                 if (_unitOfWork.studentCourseRepo.IsStudentEnrolled(studentId, courseId))
                 {
                     TempData["Error"] = "Student is already enrolled in this course";
                     return RedirectToAction(nameof(Assignments), new { id = studentId });
                 }
 
-                // Enroll the student
                 _unitOfWork.studentCourseRepo.EnrollStudent(studentId, courseId);
 
-                // Clear any cached data about this student
                 _unitOfWork.context.Entry(student).State = EntityState.Detached;
 
                 System.Diagnostics.Debug.WriteLine("Enrollment successful");
@@ -382,14 +354,12 @@ namespace ExSystemProject.Controllers
         {
             try
             {
-                // Validate the student belongs to this branch
                 var student = _unitOfWork.studentRepo.GetStudentByIdWithBranch(studentId);
                 if (student == null || student.Track?.BranchId != CurrentBranchId)
                 {
                     return NotFound("Student not found or doesn't belong to your branch");
                 }
 
-                // Unenroll the student (set enrollment to inactive)
                 _unitOfWork.studentCourseRepo.UnenrollStudent(studentId, courseId);
                 TempData["Success"] = "Student successfully unenrolled from the course";
 

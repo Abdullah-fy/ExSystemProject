@@ -296,7 +296,6 @@ namespace ExSystemProject.Controllers
             {
                 return NotFound("Instructor not found");
             }
-            //var st = unit.studentRepo.getByUserId(UserId);
             var courses = unit.courseRepo.GetCoursesByInstructor(ins.InsId);
             List<Student> studs = new List<Student>();
             if (id.HasValue)

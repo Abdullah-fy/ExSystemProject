@@ -46,10 +46,8 @@ namespace ExSystemProject.Controllers
 
             if (supervisor == null)
             {
-                // Log the issue for administrative review
                 System.Diagnostics.Debug.WriteLine($"User ID {GetCurrentUserId()} does not have a supervisor assignment");
 
-                // Add an error message and redirect to home page
                 TempData["Error"] = "You don't have an active supervisor assignment. Please contact an administrator.";
                 return RedirectToAction("Index", "Home");
             }
@@ -148,13 +146,11 @@ namespace ExSystemProject.Controllers
             if (exam == null)
                 return NotFound();
 
-            // Ensure the exam is under this supervisor's supervision
             var examsUnderSupervisor = _unitOfWork.supervisorRepo.GetExamsUnderSupervisor(supervisor.AssignmentId);
 
             if (!examsUnderSupervisor.Any(e => e.ExamId == id))
                 return RedirectToAction("AccessDenied", "Account");
 
-            // Get exam questions using the examRepo instead of questionRepo
             var questions = _unitOfWork.examRepo.GetQuestionsByExamId(id);
 
             ViewBag.Questions = questions;
@@ -178,13 +174,11 @@ namespace ExSystemProject.Controllers
             if (student == null)
                 return NotFound();
 
-            // Ensure the student is under this supervisor's supervision
             var studentsUnderSupervisor = _unitOfWork.supervisorRepo.GetStudentsUnderSupervisor(supervisor.AssignmentId);
 
             if (!studentsUnderSupervisor.Any(s => s.StudentId == id))
                 return RedirectToAction("AccessDenied", "Account");
 
-            // Get student courses and exams
             var studentCourses = _unitOfWork.studentCourseRepo.GetByStudentId(id);
             var studentExams = _unitOfWork.studentExamRepo.GetByStudentId(id);
 
@@ -209,13 +203,11 @@ namespace ExSystemProject.Controllers
             if (exam == null)
                 return NotFound();
 
-            // Ensure the exam is under this supervisor's supervision
             var examsUnderSupervisor = _unitOfWork.supervisorRepo.GetExamsUnderSupervisor(supervisor.AssignmentId);
 
             if (!examsUnderSupervisor.Any(e => e.ExamId == id))
                 return RedirectToAction("AccessDenied", "Account");
 
-            // Update exam status
             exam.Isactive = true;
             _unitOfWork.examRepo.update(exam);
             _unitOfWork.save();
@@ -237,13 +229,11 @@ namespace ExSystemProject.Controllers
             if (exam == null)
                 return NotFound();
 
-            // Ensure the exam is under this supervisor's supervision
             var examsUnderSupervisor = _unitOfWork.supervisorRepo.GetExamsUnderSupervisor(supervisor.AssignmentId);
 
             if (!examsUnderSupervisor.Any(e => e.ExamId == id))
                 return RedirectToAction("AccessDenied", "Account");
 
-            // Update exam status
             exam.Isactive = false;
             _unitOfWork.examRepo.update(exam);
             _unitOfWork.save();

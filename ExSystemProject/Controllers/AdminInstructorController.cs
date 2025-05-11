@@ -59,7 +59,6 @@ namespace ExSystemProject.Controllers
                 instructors = _unitOfWork.instructorRepo.GetAllInstructorsWithBranch(activeOnly);
             }
 
-            // Dropdowns for filters
             var branches = _unitOfWork.branchRepo.getAll();
             var tracks = _unitOfWork.trackRepo.GetDistictTracks();
 
@@ -84,13 +83,10 @@ namespace ExSystemProject.Controllers
                 return NotFound();
             }
 
-            // Get instructor courses
             var courses = _unitOfWork.instructorRepo.GetInstructorCourses(id);
 
-            // Map instructor to DTO
             var instructorDTO = _mapper.Map<InstructorDTO>(instructor);
 
-            // Map courses to DTOs
             instructorDTO.AssignedCourses = _mapper.Map<List<CourseDTO>>(courses);
 
             return View(instructorDTO);
@@ -115,7 +111,6 @@ namespace ExSystemProject.Controllers
 
             try
             {
-                // Simple validation
                 if (string.IsNullOrEmpty(instructorDTO.Username) ||
                     string.IsNullOrEmpty(instructorDTO.Email) ||
                     string.IsNullOrEmpty(instructorDTO.Gender) ||
@@ -128,12 +123,11 @@ namespace ExSystemProject.Controllers
                     return View(instructorDTO);
                 }
 
-                // Create instructor with the provided password
                 _unitOfWork.instructorRepo.CreateInstructor(
                     instructorDTO.Username,
                     instructorDTO.Email,
                     instructorDTO.Gender,
-                    Password, // Use the password entered by admin
+                    Password, 
                     instructorDTO.Salary ?? 0,
                     instructorDTO.TrackId ?? 0
                 );
@@ -143,7 +137,6 @@ namespace ExSystemProject.Controllers
             }
             catch (Exception ex)
             {
-                // Simple error handling
                 TempData["ErrorMessage"] = "Error creating instructor: " + ex.Message;
                 PopulateDropDowns();
                 return View(instructorDTO);
@@ -183,16 +176,13 @@ namespace ExSystemProject.Controllers
                 return NotFound();
             }
 
-            // Check if ModelState is valid
             if (ModelState.IsValid)
             {
                 try
                 {
-                    // Ensure isactive is properly handled - the hidden field is already set in the client-side script
                     bool isActive = instructorDTO.Isactive ?? true;
                     Console.WriteLine($"IsActive value being used: {isActive}");
 
-                    // Use stored procedure to update instructor
                     _unitOfWork.instructorRepo.UpdateInstructor(
                         instructorDTO.InsId,
                         instructorDTO.Username,
@@ -200,7 +190,7 @@ namespace ExSystemProject.Controllers
                         instructorDTO.Gender,
                         instructorDTO.Salary ?? 0,
                         instructorDTO.TrackId ?? 0,
-                        isActive  // Pass the correct active status here
+                        isActive  
                     );
 
                     TempData["SuccessMessage"] = "Instructor updated successfully!";
@@ -214,7 +204,6 @@ namespace ExSystemProject.Controllers
             }
             else
             {
-                // Log ModelState errors for debugging
                 foreach (var state in ModelState)
                 {
                     foreach (var error in state.Value.Errors)
@@ -275,10 +264,8 @@ namespace ExSystemProject.Controllers
                 return NotFound();
             }
 
-            // Get instructor courses with student details
             var coursesData = _unitOfWork.instructorRepo.GetInstructorCoursesWithStudentCount(id);
 
-            // Pass instructor data to view
             var instructorDTO = _mapper.Map<InstructorDTO>(instructor);
 
             ViewBag.InstructorData = instructorDTO;
@@ -287,17 +274,14 @@ namespace ExSystemProject.Controllers
             return View();
         }
 
-        // Helper method to populate dropdowns for branches and tracks
         private void PopulateDropDowns(int? branchId = null)
         {
-            // Get all branches
             ViewBag.Branches = _unitOfWork.branchRepo.getAll().Select(b => new SelectListItem
             {
                 Text = b.BranchName,
                 Value = b.BranchId.ToString()
             }).ToList();
 
-            // Get tracks for selected branch
             if (branchId.HasValue)
             {
                 ViewBag.Tracks = _unitOfWork.trackRepo.GetTracksByBranchId(branchId.Value).Select(t => new SelectListItem
@@ -312,7 +296,6 @@ namespace ExSystemProject.Controllers
             }
         }
 
-        // Ajax endpoint to get tracks by branch id
         [HttpGet]
         public JsonResult GetTracksByBranch(int branchId)
         {

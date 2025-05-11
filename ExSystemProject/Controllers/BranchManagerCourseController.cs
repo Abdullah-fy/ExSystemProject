@@ -21,12 +21,10 @@ namespace ExSystemProject.Controllers
             _webHostEnvironment = webHostEnvironment;
         }
 
-        // GET: BranchManagerCourse
         public IActionResult Index(bool? active = true)
         {
             ViewData["Title"] = "Course Management";
 
-            // Get all courses where the instructor belongs to the branch manager's branch
             var courses = _unitOfWork.courseRepo.GetAllCourses(active)
                 .Where(c => c.Ins?.Track?.BranchId == CurrentBranchId)
                 .ToList();
@@ -39,13 +37,11 @@ namespace ExSystemProject.Controllers
         {
             var course = _unitOfWork.courseRepo.GetCourseById(id);
 
-            // Verify course exists and belongs to this branch
             if (course == null || course.Ins?.Track?.BranchId != CurrentBranchId)
             {
                 return NotFound();
             }
 
-            // Get related data
             var topics = _unitOfWork.topicRepo.GetTopicsByCourseId(id, null);
             var exams = _unitOfWork.courseRepo.GetExamsByCourseId(id);
 
@@ -59,7 +55,6 @@ namespace ExSystemProject.Controllers
         // GET: BranchManagerCourse/Create
         public IActionResult Create()
         {
-            // Get instructors from this branch only
             var instructors = _unitOfWork.instructorRepo.GetInstructorsByBranchWithBranch(CurrentBranchId, true);
 
             ViewBag.Instructors = new SelectList(instructors, "InsId", "User.Username");
@@ -74,7 +69,6 @@ namespace ExSystemProject.Controllers
         {
             if (ModelState.IsValid)
             {
-                // Verify instructor belongs to this branch
                 if (course.InsId.HasValue)
                 {
                     var instructor = _unitOfWork.instructorRepo.GetInstructorByIdWithBranch(course.InsId.Value);
@@ -89,9 +83,7 @@ namespace ExSystemProject.Controllers
 
                 try
                 {
-                    // Set default values
                     course.Isactive = true;
-                    // No poster handling at all
 
                     _unitOfWork.courseRepo.CreateCourse(course);
                     TempData["Success"] = "Course created successfully";
@@ -103,7 +95,6 @@ namespace ExSystemProject.Controllers
                 }
             }
 
-            // If we got this far, something failed; redisplay form
             var branchInstructors = _unitOfWork.instructorRepo.GetInstructorsByBranchWithBranch(CurrentBranchId, true);
             ViewBag.Instructors = new SelectList(branchInstructors, "InsId", "User.Username");
             return View(course);
@@ -115,13 +106,11 @@ namespace ExSystemProject.Controllers
         {
             var course = _unitOfWork.courseRepo.GetCourseById(id);
 
-            // Verify course exists and belongs to this branch
             if (course == null || course.Ins?.Track?.BranchId != CurrentBranchId)
             {
                 return NotFound();
             }
 
-            // Get instructors from this branch only
             var instructors = _unitOfWork.instructorRepo.GetInstructorsByBranchWithBranch(CurrentBranchId, true);
             ViewBag.Instructors = new SelectList(instructors, "InsId", "User.Username", course.InsId);
 
@@ -141,7 +130,6 @@ namespace ExSystemProject.Controllers
 
             if (ModelState.IsValid)
             {
-                // Verify instructor belongs to this branch
                 if (course.InsId.HasValue)
                 {
                     var instructor = _unitOfWork.instructorRepo.GetInstructorByIdWithBranch(course.InsId.Value);
@@ -156,17 +144,14 @@ namespace ExSystemProject.Controllers
 
                 try
                 {
-                    // Get the existing course to preserve any fields not in the form
                     var existingCourse = _unitOfWork.courseRepo.GetCourseById(id);
                     if (existingCourse == null)
                     {
                         return NotFound();
                     }
 
-                    // Keep the poster from existing course
                     course.Poster = existingCourse.Poster;
 
-                    // Make sure isActive is not null
                     course.Isactive = course.Isactive ?? existingCourse.Isactive ?? true;
 
                     _unitOfWork.courseRepo.UpdateCourse(course);
@@ -179,7 +164,6 @@ namespace ExSystemProject.Controllers
                 }
             }
 
-            // If we got this far, something failed; redisplay form
             var branchInstructors = _unitOfWork.instructorRepo.GetInstructorsByBranchWithBranch(CurrentBranchId, true);
             ViewBag.Instructors = new SelectList(branchInstructors, "InsId", "User.Username", course.InsId);
             return View(course);
@@ -191,7 +175,6 @@ namespace ExSystemProject.Controllers
         {
             var course = _unitOfWork.courseRepo.GetCourseById(id);
 
-            // Verify course exists and belongs to this branch
             if (course == null || course.Ins?.Track?.BranchId != CurrentBranchId)
             {
                 return NotFound();
@@ -208,7 +191,6 @@ namespace ExSystemProject.Controllers
         {
             var course = _unitOfWork.courseRepo.GetCourseById(id);
 
-            // Verify course exists and belongs to this branch
             if (course == null || course.Ins?.Track?.BranchId != CurrentBranchId)
             {
                 return NotFound();
@@ -232,13 +214,11 @@ namespace ExSystemProject.Controllers
         {
             var course = _unitOfWork.courseRepo.GetCourseById(id);
 
-            // Verify course exists and belongs to this branch
             if (course == null || course.Ins?.Track?.BranchId != CurrentBranchId)
             {
                 return NotFound();
             }
 
-            // Get topics for this course
             var topics = _unitOfWork.topicRepo.GetTopicsByCourseId(id, null);
 
             ViewBag.Course = course;
@@ -253,7 +233,6 @@ namespace ExSystemProject.Controllers
         {
             var course = _unitOfWork.courseRepo.GetCourseById(id);
 
-            // Verify course exists and belongs to this branch
             if (course == null || course.Ins?.Track?.BranchId != CurrentBranchId)
             {
                 return NotFound();
@@ -272,7 +251,6 @@ namespace ExSystemProject.Controllers
         {
             var course = _unitOfWork.courseRepo.GetCourseById(topic.CrsId ?? 0);
 
-            // Verify course exists and belongs to this branch
             if (course == null || course.Ins?.Track?.BranchId != CurrentBranchId)
             {
                 return NotFound();
@@ -306,7 +284,6 @@ namespace ExSystemProject.Controllers
         {
             var topic = _unitOfWork.topicRepo.GetTopicById(id);
 
-            // Verify topic exists and course belongs to this branch
             if (topic == null)
             {
                 return NotFound();
@@ -336,7 +313,6 @@ namespace ExSystemProject.Controllers
 
             var course = _unitOfWork.courseRepo.GetCourseById(topic.CrsId ?? 0);
 
-            // Verify course exists and belongs to this branch
             if (course == null || course.Ins?.Track?.BranchId != CurrentBranchId)
             {
                 return NotFound();
@@ -372,7 +348,6 @@ namespace ExSystemProject.Controllers
         {
             var topic = _unitOfWork.topicRepo.GetTopicById(id);
 
-            // Verify topic exists and course belongs to this branch
             if (topic == null)
             {
                 return NotFound();
@@ -405,7 +380,6 @@ namespace ExSystemProject.Controllers
 
             var courseId = topic.CrsId;
 
-            // Verify course exists and belongs to this branch
             var course = _unitOfWork.courseRepo.GetCourseById(courseId ?? 0);
             if (course == null || course.Ins?.Track?.BranchId != CurrentBranchId)
             {
